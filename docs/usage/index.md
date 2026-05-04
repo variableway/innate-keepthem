@@ -93,11 +93,19 @@ VYTDL_CONFIG=/path/to/config.json ./vYtDL download --no-tui "VIDEO_URL"
 
 ### Starting the App
 
+**Cross-platform (recommended):**
 ```bash
-# Mac/Linux
-cd vYtDL-desktop && ./scripts/start-desktop.sh
+cd vYtDL-desktop
+python scripts/start-desktop.py
+```
 
-# Windows
+**Mac/Linux:**
+```bash
+cd vYtDL-desktop && ./scripts/start-desktop.sh
+```
+
+**Windows:**
+```bash
 cd vYtDL-desktop && .\scripts\start-desktop.ps1
 ```
 
@@ -112,7 +120,16 @@ pnpm tauri:build
 
 - **Home** - Download form for entering URLs and selecting quality/format
 - **Library** - View download history and manage downloaded files
-- **Settings** - Configure yt-dlp path, download directory, and preferences
+- **Settings** - Configure yt-dlp path, download directory, preferences, and language
+
+### Changing Language
+
+1. Open the **Settings** page from the sidebar
+2. Scroll to the **Language** section
+3. Select your preferred language: English, 中文, or 日本語
+4. Click **Save** — the interface updates immediately
+
+Language files are stored as JSON in `apps/desktop/src/i18n/locales/` and can be extended with new languages by adding a new JSON file and registering it in `apps/desktop/src/i18n/index.tsx`.
 
 ## URL Extractor Usage
 

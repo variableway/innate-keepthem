@@ -24,7 +24,8 @@ innate-keepthem/
 │   ├── scripts/
 │   │   ├── start-desktop.sh  # Mac/Linux startup script
 │   │   ├── start-desktop.ps1 # Windows startup script
-│   │   └── vytdl-launcher.py # Python launcher
+│   │   ├── start-desktop.py  # Cross-platform startup script
+│   │   └── vytdl-launcher.py # Python launcher (dev/build/clean/schedule)
 │   ├── apps/desktop/         # Desktop app
 │   │   ├── src-tauri/        # Tauri v2 Rust backend
 │   │   │   └── src/
@@ -36,6 +37,9 @@ innate-keepthem/
 │   │   └── src/              # Next.js frontend
 │   │       ├── app/          # App Router pages
 │   │       ├── components/   # React components
+│   │       ├── i18n/         # Internationalization
+│   │       │   ├── index.tsx # I18n provider & hook
+│   │       │   └── locales/  # JSON language files
 │   │       ├── store/        # Zustand stores
 │   │       ├── lib/          # Utilities
 │   │       └── types/        # TypeScript types
@@ -123,6 +127,25 @@ States: `pending`, `running`, `succeeded`, `failed`
 }
 ```
 
+### Language File (JSON)
+
+Translation files use a flat nested-key structure:
+
+```json
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "home": {
+    "title": "Download",
+    "subtitle": "Download videos from YouTube and more"
+  }
+}
+```
+
+Looked up via dot-notation keys (e.g., `t("home.title")`).
+
 ## IPC Communication (Desktop)
 
 The desktop app uses Tauri's IPC system:
@@ -137,3 +160,11 @@ The desktop app uses Tauri's IPC system:
 - **downloadStore** (Zustand) - Tracks active downloads, progress, history
 - **settingsStore** (Zustand) - User preferences, yt-dlp config
 - **Tauri Storage** - Persistent storage adapter for settings
+
+## Internationalization (Desktop)
+
+- **I18nProvider** - React context providing locale state and `t()` translator
+- **useTranslation** - Hook for accessing locale, `setLocale`, and `t()`
+- **locales/** - JSON translation files per language
+- **Persistence** - Selected language saved to `localStorage` (`vytdl-language`)
+- **HTML lang attr** - Updated dynamically to match selected locale

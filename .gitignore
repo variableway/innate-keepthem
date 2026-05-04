@@ -9,4 +9,4 @@ node_modules/
 out/
 
 # Tauri / Rust
-**/src-tauri/target/
+**/src-tauri/target/__pycache__/

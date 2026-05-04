@@ -9,7 +9,7 @@
 - **Go 1.24+** - For building the CLI
 - **Node.js 18+** and **pnpm** - For the desktop app
 - **Rust** - For the Tauri desktop backend
-- **Python 3.6+** - For the URL extractor batch download script
+- **Python 3.6+** - For the URL extractor batch download script and the cross-platform desktop launcher
 
 ## vYtDL CLI
 
@@ -59,6 +59,12 @@ pnpm install
 
 ### Run in Development Mode
 
+**Cross-platform (all OS):**
+```bash
+cd vYtDL-desktop
+python scripts/start-desktop.py
+```
+
 **Mac/Linux:**
 ```bash
 ./scripts/start-desktop.sh
@@ -81,6 +87,15 @@ pnpm tauri:dev
 cd vYtDL-desktop
 pnpm tauri:build
 ```
+
+### Switching Languages
+
+The desktop app supports multiple languages. Open **Settings** and select your preferred language from the **Language** dropdown. Languages are stored in JSON files under `apps/desktop/src/i18n/locales/`.
+
+Supported languages:
+- English (`en`)
+- 中文 (`zh`)
+- 日本語 (`ja`)
 
 ## URL Extractor (Chrome Extension)
 

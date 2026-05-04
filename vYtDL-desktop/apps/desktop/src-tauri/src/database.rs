@@ -1,6 +1,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::{sqlite::SqlitePoolOptions, Pool, Sqlite};
+use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
+use sqlx::{Pool, Sqlite};
+use std::path::Path;
 use tauri::{AppHandle, Manager};
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::Type)]
@@ -37,22 +39,52 @@ pub struct Database {
 }
 
 impl Database {
+    pub async fn new_with_path(db_path: &Path) -> Result<Self, sqlx::Error> {
+        let parent = db_path.parent().ok_or_else(|| {
+            sqlx::Error::Io(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "Invalid database path: no parent directory",
+            ))
+        })?;
+
+        std::fs::create_dir_all(parent).map_err(|e| {
+            sqlx::Error::Io(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Failed to create database directory: {}", e),
+            ))
+        })?;
+
+        let options = SqliteConnectOptions::new()
+            .filename(db_path)
+            .create_if_missing(true);
+
+        let pool = SqlitePoolOptions::new()
+            .max_connections(5)
+            .connect_with(options)
+            .await?;
+
+        Ok(Self { pool })
+    }
+
     pub async fn new(app: &AppHandle) -> Result<Self, sqlx::Error> {
         let app_dir = app
             .path()
             .app_data_dir()
-            .expect("Failed to get app data dir");
-        
-        std::fs::create_dir_all(&app_dir).expect("Failed to create app data dir");
-        
+            .unwrap_or_else(|_| {
+                dirs::data_dir()
+                    .unwrap_or_else(|| std::env::current_dir().unwrap_or_default())
+                    .join("com.vytdl.desktop")
+            });
+
         let db_path = app_dir.join("vytdl.db");
-        let database_url = format!("sqlite:{}", db_path.to_str().unwrap());
-        
+        Self::new_with_path(&db_path).await
+    }
+
+    pub async fn new_in_memory() -> Result<Self, sqlx::Error> {
         let pool = SqlitePoolOptions::new()
-            .max_connections(5)
-            .connect(&database_url)
+            .max_connections(1)
+            .connect_with(SqliteConnectOptions::new())
             .await?;
-        
         Ok(Self { pool })
     }
 
@@ -241,6 +273,36 @@ impl Database {
             "#,
         )
         .bind(id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    // Settings helpers
+    pub async fn get_setting(&self, key: &str) -> Result<Option<String>, sqlx::Error> {
+        let row: Option<(String,)> = sqlx::query_as(
+            "SELECT value FROM settings WHERE key = ?1"
+        )
+        .bind(key)
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(row.map(|r| r.0))
+    }
+
+    pub async fn set_setting(&self, key: &str, value: &str) -> Result<(), sqlx::Error> {
+        sqlx::query(
+            r#"
+            INSERT INTO settings (key, value, updated_at)
+            VALUES (?1, ?2, CURRENT_TIMESTAMP)
+            ON CONFLICT(key) DO UPDATE SET
+                value = excluded.value,
+                updated_at = CURRENT_TIMESTAMP
+            "#,
+        )
+        .bind(key)
+        .bind(value)
         .execute(&self.pool)
         .await?;
 

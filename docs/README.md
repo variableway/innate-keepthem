@@ -16,5 +16,11 @@ Documentation for the vYtDL project - a YouTube downloader suite with CLI, deskt
 ## Project Components
 
 - **vYtDL** - Go CLI for downloading YouTube videos and playlists
-- **vYtDL Desktop** - Cross-platform desktop app (Tauri v2 + Next.js + React 19)
+- **vYtDL Desktop** - Cross-platform desktop app (Tauri v2 + Next.js + React 19) with multi-language support
 - **URL Extractor** - Chrome extension for extracting video URLs from YouTube pages
+
+## Recent Updates
+
+- Added unified cross-platform desktop launcher (`start-desktop.py`)
+- Added Japanese language support to the desktop app
+- Expanded i18n system with JSON-based language files

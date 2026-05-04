@@ -115,7 +115,8 @@
     "loading": "Loading settings...",
     "language": "Language",
     "languageEn": "English",
-    "languageZh": "中文"
+    "languageZh": "中文",
+    "languageJa": "日本語"
   },
   "player": {
     "infoTab": "Info",

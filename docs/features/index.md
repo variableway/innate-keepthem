@@ -48,12 +48,21 @@
 - macOS, Linux, and Windows support
 - Native desktop integration via Tauri v2
 - System tray and window management
+- Single cross-platform launcher script (`start-desktop.py`)
 
 ### Settings
 
 - yt-dlp binary path configuration
 - Default download directory
 - Quality and format preferences
+- AI provider configuration for video summarization
+
+### Multiple Language Support
+
+- Built-in internationalization (i18n) system
+- JSON-based language files for easy extension
+- Language selector in Settings
+- Supported languages: English, 中文 (Chinese), 日本語 (Japanese)
 
 ## URL Extractor Features
 

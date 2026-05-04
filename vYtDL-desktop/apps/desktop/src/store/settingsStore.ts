@@ -25,6 +25,7 @@ const defaultSettings: Settings = {
   default_quality: "best",
   default_format: "mp4",
   default_sub_langs: ["en", "zh"],
+  language: "zh",
   ai_provider: null,
   ai_api_key: null,
   ai_model: null,

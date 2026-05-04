@@ -4,16 +4,18 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 
 import en from "./locales/en.json";
 import zh from "./locales/zh.json";
+import ja from "./locales/ja.json";
 
-export type Locale = "en" | "zh";
+export type Locale = "en" | "zh" | "ja";
 
 const translations: Record<Locale, Record<string, unknown>> = {
   en,
   zh,
+  ja,
 };
 
 const STORAGE_KEY = "vytdl-language";
-const DEFAULT_LOCALE: Locale = "en";
+const DEFAULT_LOCALE: Locale = "zh";
 
 function getNestedValue(obj: Record<string, unknown>, path: string): string | undefined {
   const keys = path.split(".");

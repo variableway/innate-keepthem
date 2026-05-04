@@ -68,6 +68,19 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 2. Ensure all npm dependencies are installed: `pnpm install`
 3. Clear and rebuild: `rm -rf node_modules && pnpm install`
 
+### Language not changing
+
+- Make sure you click **Save** after selecting a new language in Settings
+- If the UI doesn't update, try restarting the app
+- Language preference is stored in `localStorage` under the key `vytdl-language`
+
+### Adding a new language
+
+1. Create a new JSON file in `apps/desktop/src/i18n/locales/` (e.g., `es.json`)
+2. Copy the structure from `en.json` and translate the values
+3. Import the file in `apps/desktop/src/i18n/index.tsx` and add it to the `translations` map
+4. Add the new locale option in `apps/desktop/src/app/settings/page.tsx`
+
 ## Chrome Extension Issues
 
 ### Extension cannot get video list

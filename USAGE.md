@@ -2,6 +2,8 @@
 
 ## Quick Start
 
+### CLI
+
 Build the binary:
 
 ```bash
@@ -13,11 +15,9 @@ The default `yt-dlp` binary path is configured in `vYtDL/config.json`:
 
 ```json
 {
-  "yt_dlp_bin": "/Applications/ServBay/package/python/3.14/3.14.0b1/Python.framework/Versions/3.14/bin/yt-dlp"
+  "yt_dlp_bin": "/opt/homebrew/bin/yt-dlp"
 }
 ```
-
-If your local `yt-dlp` is somewhere else, edit `config.json`. You only need `--yt-dlp-bin` when you want to override that config for one command.
 
 Common `yt_dlp_bin` values:
 
@@ -67,7 +67,7 @@ Download a full YouTube playlist or collection:
 ./vYtDL download --no-tui \
   --playlist \
   --output ./downloads \
-  "https://www.youtube.com/playlist?list=PL2C4A8A7A6F3A5D3C"
+  "https://www.youtube.com/playlist?list=PLAYLIST_ID"
 ```
 
 Collection download with custom quality and CSV logs:
@@ -78,7 +78,7 @@ Collection download with custom quality and CSV logs:
   --quality 720 \
   --log-format csv \
   --output ./downloads \
-  "https://www.youtube.com/playlist?list=PL2C4A8A7A6F3A5D3C"
+  "https://www.youtube.com/playlist?list=PLAYLIST_ID"
 ```
 
 What happens:
@@ -108,7 +108,7 @@ Resume example:
 ./vYtDL download --no-tui \
   --playlist \
   --output ./downloads \
-  "https://www.youtube.com/playlist?list=PL2C4A8A7A6F3A5D3C"
+  "https://www.youtube.com/playlist?list=PLAYLIST_ID"
 ```
 
 If the run stops halfway, just run the exact same command again. vYtDL will resume from the remaining failed or unfinished items.
@@ -126,7 +126,7 @@ Start the playlist from scratch and ignore the saved state:
   --playlist \
   --reset-playlist-state \
   --output ./downloads \
-  "https://www.youtube.com/playlist?list=PL2C4A8A7A6F3A5D3C"
+  "https://www.youtube.com/playlist?list=PLAYLIST_ID"
 ```
 
 ## Shell Scripts
@@ -146,17 +146,49 @@ Single video with custom quality:
 Collection:
 
 ```bash
-./scripts/download_collection.sh "https://www.youtube.com/playlist?list=PL2C4A8A7A6F3A5D3C" ./downloads
+./scripts/download_collection.sh "https://www.youtube.com/playlist?list=PLAYLIST_ID" ./downloads
 ```
 
 Collection with custom quality:
 
 ```bash
-./scripts/download_collection.sh "https://www.youtube.com/playlist?list=PL2C4A8A7A6F3A5D3C" ./downloads 720
+./scripts/download_collection.sh "https://www.youtube.com/playlist?list=PLAYLIST_ID" ./downloads 720
 ```
 
 The shell script resume behavior is the same as the CLI. Re-run the same script command and it will continue from unfinished playlist items.
 Both `download_video.sh` and `download_collection.sh` also check for `yt-dlp`/`youtube-dl` in PATH before running.
+
+## Desktop App
+
+### Start in Development Mode
+
+Cross-platform (recommended):
+
+```bash
+cd vYtDL-desktop
+python scripts/start-desktop.py
+```
+
+Platform-specific:
+
+```bash
+./scripts/start-desktop.sh       # Mac/Linux
+.\scripts\start-desktop.ps1      # Windows
+```
+
+### Build for Production
+
+```bash
+cd vYtDL-desktop
+pnpm tauri:build
+```
+
+### Changing Language
+
+Open **Settings** and select your preferred language from the **Language** dropdown. Supported languages:
+- English
+- 中文 (Chinese)
+- 日本語 (Japanese)
 
 ## Output Files
 
@@ -194,7 +226,7 @@ The playlist state file includes:
 
 ## Recovery Options
 
-If YouTube blocks anonymous extraction, use the recovery flags from `help.md`:
+If YouTube blocks anonymous extraction, use the recovery flags:
 
 ```bash
 ./vYtDL download --no-tui \

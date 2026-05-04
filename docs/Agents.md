@@ -6,7 +6,7 @@ This document provides context for AI agents working on the vYtDL codebase.
 
 vYtDL is a YouTube downloader suite with three components:
 - **vYtDL CLI** - Go-based CLI wrapping yt-dlp
-- **vYtDL Desktop** - Tauri v2 + Next.js + React 19 desktop app
+- **vYtDL Desktop** - Tauri v2 + Next.js + React 19 desktop app with i18n support
 - **URL Extractor** - Chrome extension for URL extraction
 
 ## Technology Stack
@@ -23,6 +23,7 @@ vYtDL is a YouTube downloader suite with three components:
 - **Build**: pnpm monorepo (apps/desktop, packages/ui, packages/utils)
 - **State**: Zustand stores (downloadStore, settingsStore)
 - **Storage**: Tauri storage adapter
+- **i18n**: Custom React context with JSON locale files (`src/i18n/`)
 
 ### URL Extractor (url-extractor/)
 - **Chrome Extension**: Manifest V3
@@ -71,13 +72,14 @@ yt-dlp subprocess (via Tauri Rust backend)
 
 ### Desktop (vYtDL-desktop/)
 
-- `apps/desktop/src/app/` - Next.js pages (home, settings, library)
+- `apps/desktop/src/app/` - Next.js pages (home, settings, library, player)
 - `apps/desktop/src/components/` - React components
+- `apps/desktop/src/i18n/` - Internationalization (provider, hook, locale JSON files)
 - `apps/desktop/src/store/` - Zustand stores
 - `apps/desktop/src-tauri/src/` - Rust backend (commands, downloader, database)
 - `packages/ui/` - Shared UI components
 - `packages/utils/` - Shared utilities
-- `scripts/` - Startup scripts (start-desktop.sh, start-desktop.ps1)
+- `scripts/` - Startup scripts (start-desktop.sh, start-desktop.ps1, start-desktop.py, vytdl-launcher.py)
 
 ### URL Extractor (url-extractor/)
 
@@ -99,6 +101,14 @@ yt-dlp subprocess (via Tauri Rust backend)
 2. Add frontend API call via `@tauri-apps/api`
 3. Build React component in `src/components/`
 4. Wire into Zustand store if state management needed
+5. Add translation keys to all locale JSON files in `src/i18n/locales/`
+
+### Adding a New Language
+
+1. Create a new JSON file in `apps/desktop/src/i18n/locales/` (copy from `en.json`)
+2. Translate all values
+3. Import and register in `apps/desktop/src/i18n/index.tsx`
+4. Add option in `apps/desktop/src/app/settings/page.tsx`
 
 ### Modifying Download Behavior
 
@@ -111,3 +121,4 @@ yt-dlp subprocess (via Tauri Rust backend)
 - TypeScript: ESLint + Prettier
 - Test files: `*_test.go` (Go), `*.test.ts` (TypeScript)
 - JSON config: simple key-value, no nested structures
+- JSON locale files: nested object structure with dot-notation keys

@@ -49,9 +49,20 @@ export default function SettingsPage() {
     }
   }, [settings]);
 
+  // Sync i18n locale once when settings are first loaded from backend
+  const [localeSynced, setLocaleSynced] = useState(false);
+  useEffect(() => {
+    if (!localeSynced && settings?.language) {
+      setLocale(settings.language as Locale);
+      setLocaleSynced(true);
+    }
+  }, [settings, localeSynced, setLocale]);
+
   const handleSave = async () => {
     if (!localSettings) return;
     setSaveStatus("idle");
+    // Ensure locale is synced before saving
+    setLocale(localSettings.language as Locale);
     await updateSettings(localSettings);
     if (useSettingsStore.getState().error) {
       setSaveStatus("error");
@@ -132,11 +143,16 @@ export default function SettingsPage() {
               <select
                 id="language"
                 value={locale}
-                onChange={(e) => setLocale(e.target.value as Locale)}
+                onChange={(e) => {
+                  const lang = e.target.value as Locale;
+                  setLocale(lang);
+                  updateField("language", lang);
+                }}
                 className="w-full h-10 rounded-md border border-input bg-background px-3"
               >
                 <option value="en">{t("settings.languageEn")}</option>
                 <option value="zh">{t("settings.languageZh")}</option>
+                <option value="ja">{t("settings.languageJa")}</option>
               </select>
             </div>
 

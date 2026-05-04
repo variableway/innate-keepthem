@@ -205,32 +205,85 @@ pub struct Settings {
     pub default_quality: String,
     pub default_format: String,
     pub default_sub_langs: Vec<String>,
+    pub language: String,
     pub ai_provider: Option<String>,
     pub ai_api_key: Option<String>,
     pub ai_model: Option<String>,
 }
 
 #[tauri::command]
-pub async fn get_settings() -> Result<ApiResponse<Settings>, String> {
-    // TODO: Load from persistent storage
+pub async fn get_settings(
+    db: State<'_, Database>,
+) -> Result<ApiResponse<Settings>, String> {
+    // Load from database if available, otherwise use defaults
+    let language = db.get_setting("language").await.unwrap_or(None).unwrap_or_else(|| "zh".to_string());
+    let yt_dlp_path = db.get_setting("yt_dlp_path").await.unwrap_or(None);
+    let default_output_dir = db.get_setting("default_output_dir").await.unwrap_or(None);
+    let default_quality = db.get_setting("default_quality").await.unwrap_or(None).unwrap_or_else(|| "best".to_string());
+    let default_format = db.get_setting("default_format").await.unwrap_or(None).unwrap_or_else(|| "mp4".to_string());
+    let default_sub_langs_str = db.get_setting("default_sub_langs").await.unwrap_or(None).unwrap_or_else(|| "[\"en\",\"zh\"]".to_string());
+    let default_sub_langs: Vec<String> = serde_json::from_str(&default_sub_langs_str).unwrap_or_else(|_| vec!["en".to_string(), "zh".to_string()]);
+    let ai_provider = db.get_setting("ai_provider").await.unwrap_or(None);
+    let ai_api_key = db.get_setting("ai_api_key").await.unwrap_or(None);
+    let ai_model = db.get_setting("ai_model").await.unwrap_or(None);
+
     let settings = Settings {
-        yt_dlp_path: None,
-        default_output_dir: None,
-        default_quality: "best".to_string(),
-        default_format: "mp4".to_string(),
-        default_sub_langs: vec!["en".to_string(), "zh".to_string()],
-        ai_provider: None,
-        ai_api_key: None,
-        ai_model: None,
+        yt_dlp_path,
+        default_output_dir,
+        default_quality,
+        default_format,
+        default_sub_langs,
+        language,
+        ai_provider,
+        ai_api_key,
+        ai_model,
     };
     Ok(ApiResponse::ok(settings))
 }
 
 #[tauri::command]
 pub async fn update_settings(
+    db: State<'_, Database>,
     settings: Settings,
 ) -> Result<ApiResponse<()>, String> {
-    // TODO: Save to persistent storage
+    if let Err(e) = db.set_setting("language", &settings.language).await {
+        return Ok(ApiResponse::err(format!("Failed to save language: {}", e)));
+    }
+    if let Some(ref path) = settings.yt_dlp_path {
+        if let Err(e) = db.set_setting("yt_dlp_path", path).await {
+            return Ok(ApiResponse::err(format!("Failed to save yt-dlp path: {}", e)));
+        }
+    }
+    if let Some(ref dir) = settings.default_output_dir {
+        if let Err(e) = db.set_setting("default_output_dir", dir).await {
+            return Ok(ApiResponse::err(format!("Failed to save output dir: {}", e)));
+        }
+    }
+    if let Err(e) = db.set_setting("default_quality", &settings.default_quality).await {
+        return Ok(ApiResponse::err(format!("Failed to save quality: {}", e)));
+    }
+    if let Err(e) = db.set_setting("default_format", &settings.default_format).await {
+        return Ok(ApiResponse::err(format!("Failed to save format: {}", e)));
+    }
+    let sub_langs_json = serde_json::to_string(&settings.default_sub_langs).unwrap_or_else(|_| "[\"en\",\"zh\"]".to_string());
+    if let Err(e) = db.set_setting("default_sub_langs", &sub_langs_json).await {
+        return Ok(ApiResponse::err(format!("Failed to save sub langs: {}", e)));
+    }
+    if let Some(ref provider) = settings.ai_provider {
+        if let Err(e) = db.set_setting("ai_provider", provider).await {
+            return Ok(ApiResponse::err(format!("Failed to save AI provider: {}", e)));
+        }
+    }
+    if let Some(ref key) = settings.ai_api_key {
+        if let Err(e) = db.set_setting("ai_api_key", key).await {
+            return Ok(ApiResponse::err(format!("Failed to save API key: {}", e)));
+        }
+    }
+    if let Some(ref model) = settings.ai_model {
+        if let Err(e) = db.set_setting("ai_model", model).await {
+            return Ok(ApiResponse::err(format!("Failed to save model: {}", e)));
+        }
+    }
     Ok(ApiResponse::ok(()))
 }
 

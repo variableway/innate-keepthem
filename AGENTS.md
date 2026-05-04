@@ -4,16 +4,35 @@ This document provides context for AI agents working on the vYtDL codebase.
 
 ## Project Overview
 
-vYtDL is a Go-based YouTube downloader CLI that wraps yt-dlp. It provides a user-friendly interface with TUI support, playlist management, and download tracking.
+vYtDL is a YouTube downloader suite with three components:
+- **vYtDL CLI** - Go-based CLI wrapping yt-dlp
+- **vYtDL Desktop** - Tauri v2 + Next.js + React 19 desktop app with i18n support
+- **URL Extractor** - Chrome extension for URL extraction
 
 ## Technology Stack
 
+### CLI (vYtDL/)
 - **Language**: Go 1.24+
 - **CLI Framework**: spf13/cobra
 - **TUI Framework**: charmbracelet/bubbletea + lipgloss
-- **External Dependency**: yt-dlp (Python-based, called as subprocess)
+- **External Dependency**: yt-dlp (called as subprocess)
+
+### Desktop (vYtDL-desktop/)
+- **Frontend**: Next.js + React 19 + TypeScript + Tailwind CSS
+- **Desktop Shell**: Tauri v2 (Rust backend)
+- **Build**: pnpm monorepo (apps/desktop, packages/ui, packages/utils)
+- **State**: Zustand stores (downloadStore, settingsStore)
+- **Storage**: Tauri storage adapter + SQLite database
+- **i18n**: Custom React context with JSON locale files (`src/i18n/`)
+
+### URL Extractor (url-extractor/)
+- **Chrome Extension**: Manifest V3
+- **Frontend**: Vanilla HTML/CSS/JS
+- **Batch Script**: Python 3.6+
 
 ## Architecture
+
+### CLI
 
 ```
 main.go → cmd.Execute() → cmd/root.go
@@ -25,84 +44,84 @@ main.go → cmd.Execute() → cmd/root.go
                     record.Manager → JSON/CSV output files
 ```
 
-## Key Modules
+### Desktop
 
-### cmd/
-- `root.go` - Cobra root command, application metadata
-- `download.go` - All CLI flags, download orchestration, TUI coordination
-- `download.go` now performs a preflight yt-dlp binary check before running downloads and returns OS-specific install hints when missing
-
-### internal/config/
-- Loads `config.json` for yt-dlp binary path
-- Simple JSON unmarshaling, no complex validation
-
-### internal/downloader/
-- Core download logic, wraps yt-dlp as subprocess
-- `Options` struct holds all download parameters
-- `ProgressUpdate` channel feeds TUI
-- Handles single video and playlist modes
-- URL normalization (fixes escaped characters in URLs)
-
-### internal/playliststate/
-- Manages `.playlist_state.json` for resume capability
-- States: `pending`, `running`, `succeeded`, `failed`
-- Persists after each video download attempt
-
-### internal/record/
-- Manages `download_record.json/csv` and `subtitle_mapping.json/csv`
-- Aggregates results, flushes at end of run
-
-### internal/tui/
-- bubbletea-based terminal UI
-- Displays progress bars, status, errors
-
-## Important Patterns
-
-### Progress Channel Pattern
-```go
-progressCh := make(chan downloader.ProgressUpdate, 100)
-go func() {
-    for upd := range progressCh {
-        // Handle progress updates
-    }
-}()
-dl := downloader.New(opts, progressCh)
+```
+Next.js App Router
+    ↓
+React Components (download-form, download-list, app-shell, app-sidebar)
+    ↓
+Zustand Stores (downloadStore, settingsStore)
+    ↓
+Tauri IPC (commands.rs → downloader.rs, database.rs)
+    ↓
+yt-dlp subprocess (via Tauri Rust backend)
 ```
 
-### yt-dlp Command Construction
-Commands are built in `internal/downloader/downloader.go`. Key flags passed through:
-- `--format`, `--quality` for video selection
-- `--write-subs`, `--sub-langs` for subtitles
-- `--download-sections` for time ranges
-- `--proxy`, `--cookies`, `--user-agent` for network recovery
+## Key Modules
 
-### Playlist Resume Logic
-1. Fetch full playlist metadata first
-2. Check `.playlist_state.json` in playlist directory
-3. Skip already `succeeded` items
-4. Update state after each download attempt
-5. `--reset-playlist-state` flag clears saved state
+### CLI (vYtDL/)
+
+- `cmd/root.go` - Cobra root command
+- `cmd/download.go` - CLI flags, download orchestration, TUI coordination
+- `internal/config/` - Loads `config.json` for yt-dlp binary path
+- `internal/downloader/` - Core download logic, wraps yt-dlp as subprocess
+- `internal/playliststate/` - Manages `.playlist_state.json` for resume
+- `internal/record/` - Manages download_record and subtitle_mapping files
+- `internal/tui/` - bubbletea-based terminal UI
+
+### Desktop (vYtDL-desktop/)
+
+- `apps/desktop/src/app/` - Next.js pages (home, settings, library, player)
+- `apps/desktop/src/components/` - React components
+- `apps/desktop/src/i18n/` - Internationalization (provider, hook, locale JSON files)
+- `apps/desktop/src/store/` - Zustand stores
+- `apps/desktop/src-tauri/src/` - Rust backend (commands, downloader, database)
+- `packages/ui/` - Shared UI components
+- `packages/utils/` - Shared utilities
+- `scripts/` - Startup scripts (start-desktop.sh, start-desktop.ps1, start-desktop.py, vytdl-launcher.py)
+
+### URL Extractor (url-extractor/)
+
+- `manifest.json` - Chrome extension config (Manifest V3)
+- `popup.html/js/css` - Extension popup UI
+- `content.js` - Content script for URL extraction from YouTube pages
 
 ## Common Tasks
 
 ### Adding a New CLI Flag
+
 1. Add flag variable in `cmd/download.go` init()
 2. Add to `downloader.Options` struct
 3. Pass through to yt-dlp in `internal/downloader/downloader.go`
 
-### Modifying Download Behavior
-Edit `internal/downloader/downloader.go`:
-- `DownloadSingle()` for single videos
-- `DownloadPlaylist()` for collections
+### Adding a Desktop Feature
 
-### Changing Output Format
-Modify `internal/record/record.go` for record/mapping file changes.
+1. Add Rust command in `src-tauri/src/commands.rs`
+2. Add frontend API call via `@tauri-apps/api`
+3. Build React component in `src/components/`
+4. Wire into Zustand store if state management needed
+5. Add translation keys to all locale JSON files in `src/i18n/locales/`
+
+### Adding a New Language
+
+1. Create a new JSON file in `apps/desktop/src/i18n/locales/` (copy from `en.json`)
+2. Translate all values
+3. Import and register in `apps/desktop/src/i18n/index.tsx`
+4. Add option in `apps/desktop/src/app/settings/page.tsx`
+
+### Modifying Download Behavior
+
+- CLI: Edit `internal/downloader/downloader.go`
+- Desktop: Edit `src-tauri/src/downloader.rs`
 
 ## File Conventions
 
 - Go files: standard Go formatting, no external formatters required
-- Test files: `*_test.go` alongside source files
+- TypeScript: ESLint + Prettier
+- Test files: `*_test.go` (Go), `*.test.ts` (TypeScript)
 - JSON config: simple key-value, no nested structures
+- JSON locale files: nested object structure with dot-notation keys
 
 ## Shell Scripts
 
@@ -112,9 +131,13 @@ Located in `vYtDL/scripts/`:
 - `build.sh` - Cross-build helper for macOS/Linux/Windows targets
 - `build.ps1` - Cross-build helper for macOS/Linux/Windows targets on PowerShell
 
-Download wrapper scripts now validate `yt-dlp`/`youtube-dl` availability before calling `go run .`.
+Located in `vYtDL-desktop/scripts/`:
+- `start-desktop.sh` - Mac/Linux desktop startup
+- `start-desktop.ps1` - Windows desktop startup
+- `start-desktop.py` - Cross-platform desktop launcher
+- `vytdl-launcher.py` - Python launcher (dev/build/clean/schedule)
 
-Both use `go run .` for development convenience.
+Download wrapper scripts validate `yt-dlp`/`youtube-dl` availability before running.
 
 ## Known Issues
 

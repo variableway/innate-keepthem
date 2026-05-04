@@ -1,9 +1,10 @@
-# vYtDL - YouTube Downloader
+# vYtDL - YouTube Downloader Suite
 
-A command-line YouTube video and playlist downloader built with Go, powered by yt-dlp.
+A complete YouTube downloading toolkit with CLI, desktop app, and browser extension. Powered by yt-dlp.
 
 ## Features
 
+### CLI
 - Single video or full playlist/collection download
 - Format selection (mp4, webm, mkv, etc.)
 - Quality selection (720p, 1080p, 2160p, etc.)
@@ -14,143 +15,92 @@ A command-line YouTube video and playlist downloader built with Go, powered by y
 - Interactive TUI with live progress bars
 - Playlist resume capability - continue interrupted downloads
 
+### Desktop App
+- Cross-platform GUI (macOS, Linux, Windows)
+- Built with Tauri v2 + Next.js + React 19
+- Download management and history library
+- Settings and configuration persistence
+- AI-powered video summarization
+- Multiple language support (English, 中文, 日本語)
+- Cross-platform Python launcher script
+
+### URL Extractor (Chrome Extension)
+- Extract video URLs from YouTube channel and playlist pages
+- Filter by count, include/exclude keywords
+- Export selected URLs to text file
+- Batch download support
+
 ## Requirements
 
-- Go 1.24+
-- yt-dlp (installed and accessible)
+- **Go 1.24+** - For the CLI
+- **Node.js 18+** and **pnpm** - For the desktop app
+- **Rust** - For the Tauri desktop backend
+- **yt-dlp** - Required by CLI and Desktop
+- **Python 3.6+** - For cross-platform launcher and batch scripts
 
 ## Installation
 
-Build from source:
+### CLI
 
 ```bash
 cd vYtDL
 go build -o vYtDL .
 ```
 
-## Quick Start
-
-Download a single video:
+### Desktop App
 
 ```bash
-./vYtDL download --no-tui "https://www.youtube.com/watch?v=VIDEO_ID"
+cd vYtDL-desktop
+pnpm install
 ```
 
-Download a playlist:
+### Chrome Extension
+
+1. Open Chrome, navigate to `chrome://extensions/`
+2. Enable **Developer mode**
+3. Click **Load unpacked**
+4. Select the `url-extractor/` directory
+
+## Quick Start
+
+### CLI
 
 ```bash
-./vYtDL download --no-tui --playlist --output ./downloads "https://www.youtube.com/playlist?list=PLAYLIST_ID"
+# Download a single video
+./vYtDL download --no-tui "https://www.youtube.com/watch?v=VIDEO_ID"
+
+# Download a playlist
+./vYtDL download --no-tui --playlist --output ./downloads "PLAYLIST_URL"
+```
+
+### Desktop App
+
+```bash
+# Cross-platform launcher (all OS)
+cd vYtDL-desktop
+python scripts/start-desktop.py
+
+# Or platform-specific scripts
+./scripts/start-desktop.sh      # Mac/Linux
+.\scripts\start-desktop.ps1     # Windows
 ```
 
 ## Usage
 
-### Single Video Download
-
-```bash
-./vYtDL download [flags] <url>
-```
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `-f, --format` | mp4 | Output container format |
-| `-q, --quality` | best | Video quality (720, 1080, 2160) |
-| `--start` | - | Clip start time (HH:MM:SS or seconds) |
-| `--end` | - | Clip end time (HH:MM:SS or seconds) |
-| `-o, --output` | . | Output directory |
-| `--sub-langs` | en,zh | Comma-separated subtitle languages |
-| `--no-subs` | false | Disable subtitle download |
-| `--no-auto-subs` | false | Disable auto-generated subtitles |
-| `--no-tui` | false | Disable TUI, print plain output |
-| `--log-format` | json | Record format (json or csv) |
-
-### Playlist Download
-
-Add `--playlist` or `-p` flag to download all videos in a playlist:
-
-```bash
-./vYtDL download --no-tui --playlist --output ./downloads "PLAYLIST_URL"
-```
-
-Resume interrupted downloads by running the same command again. Use `--reset-playlist-state` to start fresh.
-
-### Network Recovery Options
-
-If YouTube blocks anonymous extraction:
-
-```bash
-./vYtDL download --no-tui \
-  --cookies-from-browser chrome \
-  --extractor-args "youtube:player_client=web,android" \
-  --force-ipv4 \
-  --socket-timeout 30 \
-  --retries 10 \
-  "VIDEO_URL"
-```
-
-## Shell Scripts
-
-Two convenience scripts are provided in `vYtDL/scripts/`:
-
-**Single video:**
-
-```bash
-./scripts/download_video.sh "VIDEO_URL" ./downloads [quality]
-```
-
-**Collection/Playlist:**
-
-```bash
-./scripts/download_collection.sh "PLAYLIST_URL" ./downloads [quality]
-```
-
-## Output Files
-
-Each run generates:
-
-- `download_record.json` or `.csv` - Download status log with success/failure info
-- `subtitle_mapping.json` or `.csv` - Maps videos to their subtitle files
-- `.playlist_state.json` - Playlist progress state (for resume capability)
-
-## Configuration
-
-Edit `vYtDL/config.json` to set the default yt-dlp binary path:
-
-```json
-{
-  "yt_dlp_bin": "/path/to/yt-dlp"
-}
-```
-
-Examples:
-
-- macOS (Homebrew): `/opt/homebrew/bin/yt-dlp` or `/usr/local/bin/yt-dlp`
-- Linux: `/usr/bin/yt-dlp` or `/usr/local/bin/yt-dlp`
-- Windows 11: `C:\\Users\\<you>\\AppData\\Local\\Microsoft\\WinGet\\Links\\yt-dlp.exe`
-
-You can also use a project-specific config file:
-
-```bash
-VYTDL_CONFIG=/absolute/path/to/config.json ./vYtDL download --no-tui "VIDEO_URL"
-```
-
-Override per-command with `--yt-dlp-bin`.
+See [USAGE.md](USAGE.md) for detailed CLI usage and [docs/](docs/) for full project documentation.
 
 ## Project Structure
 
 ```
-vYtDL/
-├── cmd/
-│   ├── root.go        # CLI entry point
-│   └── download.go    # Download command
-├── internal/
-│   ├── config/        # Configuration loading
-│   ├── downloader/    # Core download logic
-│   ├── playliststate/ # Playlist resume state
-│   ├── record/        # Download record management
-│   └── tui/           # Terminal UI
-├── scripts/           # Shell script helpers
-├── main.go            # Application entry
-└── config.json        # Default configuration
+├── vYtDL/                    # Go CLI application
+├── vYtDL-desktop/            # Desktop app (Tauri + Next.js monorepo)
+│   ├── apps/desktop/         # Desktop application
+│   ├── packages/ui/          # Shared UI components
+│   ├── packages/utils/       # Shared utilities
+│   └── scripts/              # Startup scripts
+├── url-extractor/            # Chrome extension
+├── docs/                     # Documentation
+└── tasks/                    # Task definitions (PRDs)
 ```
 
 ## License

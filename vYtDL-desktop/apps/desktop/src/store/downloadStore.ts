@@ -44,10 +44,10 @@ export const useDownloadStore = create<DownloadState>()(
           if (response.success && response.data) {
             set({ downloads: response.data });
           } else {
-            set({ error: response.error || "Failed to fetch downloads" });
+            set({ downloads: [], error: response.error || "Failed to fetch downloads" });
           }
         } catch (err) {
-          set({ error: String(err) });
+          set({ downloads: [], error: String(err) });
         } finally {
           set({ isLoading: false });
         }

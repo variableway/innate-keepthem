@@ -67,6 +67,7 @@ export interface Settings {
   default_quality: string;
   default_format: string;
   default_sub_langs: string[];
+  language: string;
   ai_provider: string | null;
   ai_api_key: string | null;
   ai_model: string | null;

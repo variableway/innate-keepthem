@@ -2,6 +2,8 @@ mod commands;
 mod database;
 mod downloader;
 
+use tauri::Manager;
+
 
 #[tauri::command]
 fn get_platform() -> String {
@@ -26,13 +28,47 @@ pub fn run() {
                 )?;
             }
 
-            // Initialize database synchronously so it's available before commands run
-            let app_handle = app.handle().clone();
-            if let Err(e) = tauri::async_runtime::block_on(async move {
-                database::init_db(&app_handle).await
-            }) {
-                eprintln!("Failed to initialize database: {}", e);
-            }
+            // Initialize database — always call manage() so commands never fail with "state not managed"
+            let db: Result<database::Database, ()> = tauri::async_runtime::block_on(async {
+                // Try app data directory first
+                match database::Database::new(&app.handle()).await {
+                    Ok(db) => {
+                        if let Err(e) = db.init().await {
+                            log::error!("DB init failed (app dir): {}", e);
+                        } else {
+                            log::info!("Database initialized (app dir)");
+                            return Ok(db);
+                        }
+                    }
+                    Err(e) => log::error!("DB create failed (app dir): {}", e),
+                }
+
+                // Fallback: current working directory
+                let cwd = std::env::current_dir().unwrap_or_default();
+                let fallback_path = cwd.join("vytdl-dev.db");
+                log::info!("Trying fallback database at: {:?}", fallback_path);
+                match database::Database::new_with_path(&fallback_path).await {
+                    Ok(db) => {
+                        if let Err(e) = db.init().await {
+                            log::error!("DB init failed (fallback): {}", e);
+                        } else {
+                            log::info!("Database initialized (fallback)");
+                            return Ok(db);
+                        }
+                    }
+                    Err(e) => log::error!("DB create failed (fallback): {}", e),
+                }
+
+                // Last resort: in-memory database
+                log::warn!("Using in-memory database — data will not persist");
+                let db = database::Database::new_in_memory().await
+                    .expect("In-memory SQLite should always succeed");
+                db.init().await.expect("In-memory DB init should succeed");
+                Ok(db)
+            });
+            let db = db.expect("Database initialization must not fail — all fallbacks exhausted");
+
+            app.manage(db);
 
             Ok(())
         })

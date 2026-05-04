@@ -24,7 +24,10 @@ A cross-platform desktop application built with Tauri v2, Next.js, React 19, and
 - GUI for downloading videos and playlists
 - Download management and history
 - Settings and configuration
+- AI-powered video summarization
+- Multiple language support (English, 中文, 日本語)
 - Runs on macOS, Linux, and Windows
+- Cross-platform Python launcher script
 
 ### URL Extractor
 

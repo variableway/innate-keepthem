@@ -50,4 +50,10 @@ state not managed for field `db` on command `get_downloads`. You must call `.man
 ```
 Failed to get video info: yt-dlp not found. Please install yt-dlp and ensure it's in PATH
 ```
-- Please fix yt-dlp not found issue
+- Please fix yt-dlp not found issu
+
+## Task 6: Please Fix this bug
+
+```
+Failed to get video info: yt-dlp not found. Install hints for macOS: • Homebrew: brew install yt-dlp • pip: pip3 install yt-dlp • Manual: download from https://github.com/yt-dlp/yt-dlp/releases After installing, ensure yt-dlp is in your PATH, or set the path in Settings.
+```

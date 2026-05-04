@@ -9,4 +9,10 @@ node_modules/
 out/
 
 # Tauri / Rust
-**/src-tauri/target/__pycache__/
+**/src-tauri/target/
+
+# Python
+__pycache__/
+
+# TypeScript build info
+*.tsbuildinfo

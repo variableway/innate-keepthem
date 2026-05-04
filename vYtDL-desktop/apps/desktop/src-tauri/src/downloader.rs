@@ -53,6 +53,7 @@ struct VideoInfoJson {
 pub struct Downloader {
     options: DownloadOptions,
     download_id: String,
+    yt_dlp_path: Option<String>,
 }
 
 impl Downloader {
@@ -60,6 +61,7 @@ impl Downloader {
         Self {
             options,
             download_id,
+            yt_dlp_path: None,
         }
     }
 
@@ -78,7 +80,13 @@ impl Downloader {
                 end_time: None,
             },
             download_id: String::new(),
+            yt_dlp_path: None,
         }
+    }
+
+    pub fn with_yt_dlp_path(mut self, path: Option<String>) -> Self {
+        self.yt_dlp_path = path;
+        self
     }
 
     pub async fn download<F>(&self, mut on_progress: F) -> Result<DownloadOutput, String>
@@ -421,26 +429,108 @@ impl Downloader {
     }
 
     async fn find_yt_dlp(&self) -> Result<String, String> {
-        // Try environment variable first
+        // 1. Try configured path from settings first
+        if let Some(ref path) = self.yt_dlp_path {
+            if tokio::fs::metadata(path).await.is_ok() {
+                return Ok(path.clone());
+            }
+        }
+
+        // 2. Try environment variable
         if let Ok(path) = std::env::var("YT_DLP_BIN") {
             if tokio::fs::metadata(&path).await.is_ok() {
                 return Ok(path);
             }
         }
 
-        // Try common binary names
-        for bin in &["yt-dlp", "youtube-dl"] {
-            if let Ok(output) = Command::new("which").arg(bin).output().await {
+        // 3. Cross-platform PATH lookup
+        let is_windows = std::env::consts::OS == "windows";
+        let lookup_cmd = if is_windows { "where" } else { "which" };
+        let binaries = if is_windows {
+            vec!["yt-dlp.exe", "yt-dlp", "youtube-dl.exe", "youtube-dl"]
+        } else {
+            vec!["yt-dlp", "youtube-dl"]
+        };
+
+        for bin in &binaries {
+            if let Ok(output) = Command::new(lookup_cmd).arg(bin).output().await {
                 if output.status.success() {
-                    let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                    if !path.is_empty() {
+                    let path = String::from_utf8_lossy(&output.stdout)
+                        .lines()
+                        .next()
+                        .unwrap_or("")
+                        .trim()
+                        .to_string();
+                    if !path.is_empty() && tokio::fs::metadata(&path).await.is_ok() {
                         return Ok(path);
                     }
                 }
             }
         }
 
-        Err("yt-dlp not found. Please install yt-dlp and ensure it's in PATH".to_string())
+        // 4. Common installation paths
+        let common_paths = if is_windows {
+            vec![
+                r"C:\Users\%USERNAME%\AppData\Local\Microsoft\WinGet\Links\yt-dlp.exe",
+                r"C:\ProgramData\chocolatey\bin\yt-dlp.exe",
+                r"C:\Users\%USERNAME%\.local\bin\yt-dlp.exe",
+            ]
+        } else if std::env::consts::OS == "macos" {
+            vec![
+                "/opt/homebrew/bin/yt-dlp",
+                "/usr/local/bin/yt-dlp",
+                "/usr/bin/yt-dlp",
+                "~/.local/bin/yt-dlp",
+            ]
+        } else {
+            vec![
+                "/usr/bin/yt-dlp",
+                "/usr/local/bin/yt-dlp",
+                "/bin/yt-dlp",
+                "~/.local/bin/yt-dlp",
+            ]
+        };
+
+        for path in &common_paths {
+            let expanded = shellexpand::tilde(path).to_string();
+            if tokio::fs::metadata(&expanded).await.is_ok() {
+                return Ok(expanded);
+            }
+        }
+
+        Err(self.yt_dlp_install_hint())
+    }
+
+    fn yt_dlp_install_hint(&self) -> String {
+        let os = std::env::consts::OS;
+        let hint = match os {
+            "macos" => {
+                "yt-dlp not found.\n\n\
+                Install hints for macOS:\n\
+                • Homebrew: brew install yt-dlp\n\
+                • pip: pip3 install yt-dlp\n\
+                • Manual: download from https://github.com/yt-dlp/yt-dlp/releases\n\n\
+                After installing, ensure yt-dlp is in your PATH, or set the path in Settings."
+            }
+            "windows" => {
+                "yt-dlp not found.\n\n\
+                Install hints for Windows:\n\
+                • WinGet: winget install yt-dlp\n\
+                • Chocolatey: choco install yt-dlp\n\
+                • pip: pip install yt-dlp\n\
+                • Manual: download from https://github.com/yt-dlp/yt-dlp/releases\n\n\
+                After installing, ensure yt-dlp is in your PATH, or set the path in Settings."
+            }
+            _ => {
+                "yt-dlp not found.\n\n\
+                Install hints for Linux:\n\
+                • pip: pip3 install yt-dlp\n\
+                • apt: sudo apt install yt-dlp\n\
+                • Manual: download from https://github.com/yt-dlp/yt-dlp/releases\n\n\
+                After installing, ensure yt-dlp is in your PATH, or set the path in Settings."
+            }
+        };
+        hint.to_string()
     }
 
     fn default_download_dir(&self) -> String {

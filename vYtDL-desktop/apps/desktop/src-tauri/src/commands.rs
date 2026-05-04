@@ -4,6 +4,60 @@ use tauri::{AppHandle, Emitter, State};
 use crate::database::{Database, DownloadRecord, DownloadStatus};
 use crate::downloader::{DownloadOptions, DownloadProgress, Downloader};
 
+/// Load yt-dlp binary path from the shared vYtDL config file.
+/// Searches in order:
+/// 1. VYTDL_CONFIG env var pointing to a custom config file
+/// 2. vYtDL/config.json relative to current working directory (walking up)
+/// 3. config.json next to the executable
+fn load_vytdl_config_yt_dlp_path() -> Option<String> {
+    // 1. Env var override
+    if let Ok(path) = std::env::var("VYTDL_CONFIG") {
+        if let Some(bin) = parse_yt_dlp_bin_from_file(&path) {
+            return Some(bin);
+        }
+    }
+
+    // 2. Walk up from current dir looking for vYtDL/config.json
+    if let Ok(mut cwd) = std::env::current_dir() {
+        for _ in 0..6 {
+            let candidate = cwd.join("vYtDL").join("config.json");
+            if candidate.exists() {
+                if let Some(bin) = parse_yt_dlp_bin_from_file(candidate.to_str().unwrap_or("")) {
+                    return Some(bin);
+                }
+                break;
+            }
+            if !cwd.pop() {
+                break;
+            }
+        }
+    }
+
+    // 3. Config next to executable
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(dir) = exe.parent() {
+            let candidate = dir.join("config.json");
+            if candidate.exists() {
+                if let Some(bin) = parse_yt_dlp_bin_from_file(candidate.to_str().unwrap_or("")) {
+                    return Some(bin);
+                }
+            }
+        }
+    }
+
+    None
+}
+
+fn parse_yt_dlp_bin_from_file(path: &str) -> Option<String> {
+    let content = std::fs::read_to_string(path).ok()?;
+    let config: serde_json::Value = serde_json::from_str(&content).ok()?;
+    config
+        .get("yt_dlp_bin")
+        .and_then(|v| v.as_str())
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+}
+
 // Response types
 #[derive(Serialize, Clone)]
 pub struct ApiResponse<T> {
@@ -74,6 +128,12 @@ pub async fn start_download(
         return Ok(ApiResponse::err(format!("Failed to create download: {}", e)));
     }
 
+    // Get yt-dlp path from settings (with config file fallback)
+    let mut yt_dlp_path = db.get_setting("yt_dlp_path").await.unwrap_or(None);
+    if yt_dlp_path.is_none() {
+        yt_dlp_path = load_vytdl_config_yt_dlp_path();
+    }
+
     // Start download in background
     let app_clone = app.clone();
     let download_id_clone = download_id.clone();
@@ -93,7 +153,8 @@ pub async fn start_download(
             end_time: request.end_time,
         };
 
-        let downloader = Downloader::new(options, download_id_clone.clone());
+        let downloader = Downloader::new(options, download_id_clone.clone())
+            .with_yt_dlp_path(yt_dlp_path);
         
         // Update status to downloading
         let _ = db_clone.update_download_status(&download_id_clone, DownloadStatus::Downloading).await;
@@ -217,7 +278,11 @@ pub async fn get_settings(
 ) -> Result<ApiResponse<Settings>, String> {
     // Load from database if available, otherwise use defaults
     let language = db.get_setting("language").await.unwrap_or(None).unwrap_or_else(|| "zh".to_string());
-    let yt_dlp_path = db.get_setting("yt_dlp_path").await.unwrap_or(None);
+    let mut yt_dlp_path = db.get_setting("yt_dlp_path").await.unwrap_or(None);
+    // Fallback to vYtDL/config.json
+    if yt_dlp_path.is_none() {
+        yt_dlp_path = load_vytdl_config_yt_dlp_path();
+    }
     let default_output_dir = db.get_setting("default_output_dir").await.unwrap_or(None);
     let default_quality = db.get_setting("default_quality").await.unwrap_or(None).unwrap_or_else(|| "best".to_string());
     let default_format = db.get_setting("default_format").await.unwrap_or(None).unwrap_or_else(|| "mp4".to_string());
@@ -307,8 +372,12 @@ pub struct VideoFormat {
 }
 
 #[tauri::command]
-pub async fn get_video_info(url: String) -> Result<ApiResponse<VideoInfo>, String> {
-    let downloader = Downloader::new_default();
+pub async fn get_video_info(
+    db: State<'_, Database>,
+    url: String,
+) -> Result<ApiResponse<VideoInfo>, String> {
+    let yt_dlp_path = db.get_setting("yt_dlp_path").await.unwrap_or(None);
+    let downloader = Downloader::new_default().with_yt_dlp_path(yt_dlp_path);
     match downloader.get_info(&url).await {
         Ok(info) => Ok(ApiResponse::ok(info)),
         Err(e) => Ok(ApiResponse::err(format!("Failed to get video info: {}", e))),
@@ -333,8 +402,12 @@ pub struct FormatInfo {
 }
 
 #[tauri::command]
-pub async fn get_video_formats(url: String) -> Result<ApiResponse<Vec<FormatInfo>>, String> {
-    let downloader = Downloader::new_default();
+pub async fn get_video_formats(
+    db: State<'_, Database>,
+    url: String,
+) -> Result<ApiResponse<Vec<FormatInfo>>, String> {
+    let yt_dlp_path = db.get_setting("yt_dlp_path").await.unwrap_or(None);
+    let downloader = Downloader::new_default().with_yt_dlp_path(yt_dlp_path);
     match downloader.get_formats(&url).await {
         Ok(formats) => Ok(ApiResponse::ok(formats)),
         Err(e) => Ok(ApiResponse::err(format!("Failed to get video formats: {}", e))),
@@ -364,8 +437,12 @@ pub struct PlaylistInfo {
 }
 
 #[tauri::command]
-pub async fn get_playlist_info(url: String) -> Result<ApiResponse<PlaylistInfo>, String> {
-    let downloader = Downloader::new_default();
+pub async fn get_playlist_info(
+    db: State<'_, Database>,
+    url: String,
+) -> Result<ApiResponse<PlaylistInfo>, String> {
+    let yt_dlp_path = db.get_setting("yt_dlp_path").await.unwrap_or(None);
+    let downloader = Downloader::new_default().with_yt_dlp_path(yt_dlp_path);
     match downloader.get_playlist_info(&url).await {
         Ok(info) => Ok(ApiResponse::ok(info)),
         Err(e) => Ok(ApiResponse::err(format!("Failed to get playlist info: {}", e))),

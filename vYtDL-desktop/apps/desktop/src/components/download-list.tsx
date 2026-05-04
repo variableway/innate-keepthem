@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Play,
   Trash2,
@@ -10,7 +10,10 @@ import {
   Download as DownloadIcon,
   Loader2,
   Clock,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
+import { confirm as tauriConfirm } from "@tauri-apps/plugin-dialog";
 import { Button } from "@vytdl/ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@vytdl/ui";
 import { Badge } from "@vytdl/ui";
@@ -18,7 +21,7 @@ import { Progress } from "@vytdl/ui";
 import { useDownloadStore } from "@/store/downloadStore";
 import { formatDate } from "@vytdl/utils";
 import { useTranslation } from "@/i18n";
-import type { Download, DownloadProgress } from "@/types";
+import type { Download, DownloadLog, DownloadProgress } from "@/types";
 
 const STATUS_KEYS: Record<Download["status"], string> = {
   pending: "downloadList.statusPending",
@@ -40,31 +43,72 @@ function StatusBadge({ status }: { status: Download["status"] }) {
   };
   const { t } = useTranslation();
 
+  const statusKey = STATUS_KEYS[status] || "downloadList.statusPending";
+
   return (
     <Badge variant={variants[status] || "secondary"}>
-      {t(STATUS_KEYS[status])}
+      {t(statusKey)}
     </Badge>
   );
 }
 
 type DownloadItemType = Download;
 
+function LogViewer({ logs }: { logs: DownloadLog[] }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [logs]);
+
+  return (
+    <div
+      ref={scrollRef}
+      className="mt-2 max-h-48 overflow-y-auto rounded-md bg-muted p-2 font-mono text-xs"
+    >
+      {logs.length === 0 ? (
+        <span className="text-muted-foreground">No logs yet...</span>
+      ) : (
+        logs.map((log, i) => (
+          <div
+            key={i}
+            className={`break-all ${
+              log.level === "error" ? "text-destructive" : "text-foreground"
+            }`}
+          >
+            <span className="opacity-50 mr-1">[{log.level.toUpperCase()}]</span>
+            {log.message}
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
 function DownloadItem({ download }: { download: DownloadItemType }) {
-  const { deleteDownload, activeDownloads, subscribeToProgress } = useDownloadStore();
+  const { deleteDownload, activeDownloads, downloadLogs, subscribeToProgress, subscribeToLogs } = useDownloadStore();
   const [progress, setProgress] = useState<DownloadProgress | null>(null);
+  const [showLogs, setShowLogs] = useState(false);
   const { t } = useTranslation();
 
   useEffect(() => {
     if (download.status === "downloading") {
-      let cleanup: (() => void) | undefined;
+      let cleanupProgress: (() => void) | undefined;
+      let cleanupLogs: (() => void) | undefined;
       subscribeToProgress(download.id).then((unlisten) => {
-        cleanup = unlisten;
+        cleanupProgress = unlisten;
+      });
+      subscribeToLogs(download.id).then((unlisten) => {
+        cleanupLogs = unlisten;
       });
       return () => {
-        cleanup?.();
+        cleanupProgress?.();
+        cleanupLogs?.();
       };
     }
-  }, [download.id, download.status, subscribeToProgress]);
+  }, [download.id, download.status, subscribeToProgress, subscribeToLogs]);
 
   useEffect(() => {
     const activeProgress = activeDownloads.get(download.id);
@@ -73,8 +117,12 @@ function DownloadItem({ download }: { download: DownloadItemType }) {
     }
   }, [activeDownloads, download.id]);
 
-  const handleDelete = () => {
-    if (confirm(t("downloadList.deleteConfirm"))) {
+  const handleDelete = async () => {
+    const confirmed = await tauriConfirm(t("downloadList.deleteConfirm"), {
+      title: t("common.confirm"),
+      kind: "warning",
+    });
+    if (confirmed) {
       deleteDownload(download.id);
     }
   };
@@ -128,9 +176,22 @@ function DownloadItem({ download }: { download: DownloadItemType }) {
             <Clock className="inline h-3 w-3 mr-1" />
             {formatDate(download.created_at)}
           </div>
+
+          {showLogs && (
+            <LogViewer logs={downloadLogs.get(download.id) || []} />
+          )}
         </div>
 
         <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowLogs((s) => !s)}
+            title={showLogs ? t("downloadList.hideLogs") : t("downloadList.viewLogs")}
+          >
+            {showLogs ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
+
           {download.output_dir && (
             <Button
               variant="ghost"

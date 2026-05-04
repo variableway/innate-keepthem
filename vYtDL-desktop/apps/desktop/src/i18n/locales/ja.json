@@ -84,7 +84,9 @@
     "deleteConfirm": "このダウンロード記録を削除してもよろしいですか？",
     "openFolder": "フォルダを開く",
     "deleteRecord": "記録を削除",
-    "unknownTitle": "不明なタイトル"
+    "unknownTitle": "不明なタイトル",
+    "viewLogs": "ログを表示",
+    "hideLogs": "ログを隠す"
   },
   "settings": {
     "title": "設定",

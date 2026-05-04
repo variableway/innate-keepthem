@@ -18,6 +18,7 @@ const STORAGE_KEY = "vytdl-language";
 const DEFAULT_LOCALE: Locale = "zh";
 
 function getNestedValue(obj: Record<string, unknown>, path: string): string | undefined {
+  if (!path || typeof path !== "string") return undefined;
   const keys = path.split(".");
   let value: unknown = obj;
   for (const key of keys) {
@@ -58,7 +59,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback(
-    (key: string) => {
+    (key: string): string => {
+      if (!key || typeof key !== "string") return String(key ?? "");
       const messages = translations[locale] as Record<string, unknown>;
       const value = getNestedValue(messages, key);
       return value ?? key;

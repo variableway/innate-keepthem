@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, State};
 
 use crate::database::{Database, DownloadRecord, DownloadStatus};
-use crate::downloader::{DownloadOptions, DownloadProgress, Downloader};
+use crate::downloader::{DownloadLog, DownloadOptions, DownloadProgress, Downloader};
 
 /// Load yt-dlp binary path from the shared vYtDL config file.
 /// Searches in order:
@@ -159,17 +159,28 @@ pub async fn start_download(
         // Update status to downloading
         let _ = db_clone.update_download_status(&download_id_clone, DownloadStatus::Downloading).await;
 
-        // Start download with progress callback
+        // Start download with progress and log callbacks
         let app_for_progress = app_clone.clone();
         let id_for_progress = download_id_clone.clone();
+        let app_for_logs = app_clone.clone();
+        let id_for_logs = download_id_clone.clone();
         let result = downloader
-            .download(move |progress: DownloadProgress| {
-                // Emit progress event to frontend
-                let _ = app_for_progress.emit(
-                    &format!("download:progress:{}", id_for_progress),
-                    progress,
-                );
-            })
+            .download(
+                move |progress: DownloadProgress| {
+                    // Emit progress event to frontend
+                    let _ = app_for_progress.emit(
+                        &format!("download:progress:{}", id_for_progress),
+                        progress,
+                    );
+                },
+                move |log: DownloadLog| {
+                    // Emit log event to frontend
+                    let _ = app_for_logs.emit(
+                        &format!("download:log:{}", id_for_logs),
+                        log,
+                    );
+                },
+            )
             .await;
 
         // Update final status
@@ -376,11 +387,23 @@ pub async fn get_video_info(
     db: State<'_, Database>,
     url: String,
 ) -> Result<ApiResponse<VideoInfo>, String> {
+    log::info!("get_video_info called for URL: {}", url);
     let yt_dlp_path = db.get_setting("yt_dlp_path").await.unwrap_or(None);
+    if let Some(ref path) = yt_dlp_path {
+        log::info!("Using yt-dlp path from settings: {}", path);
+    } else {
+        log::info!("No yt-dlp path in settings, will auto-detect");
+    }
     let downloader = Downloader::new_default().with_yt_dlp_path(yt_dlp_path);
     match downloader.get_info(&url).await {
-        Ok(info) => Ok(ApiResponse::ok(info)),
-        Err(e) => Ok(ApiResponse::err(format!("Failed to get video info: {}", e))),
+        Ok(info) => {
+            log::info!("get_video_info success: {} ({})", info.title, info.id);
+            Ok(ApiResponse::ok(info))
+        }
+        Err(e) => {
+            log::error!("get_video_info failed: {}", e);
+            Ok(ApiResponse::err(format!("Failed to get video info: {}", e)))
+        }
     }
 }
 

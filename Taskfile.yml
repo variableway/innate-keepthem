@@ -1,0 +1,129 @@
+version: "3"
+
+vars:
+  CLI_DIR: ./vYtDL
+  DESKTOP_DIR: ./vYtDL-desktop
+  CLI_BIN: vYtDL
+  DIST_DIR: ./dist
+
+tasks:
+  # ── Default ──────────────────────────────────────────────
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  # ── Go CLI ───────────────────────────────────────────────
+  cli:build:
+    desc: Build the Go CLI for the current platform
+    dir: "{{.CLI_DIR}}"
+    cmds:
+      - go build -trimpath -ldflags "-s -w" -o {{.CLI_BIN}} .
+    sources:
+      - "**/*.go"
+    generates:
+      - "{{.CLI_BIN}}"
+
+  cli:build:all:
+    desc: Cross-compile the Go CLI for all platforms (darwin/linux/windows, amd64/arm64)
+    dir: "{{.CLI_DIR}}"
+    cmds:
+      - mkdir -p {{.DIST_DIR}}
+      - |
+        for pair in "darwin amd64" "darwin arm64" "linux amd64" "linux arm64" "windows amd64" "windows arm64"; do
+          GOOS=$(echo $pair | cut -d' ' -f1)
+          GOARCH=$(echo $pair | cut -d' ' -f2)
+          EXT=""
+          [ "$GOOS" = "windows" ] && EXT=".exe"
+          echo "Building {{.CLI_BIN}}-${GOOS}-${GOARCH}${EXT}"
+          CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build -trimpath -ldflags "-s -w" -o "{{.DIST_DIR}}/{{.CLI_BIN}}-${GOOS}-${GOARCH}${EXT}" .
+        done
+      - echo "Artifacts in {{.DIST_DIR}}/"
+
+  cli:run:
+    desc: Run the Go CLI (pass URL as args)
+    dir: "{{.CLI_DIR}}"
+    cmds:
+      - go run . {{.CLI_ARGS | default "--help"}}
+
+  cli:test:
+    desc: Run Go CLI tests
+    dir: "{{.CLI_DIR}}"
+    cmds:
+      - go test ./...
+
+  cli:install:
+    desc: Install the Go CLI to $GOPATH/bin
+    dir: "{{.CLI_DIR}}"
+    cmds:
+      - go install -trimpath -ldflags "-s -w" .
+
+  # ── Desktop App ──────────────────────────────────────────
+  desktop:install:
+    desc: Install desktop app dependencies
+    dir: "{{.DESKTOP_DIR}}"
+    cmds:
+      - pnpm install
+
+  desktop:dev:
+    desc: Start desktop app in development mode
+    dir: "{{.DESKTOP_DIR}}"
+    cmds:
+      - pnpm tauri:dev
+
+  desktop:build:
+    desc: Build desktop app for production
+    dir: "{{.DESKTOP_DIR}}"
+    deps: [desktop:install]
+    cmds:
+      - pnpm tauri:build
+
+  # ── Combined ─────────────────────────────────────────────
+  build:
+    desc: Build everything (CLI + Desktop)
+    deps: [cli:build, desktop:build]
+
+  clean:
+    desc: Remove all build artifacts
+    cmds:
+      - rm -rf {{.DIST_DIR}}
+      - rm -f {{.CLI_DIR}}/{{.CLI_BIN}}
+      - rm -rf {{.DESKTOP_DIR}}/apps/desktop/out
+      - rm -rf {{.DESKTOP_DIR}}/apps/desktop/src-tauri/target
+      - echo "Cleaned."
+
+  # ── Help / Hints ─────────────────────────────────────────
+  help:
+    desc: Show build and run hints
+    cmds:
+      - |
+        echo ""
+        echo "══════════════════════════════════════════════════"
+        echo "  vYtDL Build & Run Hints"
+        echo "══════════════════════════════════════════════════"
+        echo ""
+        echo "  Prerequisites:"
+        echo "    Go 1.24+           https://go.dev/dl/"
+        echo "    Node.js 18+        https://nodejs.org/"
+        echo "    pnpm               npm i -g pnpm"
+        echo "    Rust               https://rustup.rs/"
+        echo "    Task (runner)      https://taskfile.dev/install/"
+        echo "    yt-dlp             brew install yt-dlp"
+        echo ""
+        echo "  Quick Start (CLI):"
+        echo "    task cli:build                              # Build for current OS"
+        echo "    ./vYtDL/vYtDL download --no-tui URL         # Download a video"
+        echo "    task cli:run -- --no-tui URL                # Build + run in one step"
+        echo ""
+        echo "  Quick Start (Desktop):"
+        echo "    task desktop:dev                            # Start dev mode"
+        echo "    task desktop:build                          # Production build"
+        echo ""
+        echo "  Cross-compile CLI for all platforms:"
+        echo "    task cli:build:all                          # Outputs to dist/"
+        echo ""
+        echo "  Install Task runner:"
+        echo "    brew install go-task     # macOS"
+        echo "    sh -c \"\$(curl --ssl-reqd https://taskfile.dev/install.sh)\" -- -d -b /usr/local/bin  # Linux"
+        echo "    scoop install task       # Windows"
+        echo ""

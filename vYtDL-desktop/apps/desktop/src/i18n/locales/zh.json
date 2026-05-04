@@ -84,7 +84,9 @@
     "deleteConfirm": "确定要删除这条下载记录吗？",
     "openFolder": "打开文件夹",
     "deleteRecord": "删除记录",
-    "unknownTitle": "未知标题"
+    "unknownTitle": "未知标题",
+    "viewLogs": "查看日志",
+    "hideLogs": "隐藏日志"
   },
   "settings": {
     "title": "设置",

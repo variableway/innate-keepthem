@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::process::Stdio;
+use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
+use tokio::time::timeout;
 
 
 #[derive(Debug, Clone, Serialize)]
@@ -27,6 +29,12 @@ pub struct DownloadProgress {
     pub eta: Option<String>,
     pub status: String,
     pub error: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct DownloadLog {
+    pub level: String,
+    pub message: String,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -89,9 +97,10 @@ impl Downloader {
         self
     }
 
-    pub async fn download<F>(&self, mut on_progress: F) -> Result<DownloadOutput, String>
+    pub async fn download<F, G>(&self, mut on_progress: F, mut on_log: G) -> Result<DownloadOutput, String>
     where
         F: FnMut(DownloadProgress),
+        G: FnMut(DownloadLog),
     {
         let yt_dlp_path = self.find_yt_dlp().await?;
         let output_dir = self
@@ -168,6 +177,13 @@ impl Downloader {
         // URL
         args.push(self.options.url.clone());
 
+        // Log the command being executed
+        let cmd_str = format!("{} {}", yt_dlp_path, args.join(" "));
+        on_log(DownloadLog {
+            level: "info".to_string(),
+            message: format!("Starting download: {}", cmd_str),
+        });
+
         // Spawn yt-dlp process
         let mut child = Command::new(&yt_dlp_path)
             .args(&args)
@@ -192,6 +208,12 @@ impl Downloader {
                 line = stdout_reader.next_line() => {
                     match line {
                         Ok(Some(line)) => {
+                            // Emit every stdout line as a log
+                            on_log(DownloadLog {
+                                level: "info".to_string(),
+                                message: line.clone(),
+                            });
+
                             // Try to parse as JSON (video metadata)
                             if line.starts_with('{') {
                                 if let Ok(info) = serde_json::from_str::<VideoInfoJson>(&line) {
@@ -228,8 +250,11 @@ impl Downloader {
                     }
                 }
                 line = stderr_reader.next_line() => {
-                    if let Ok(Some(_line)) = line {
-                        // Log stderr if needed
+                    if let Ok(Some(line)) = line {
+                        on_log(DownloadLog {
+                            level: "error".to_string(),
+                            message: line,
+                        });
                     }
                 }
             }
@@ -242,8 +267,17 @@ impl Downloader {
             .map_err(|e| format!("Failed to wait for yt-dlp: {}", e))?;
 
         if !status.success() {
+            on_log(DownloadLog {
+                level: "error".to_string(),
+                message: format!("yt-dlp exited with status: {:?}", status.code()),
+            });
             return Err("yt-dlp process failed".to_string());
         }
+
+        on_log(DownloadLog {
+            level: "info".to_string(),
+            message: "Download completed successfully".to_string(),
+        });
 
         // Construct output
         if let Some(info) = last_info {
@@ -268,16 +302,20 @@ impl Downloader {
         
         let yt_dlp_path = self.find_yt_dlp().await?;
         
-        let output = Command::new(&yt_dlp_path)
+        let cmd_future = Command::new(&yt_dlp_path)
             .args(&["--dump-json", "--no-download", url])
-            .output()
-            .await
-            .map_err(|e| format!("Failed to execute yt-dlp: {}", e))?;
+            .output();
+        
+        let output = match timeout(Duration::from_secs(60), cmd_future).await {
+            Ok(result) => result.map_err(|e| format!("Failed to execute yt-dlp: {}", e))?,
+            Err(_) => return Err("Request timed out while fetching video info. YouTube may require cookies or the video may be blocked. Try using --cookies-from-browser or a different URL.".to_string()),
+        };
 
         if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
             return Err(format!(
                 "yt-dlp failed: {}",
-                String::from_utf8_lossy(&output.stderr)
+                if stderr.is_empty() { "Unknown error".to_string() } else { stderr.to_string() }
             ));
         }
 
@@ -300,16 +338,20 @@ impl Downloader {
         let yt_dlp_path = self.find_yt_dlp().await?;
         
         // Use --dump-json to get all format information
-        let output = Command::new(&yt_dlp_path)
+        let cmd_future = Command::new(&yt_dlp_path)
             .args(&["--dump-json", "--no-download", url])
-            .output()
-            .await
-            .map_err(|e| format!("Failed to execute yt-dlp: {}", e))?;
+            .output();
+        
+        let output = match timeout(Duration::from_secs(60), cmd_future).await {
+            Ok(result) => result.map_err(|e| format!("Failed to execute yt-dlp: {}", e))?,
+            Err(_) => return Err("Request timed out while fetching video formats.".to_string()),
+        };
 
         if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
             return Err(format!(
                 "yt-dlp failed: {}",
-                String::from_utf8_lossy(&output.stderr)
+                if stderr.is_empty() { "Unknown error".to_string() } else { stderr.to_string() }
             ));
         }
 
@@ -366,16 +408,20 @@ impl Downloader {
         let yt_dlp_path = self.find_yt_dlp().await?;
         
         // Use --dump-single-json to get playlist info with entries
-        let output = Command::new(&yt_dlp_path)
+        let cmd_future = Command::new(&yt_dlp_path)
             .args(&["--dump-single-json", "--flat-playlist", url])
-            .output()
-            .await
-            .map_err(|e| format!("Failed to execute yt-dlp: {}", e))?;
+            .output();
+        
+        let output = match timeout(Duration::from_secs(90), cmd_future).await {
+            Ok(result) => result.map_err(|e| format!("Failed to execute yt-dlp: {}", e))?,
+            Err(_) => return Err("Request timed out while fetching playlist info.".to_string()),
+        };
 
         if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
             return Err(format!(
                 "yt-dlp failed: {}",
-                String::from_utf8_lossy(&output.stderr)
+                if stderr.is_empty() { "Unknown error".to_string() } else { stderr.to_string() }
             ));
         }
 
@@ -443,7 +489,14 @@ impl Downloader {
             }
         }
 
-        // 3. Cross-platform PATH lookup
+        // 3. Check bundled yt-dlp extracted from app resources on startup
+        if let Ok(path) = std::env::var("VYTLD_BUNDLED_YT_DLP") {
+            if tokio::fs::metadata(&path).await.is_ok() {
+                return Ok(path);
+            }
+        }
+
+        // 4. Cross-platform PATH lookup
         let is_windows = std::env::consts::OS == "windows";
         let lookup_cmd = if is_windows { "where" } else { "which" };
         let binaries = if is_windows {
@@ -468,7 +521,7 @@ impl Downloader {
             }
         }
 
-        // 4. Common installation paths
+        // 5. Common installation paths
         let common_paths = if is_windows {
             vec![
                 r"C:\Users\%USERNAME%\AppData\Local\Microsoft\WinGet\Links\yt-dlp.exe",

@@ -11,8 +11,13 @@ out/
 # Tauri / Rust
 **/src-tauri/target/
 
+# Bundled yt-dlp binaries (large, downloaded at build time)
+vYtDL-desktop/**/resources/yt-dlp/
+vYtDL/bin/*.zip
+
 # Python
 __pycache__/
 
 # TypeScript build info
 *.tsbuildinfo
+*/test_download/*

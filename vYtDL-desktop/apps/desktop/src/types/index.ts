@@ -32,6 +32,11 @@ export interface DownloadProgress {
   error: string | null;
 }
 
+export interface DownloadLog {
+  level: string;
+  message: string;
+}
+
 export interface VideoInfo {
   id: string;
   title: string;

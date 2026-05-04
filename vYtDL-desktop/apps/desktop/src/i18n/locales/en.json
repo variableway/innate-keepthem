@@ -84,7 +84,9 @@
     "deleteConfirm": "Are you sure you want to delete this download record?",
     "openFolder": "Open folder",
     "deleteRecord": "Delete record",
-    "unknownTitle": "Unknown Title"
+    "unknownTitle": "Unknown Title",
+    "viewLogs": "View logs",
+    "hideLogs": "Hide logs"
   },
   "settings": {
     "title": "Settings",

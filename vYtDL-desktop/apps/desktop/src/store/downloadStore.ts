@@ -3,11 +3,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { tauriStorage } from "@/lib/tauri-storage";
-import type { Download, DownloadOptions, DownloadProgress, ApiResponse } from "@/types";
+import type { Download, DownloadLog, DownloadOptions, DownloadProgress, ApiResponse } from "@/types";
 
 interface DownloadState {
   downloads: Download[];
   activeDownloads: Map<string, DownloadProgress>;
+  downloadLogs: Map<string, DownloadLog[]>;
   isLoading: boolean;
   error: string | null;
 
@@ -16,6 +17,8 @@ interface DownloadState {
   cancelDownload: (id: string) => Promise<void>;
   deleteDownload: (id: string) => Promise<void>;
   subscribeToProgress: (id: string) => Promise<() => void>;
+  subscribeToLogs: (id: string) => Promise<() => void>;
+  clearLogs: (id: string) => void;
   clearError: () => void;
 }
 
@@ -34,6 +37,7 @@ export const useDownloadStore = create<DownloadState>()(
     (set, get) => ({
       downloads: [],
       activeDownloads: new Map(),
+      downloadLogs: new Map(),
       isLoading: false,
       error: null,
 
@@ -120,6 +124,29 @@ export const useDownloadStore = create<DownloadState>()(
           unlistenComplete();
           unlistenError();
         };
+      },
+
+      subscribeToLogs: async (id: string) => {
+        const unlisten = await listen<DownloadLog>(`download:log:${id}`, (event) => {
+          set((state) => {
+            const newLogs = new Map(state.downloadLogs);
+            const existing = newLogs.get(id) || [];
+            newLogs.set(id, [...existing, event]);
+            return { downloadLogs: newLogs };
+          });
+        });
+
+        return () => {
+          unlisten();
+        };
+      },
+
+      clearLogs: (id: string) => {
+        set((state) => {
+          const newLogs = new Map(state.downloadLogs);
+          newLogs.delete(id);
+          return { downloadLogs: newLogs };
+        });
       },
 
       clearError: () => set({ error: null }),

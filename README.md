@@ -76,13 +76,19 @@ pnpm install
 ### Desktop App
 
 ```bash
-# Cross-platform launcher (all OS)
 cd vYtDL-desktop
-python scripts/start-desktop.py
 
-# Or platform-specific scripts
-./scripts/start-desktop.sh      # Mac/Linux
-.\scripts\start-desktop.ps1     # Windows
+# Check dependencies
+python3 scripts/build-desktop.py check
+
+# Development mode
+python3 scripts/build-desktop.py dev
+
+# Build production app
+python3 scripts/build-desktop.py build
+
+# Build + create distributable package
+python3 scripts/build-desktop.py bundle
 ```
 
 ## Usage

@@ -108,8 +108,19 @@ export function DownloadForm({ mode }: DownloadFormProps) {
     const timer = setTimeout(async () => {
       if (abortController.signal.aborted) return;
       setIsLoadingInfo(true);
+      
+      // Frontend timeout: reject if backend doesn't respond in 35s
+      const timeoutMs = 35000;
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        const id = setTimeout(() => reject(new Error("Request timed out. The server may be blocking this request or yt-dlp is not responding.")), timeoutMs);
+        abortController.signal.addEventListener("abort", () => clearTimeout(id));
+      });
+      
       try {
-        const response = await invoke<ApiResponse<VideoInfo>>("get_video_info", { url });
+        const response = await Promise.race([
+          invoke<ApiResponse<VideoInfo>>("get_video_info", { url }),
+          timeoutPromise,
+        ]);
         if (!abortController.signal.aborted) {
           if (response.success && response.data) {
             setVideoInfo(response.data);

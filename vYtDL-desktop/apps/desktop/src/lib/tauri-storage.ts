@@ -3,7 +3,7 @@ import { type StateStorage } from "zustand/middleware";
 async function getTauriStore() {
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
     const { Store } = await import("@tauri-apps/plugin-store");
-    return new Store("vytdl-store.bin");
+    return Store.load("vytdl-store.bin");
   }
   return null;
 }

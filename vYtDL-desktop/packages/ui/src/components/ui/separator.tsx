@@ -1,0 +1,31 @@
+// @shadcn-version: 2.3.0
+// @last-sync: 2026-04-23
+// @upstream: https://github.com/shadcn-ui/ui
+// @custom-modifications: base-ui rewrite
+
+'use client'
+
+import * as React from 'react'
+import { Separator as SeparatorPrimitive } from '@base-ui/react/separator'
+
+import { cn } from '../../lib/utils'
+
+function Separator({
+  className,
+  orientation = 'horizontal',
+  ...props
+}: React.ComponentProps<typeof SeparatorPrimitive>) {
+  return (
+    <SeparatorPrimitive
+      data-slot="separator"
+      orientation={orientation}
+      className={cn(
+        'bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px',
+        className,
+      )}
+      {...props}
+    />
+  )
+}
+
+export { Separator }

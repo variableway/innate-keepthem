@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube URL Extractor</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>YouTube URL Extractor</h1>
+    </header>
+
+    <section class="filters">
+      <div class="filter-group">
+        <label for="limitCount">前 N 个视频:</label>
+        <input type="number" id="limitCount" min="1" max="1000" value="100">
+      </div>
+      <div class="filter-group">
+        <label for="titleFilter">标题包含:</label>
+        <input type="text" id="titleFilter" placeholder="输入过滤关键词...">
+      </div>
+      <div class="filter-group">
+        <label for="titleExclude">标题排除:</label>
+        <input type="text" id="titleExclude" placeholder="排除包含此关键词的">
+      </div>
+    </section>
+
+    <section class="actions">
+      <button id="extractBtn" class="btn btn-primary">获取视频列表</button>
+      <button id="selectAllBtn" class="btn btn-secondary">全选</button>
+      <button id="deselectAllBtn" class="btn btn-secondary">取消全选</button>
+    </section>
+
+    <section class="results">
+      <div class="results-header">
+        <span id="resultCount">找到 0 个视频</span>
+      </div>
+      <div id="videoList" class="video-list"></div>
+    </section>
+
+    <section class="export">
+      <button id="exportSelectedBtn" class="btn btn-export">导出选中 URL</button>
+      <button id="exportAllBtn" class="btn btn-export">导出全部 URL</button>
+    </section>
+
+    <footer>
+      <p>vYtDL 配套工具</p>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

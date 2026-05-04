@@ -1,0 +1,12 @@
+*.exe
+*.mp4
+*.vtt
+dist/
+*/for_V/*
+for_V/for_V/*
+vYtDL-desktop-*.exe
+node_modules/
+out/
+
+# Tauri / Rust
+**/src-tauri/target/

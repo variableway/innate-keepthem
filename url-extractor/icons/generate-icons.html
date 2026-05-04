@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generate Icons</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    canvas { border: 1px solid #ccc; margin: 10px; }
+    a { display: inline-block; margin: 10px; padding: 10px; background: #cc0000; color: white; text-decoration: none; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>YouTube URL Extractor - Icon Generator</h1>
+  <p>Click on each link to download the icon files:</p>
+  
+  <div>
+    <canvas id="icon16" width="16" height="16"></canvas>
+    <a id="download16" download="icon16.png">Download icon16.png</a>
+  </div>
+  
+  <div>
+    <canvas id="icon48" width="48" height="48"></canvas>
+    <a id="download48" download="icon48.png">Download icon48.png</a>
+  </div>
+  
+  <div>
+    <canvas id="icon128" width="128" height="128"></canvas>
+    <a id="download128" download="icon128.png">Download icon128.png</a>
+  </div>
+
+  <script>
+    function drawIcon(canvasId, size) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      
+      const radius = size * 0.2;
+      ctx.fillStyle = '#cc0000';
+      ctx.beginPath();
+      ctx.roundRect(0, 0, size, size, radius);
+      ctx.fill();
+      
+      ctx.fillStyle = 'white';
+      ctx.beginPath();
+      const playX = size * 0.35;
+      const playY1 = size * 0.25;
+      const playY2 = size * 0.75;
+      const playX2 = size * 0.75;
+      const centerY = size * 0.5;
+      ctx.moveTo(playX, playY1);
+      ctx.lineTo(playX2, centerY);
+      ctx.lineTo(playX, playY2);
+      ctx.closePath();
+      ctx.fill();
+      
+      return canvas.toDataURL('image/png');
+    }
+    
+    document.getElementById('download16').href = drawIcon('icon16', 16);
+    document.getElementById('download48').href = drawIcon('icon48', 48);
+    document.getElementById('download128').href = drawIcon('icon128', 128);
+  </script>
+</body>
+</html>

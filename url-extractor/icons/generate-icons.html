@@ -3,27 +3,31 @@
 <head>
   <title>Generate Icons</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    canvas { border: 1px solid #ccc; margin: 10px; }
-    a { display: inline-block; margin: 10px; padding: 10px; background: #cc0000; color: white; text-decoration: none; border-radius: 4px; }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+    .icon-block { display: inline-block; margin: 15px; text-align: center; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    canvas { image-rendering: pixelated; border: 1px solid #ddd; border-radius: 4px; }
+    a { display: inline-block; margin-top: 10px; padding: 8px 16px; background: #1e293b; color: white; text-decoration: none; border-radius: 4px; font-size: 14px; }
+    a:hover { background: #334155; }
+    h1 { color: #1e293b; }
+    p { color: #666; }
   </style>
 </head>
 <body>
-  <h1>YouTube URL Extractor - Icon Generator</h1>
+  <h1>KeepThem URL Extractor - Icon Generator</h1>
   <p>Click on each link to download the icon files:</p>
-  
-  <div>
-    <canvas id="icon16" width="16" height="16"></canvas>
+
+  <div class="icon-block">
+    <canvas id="icon16" width="16" height="16"></canvas><br>
     <a id="download16" download="icon16.png">Download icon16.png</a>
   </div>
-  
-  <div>
-    <canvas id="icon48" width="48" height="48"></canvas>
+
+  <div class="icon-block">
+    <canvas id="icon48" width="48" height="48"></canvas><br>
     <a id="download48" download="icon48.png">Download icon48.png</a>
   </div>
-  
-  <div>
-    <canvas id="icon128" width="128" height="128"></canvas>
+
+  <div class="icon-block">
+    <canvas id="icon128" width="128" height="128"></canvas><br>
     <a id="download128" download="icon128.png">Download icon128.png</a>
   </div>
 
@@ -31,29 +35,94 @@
     function drawIcon(canvasId, size) {
       const canvas = document.getElementById(canvasId);
       const ctx = canvas.getContext('2d');
-      
-      const radius = size * 0.2;
-      ctx.fillStyle = '#cc0000';
+
+      // Clear
+      ctx.clearRect(0, 0, size, size);
+
+      // Background rounded rect (slate-800 #1e293b)
+      const radius = size * 0.22;
+      ctx.fillStyle = '#1e293b';
       ctx.beginPath();
       ctx.roundRect(0, 0, size, size, radius);
       ctx.fill();
-      
+
+      // White color for icon
       ctx.fillStyle = 'white';
-      ctx.beginPath();
-      const playX = size * 0.35;
-      const playY1 = size * 0.25;
-      const playY2 = size * 0.75;
-      const playX2 = size * 0.75;
-      const centerY = size * 0.5;
-      ctx.moveTo(playX, playY1);
-      ctx.lineTo(playX2, centerY);
-      ctx.lineTo(playX, playY2);
-      ctx.closePath();
-      ctx.fill();
-      
+
+      if (size <= 32) {
+        // Simplified arrow for tiny sizes
+        const margin = size * 0.25;
+        ctx.beginPath();
+        ctx.moveTo(size * 0.35, margin);
+        ctx.lineTo(size * 0.65, margin);
+        ctx.lineTo(size * 0.5, size - margin * 0.8);
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        // Tray/box at bottom
+        const trayW = size * 0.50;
+        const trayH = size * 0.14;
+        const trayX = (size - trayW) / 2;
+        const trayY = size * 0.58;
+        const thickness = Math.max(1, size / 16);
+
+        // Draw tray lines
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = thickness;
+        ctx.lineCap = 'round';
+
+        // Tray bottom
+        ctx.beginPath();
+        ctx.moveTo(trayX + trayH * 0.3, trayY + trayH);
+        ctx.lineTo(trayX + trayW - trayH * 0.3, trayY + trayH);
+        ctx.stroke();
+
+        // Tray left side
+        ctx.beginPath();
+        ctx.moveTo(trayX, trayY + trayH * 0.3);
+        ctx.lineTo(trayX, trayY + trayH - trayH * 0.3);
+        ctx.stroke();
+
+        // Tray right side
+        ctx.beginPath();
+        ctx.moveTo(trayX + trayW, trayY + trayH * 0.3);
+        ctx.lineTo(trayX + trayW, trayY + trayH - trayH * 0.3);
+        ctx.stroke();
+
+        // Tray top line
+        ctx.beginPath();
+        ctx.moveTo(trayX + trayH * 0.3, trayY);
+        ctx.lineTo(trayX + trayW - trayH * 0.3, trayY);
+        ctx.stroke();
+
+        // Arrow shaft
+        const shaftW = size * 0.10;
+        const headW = size * 0.26;
+        const headH = size * 0.14;
+        const arrowTop = size * 0.22;
+        const arrowBottom = trayY - size * 0.06;
+        const centerX = size / 2;
+
+        ctx.beginPath();
+        ctx.moveTo(centerX - shaftW / 2, arrowTop);
+        ctx.lineTo(centerX + shaftW / 2, arrowTop);
+        ctx.lineTo(centerX + shaftW / 2, arrowBottom - headH * 0.2);
+        ctx.lineTo(centerX - shaftW / 2, arrowBottom - headH * 0.2);
+        ctx.closePath();
+        ctx.fill();
+
+        // Arrow head
+        ctx.beginPath();
+        ctx.moveTo(centerX - headW / 2, arrowBottom - headH);
+        ctx.lineTo(centerX + headW / 2, arrowBottom - headH);
+        ctx.lineTo(centerX, arrowBottom);
+        ctx.closePath();
+        ctx.fill();
+      }
+
       return canvas.toDataURL('image/png');
     }
-    
+
     document.getElementById('download16').href = drawIcon('icon16', 16);
     document.getElementById('download48').href = drawIcon('icon48', 48);
     document.getElementById('download128').href = drawIcon('icon128', 128);

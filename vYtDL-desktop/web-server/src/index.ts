@@ -6,7 +6,7 @@ import { WebSocketServer } from "ws";
 import { v4 as uuidv4 } from "uuid";
 import { Database } from "./database";
 import { QueueManager } from "./queue";
-import { getVideoInfo, getVideoFormats, getPlaylistInfo, findYtDlp } from "./downloader";
+import { getVideoInfo, getVideoFormats, getPlaylistInfo, findYtDlp, extractAudio } from "./downloader";
 
 const app = express();
 const server = createServer(app);
@@ -267,6 +267,19 @@ app.post("/api/settings", (req, res) => {
       queue.setMaxConcurrent(parseInt(String(settings.max_concurrent_downloads), 10));
     }
     res.json({ success: true, data: null });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+});
+
+app.post("/api/extract-audio", async (req, res) => {
+  try {
+    const { video_path, output_dir, audio_format } = req.body;
+    const audioPath = await extractAudio(video_path, output_dir, audio_format || "mp3");
+    res.json({ success: true, data: { audio_path: audioPath } });
   } catch (err) {
     res.status(500).json({
       success: false,

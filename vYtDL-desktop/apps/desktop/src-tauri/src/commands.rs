@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager, State};
 
+use crate::audio_extractor;
 use crate::database::{Database, DownloadRecord, DownloadStatus};
 use crate::downloader::{DownloadOptions, Downloader};
 use crate::queue::QueueManager;
@@ -492,6 +493,24 @@ pub async fn get_playlist_info(
     match downloader.get_playlist_info(&url).await {
         Ok(info) => Ok(ApiResponse::ok(info)),
         Err(e) => Ok(ApiResponse::err(format!("Failed to get playlist info: {}", e))),
+    }
+}
+
+// Audio extraction command
+#[derive(Debug, Serialize)]
+pub struct ExtractAudioResult {
+    pub audio_path: String,
+}
+
+#[tauri::command]
+pub async fn extract_audio(
+    request: audio_extractor::ExtractAudioOptions,
+) -> Result<ApiResponse<ExtractAudioResult>, String> {
+    match audio_extractor::extract_audio(request).await {
+        Ok(result) => Ok(ApiResponse::ok(ExtractAudioResult {
+            audio_path: result.audio_path,
+        })),
+        Err(e) => Ok(ApiResponse::err(e)),
     }
 }
 

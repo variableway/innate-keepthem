@@ -100,7 +100,12 @@
     "queuePosition": "队列位置: {{position}}",
     "unknownTitle": "未知标题",
     "viewLogs": "查看日志",
-    "hideLogs": "隐藏日志"
+    "hideLogs": "隐藏日志",
+    "extractAudio": "提取音频",
+    "extractingAudio": "提取音频中...",
+    "extractAudioSuccess": "音频提取成功，保存至: {{path}}",
+    "extractAudioFailed": "音频提取失败",
+    "noVideoFile": "视频文件路径不可用"
   },
   "settings": {
     "title": "设置",

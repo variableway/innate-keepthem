@@ -69,6 +69,68 @@ export function findYtDlp(): string {
   return "yt-dlp";
 }
 
+export function findFfmpeg(): string {
+  const envPath = process.env.FFMPEG_PATH;
+  if (envPath) return envPath;
+  return "ffmpeg";
+}
+
+export async function extractAudio(videoPath: string, outputDir?: string, audioFormat = "mp3"): Promise<string> {
+  const ffmpegPath = findFfmpeg();
+  const path = await import("path");
+  const fs = await import("fs");
+
+  if (!fs.existsSync(videoPath)) {
+    throw new Error(`Video file not found: ${videoPath}`);
+  }
+
+  const outDir = outputDir || path.dirname(videoPath);
+  if (!fs.existsSync(outDir)) {
+    fs.mkdirSync(outDir, { recursive: true });
+  }
+
+  const stem = path.basename(videoPath, path.extname(videoPath));
+  const ext = audioFormat === "m4a" || audioFormat === "aac" ? "m4a" : audioFormat;
+  const outputPath = path.join(outDir, `${stem}.${ext}`);
+
+  const codecArgs: string[] = (() => {
+    switch (audioFormat) {
+      case "mp3": return ["-c:a", "libmp3lame", "-q:a", "2"];
+      case "m4a":
+      case "aac": return ["-c:a", "aac", "-b:a", "192k"];
+      case "flac": return ["-c:a", "flac"];
+      case "wav": return ["-c:a", "pcm_s16le"];
+      case "ogg": return ["-c:a", "libvorbis", "-q:a", "4"];
+      case "opus": return ["-c:a", "libopus", "-b:a", "128k"];
+      default: return ["-c:a", "libmp3lame", "-q:a", "2"];
+    }
+  })();
+
+  const args = ["-i", videoPath, "-vn", "-y", ...codecArgs, outputPath];
+
+  return new Promise((resolve, reject) => {
+    const { spawn } = require("child_process");
+    const child = spawn(ffmpegPath, args);
+    let stderr = "";
+
+    child.stderr?.on("data", (data: Buffer) => {
+      stderr += data.toString();
+    });
+
+    child.on("close", (code: number) => {
+      if (code !== 0) {
+        reject(new Error(stderr || `ffmpeg exited with code ${code}`));
+        return;
+      }
+      resolve(outputPath);
+    });
+
+    child.on("error", (err: Error) => {
+      reject(err);
+    });
+  });
+}
+
 function runYtDlp(args: string[], timeoutMs = 30000): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
     const ytDlpPath = findYtDlp();

@@ -100,7 +100,12 @@
     "queuePosition": "Queue position: {{position}}",
     "unknownTitle": "Unknown Title",
     "viewLogs": "View logs",
-    "hideLogs": "Hide logs"
+    "hideLogs": "Hide logs",
+    "extractAudio": "Extract audio",
+    "extractingAudio": "Extracting audio...",
+    "extractAudioSuccess": "Audio extracted successfully to: {{path}}",
+    "extractAudioFailed": "Failed to extract audio",
+    "noVideoFile": "Video file path is not available"
   },
   "settings": {
     "title": "Settings",

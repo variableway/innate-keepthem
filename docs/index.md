@@ -58,3 +58,4 @@ A Chrome extension for extracting video URLs from YouTube pages.
 - [Usage Guide](usage/)
 - [Tips & Troubleshooting](tips/)
 - [Technical Spec](spec/)
+- [How-To Guide](how-to/)

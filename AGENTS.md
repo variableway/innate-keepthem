@@ -257,6 +257,12 @@ Located in `vYtDL-desktop/scripts/`:
 
 Download wrapper scripts validate `yt-dlp`/`youtube-dl` availability before running.
 
+## AI Skill & Development Guide
+
+- **Project Skill**: `.agents/skills/vytdl-dev/SKILL.md` — Loaded automatically by Kimi Code CLI when working on this project. Contains architecture reference, component patterns, and common task workflows.
+- **How-To Tutorial**: `docs/how-to/README.md` — Step-by-step guide for implementing this project with AI assistance, including tech stack overview and dependency installation.
+- **One-Click Setup**: `docs/how-to/setup.sh` (macOS/Linux) and `docs/how-to/setup.ps1` (Windows) — Install all dependencies (Go, Node.js, Rust, yt-dlp, FFmpeg) in one command.
+
 ## Known Issues
 
 - yt-dlp must be installed separately and path configured in `config.json`

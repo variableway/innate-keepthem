@@ -104,3 +104,13 @@ export interface PlaylistInfo {
   entries: PlaylistVideo[];
   webpage_url: string;
 }
+
+export interface ExtractAudioRequest {
+  video_path: string;
+  output_dir?: string;
+  audio_format?: string;
+}
+
+export interface ExtractAudioResult {
+  audio_path: string;
+}

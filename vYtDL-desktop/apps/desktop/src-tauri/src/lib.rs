@@ -1,3 +1,4 @@
+mod audio_extractor;
 mod commands;
 mod database;
 mod downloader;
@@ -246,6 +247,7 @@ pub fn run() {
             commands::get_video_formats,
             commands::get_playlist_info,
             commands::summarize_video,
+            commands::extract_audio,
             get_platform,
         ])
         .run(tauri::generate_context!())

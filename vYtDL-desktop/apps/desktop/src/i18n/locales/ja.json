@@ -100,7 +100,12 @@
     "queuePosition": "キュー位置: {{position}}",
     "unknownTitle": "不明なタイトル",
     "viewLogs": "ログを表示",
-    "hideLogs": "ログを隠す"
+    "hideLogs": "ログを隠す",
+    "extractAudio": "音声を抽出",
+    "extractingAudio": "音声抽出中...",
+    "extractAudioSuccess": "音声の抽出に成功しました: {{path}}",
+    "extractAudioFailed": "音声の抽出に失敗しました",
+    "noVideoFile": "動画ファイルのパスが利用できません"
   },
   "settings": {
     "title": "設定",

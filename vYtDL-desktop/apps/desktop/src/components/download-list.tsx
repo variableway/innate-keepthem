@@ -13,6 +13,7 @@ import {
   ChevronDown,
   ChevronUp,
   RotateCcw,
+  Music,
 } from "lucide-react";
 import { apiInvoke, apiConfirm } from "@/lib/api-client";
 import { Button } from "@vytdl/ui";
@@ -92,6 +93,7 @@ function DownloadItem({ download, queuePosition }: { download: DownloadItemType;
   const { deleteDownload, retryDownload, activeDownloads, downloadLogs, subscribeToProgress, subscribeToLogs } = useDownloadStore();
   const [progress, setProgress] = useState<DownloadProgress | null>(null);
   const [showLogs, setShowLogs] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -125,6 +127,30 @@ function DownloadItem({ download, queuePosition }: { download: DownloadItemType;
     });
     if (confirmed) {
       deleteDownload(download.id);
+    }
+  };
+
+  const handleExtractAudio = async () => {
+    if (!download.filename) {
+      alert(t("downloadList.noVideoFile"));
+      return;
+    }
+    setIsExtracting(true);
+    try {
+      const result = await apiInvoke<{ success: boolean; data: { audio_path: string } | null; error: string | null }>("extract_audio", {
+        request: {
+          video_path: download.filename,
+        },
+      });
+      if (result.success && result.data) {
+        alert(t("downloadList.extractAudioSuccess", { path: result.data.audio_path }));
+      } else {
+        alert(t("downloadList.extractAudioFailed") + (result.error ? `: ${result.error}` : ""));
+      }
+    } catch (e) {
+      alert(t("downloadList.extractAudioFailed") + `: ${e}`);
+    } finally {
+      setIsExtracting(false);
     }
   };
 
@@ -216,6 +242,18 @@ function DownloadItem({ download, queuePosition }: { download: DownloadItemType;
               title={t("downloadList.openFolder")}
             >
               <FolderOpen className="h-4 w-4" />
+            </Button>
+          )}
+
+          {download.status === "completed" && download.filename && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleExtractAudio}
+              disabled={isExtracting}
+              title={isExtracting ? t("downloadList.extractingAudio") : t("downloadList.extractAudio")}
+            >
+              {isExtracting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Music className="h-4 w-4" />}
             </Button>
           )}
 

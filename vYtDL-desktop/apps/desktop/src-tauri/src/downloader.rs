@@ -3,7 +3,59 @@ use std::process::Stdio;
 use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
-use tokio::time::timeout;
+
+/// Standard proxy env vars that Python's urllib (and yt-dlp) recognizes.
+const ALLOWED_PROXY_VARS: &[&str] = &[
+    "HTTP_PROXY", "http_proxy",
+    "HTTPS_PROXY", "https_proxy",
+    "ALL_PROXY", "all_proxy",
+    "NO_PROXY", "no_proxy",
+    "FTP_PROXY", "ftp_proxy",
+];
+
+/// Collect non-standard `*_proxy` env var keys that should be removed before
+/// spawning yt-dlp. Python's urllib treats ANY env var ending in `_proxy` as a
+/// proxy setting. npm/pnpm set `npm_config_proxy` / `npm_config_https_proxy`,
+/// which causes Python to skip macOS system proxy detection and return only
+/// the npm_config proxies. Since `npm_config` is not a valid protocol, HTTP/HTTPS
+/// requests end up with NO proxy at all, causing yt-dlp to hang on direct
+/// connections blocked by the firewall.
+fn proxy_vars_to_remove() -> Vec<String> {
+    std::env::vars()
+        .filter(|(key, _)| {
+            let lower = key.to_lowercase();
+            lower.ends_with("_proxy") && !ALLOWED_PROXY_VARS.contains(&key.as_str())
+        })
+        .map(|(key, _)| key)
+        .collect()
+}
+
+/// Run a yt-dlp command in a blocking thread to avoid potential async runtime deadlocks.
+/// Tauri v2's Tokio runtime can deadlock when using `tokio::process::Command::output()`
+/// because the child process may block on pipe I/O while the runtime worker threads are busy.
+async fn run_yt_dlp_blocking(
+    yt_dlp_path: String,
+    args: Vec<String>,
+    timeout_secs: u64,
+) -> Result<std::process::Output, String> {
+    let result = tokio::time::timeout(
+        Duration::from_secs(timeout_secs),
+        tokio::task::spawn_blocking(move || {
+            let mut cmd = std::process::Command::new(&yt_dlp_path);
+            cmd.args(&args);
+            for key in proxy_vars_to_remove() {
+                cmd.env_remove(&key);
+            }
+            cmd.output()
+        }),
+    )
+    .await
+    .map_err(|_| "Request timed out while executing yt-dlp. YouTube may require cookies or the video may be blocked.".to_string())?
+    .map_err(|e| format!("Blocking task panicked: {}", e))?
+    .map_err(|e| format!("Failed to execute yt-dlp: {}", e))?;
+    
+    Ok(result)
+}
 
 
 #[derive(Debug, Clone, Serialize)]
@@ -49,7 +101,7 @@ struct VideoInfoJson {
     id: String,
     title: String,
     #[serde(default)]
-    webpage_url: Option<String>,
+    _webpage_url: Option<String>,
     #[serde(default)]
     duration: Option<f64>,
     #[serde(default)]
@@ -60,7 +112,7 @@ struct VideoInfoJson {
 
 pub struct Downloader {
     options: DownloadOptions,
-    download_id: String,
+    _download_id: String,
     yt_dlp_path: Option<String>,
 }
 
@@ -68,7 +120,7 @@ impl Downloader {
     pub fn new(options: DownloadOptions, download_id: String) -> Self {
         Self {
             options,
-            download_id,
+            _download_id: download_id,
             yt_dlp_path: None,
         }
     }
@@ -87,7 +139,7 @@ impl Downloader {
                 start_time: None,
                 end_time: None,
             },
-            download_id: String::new(),
+            _download_id: String::new(),
             yt_dlp_path: None,
         }
     }
@@ -97,7 +149,7 @@ impl Downloader {
         self
     }
 
-    pub async fn download<F, G>(&self, mut on_progress: F, mut on_log: G) -> Result<DownloadOutput, String>
+    pub async fn download<F, G>(&self, mut on_progress: F, mut on_log: G, cancel_rx: &mut tokio::sync::mpsc::Receiver<()>) -> Result<DownloadOutput, String>
     where
         F: FnMut(DownloadProgress),
         G: FnMut(DownloadLog),
@@ -185,12 +237,17 @@ impl Downloader {
         });
 
         // Spawn yt-dlp process
-        let mut child = Command::new(&yt_dlp_path)
-            .args(&args)
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-            .map_err(|e| format!("Failed to spawn yt-dlp: {}", e))?;
+        let mut child = {
+            let mut cmd = Command::new(&yt_dlp_path);
+            cmd.args(&args);
+            for key in proxy_vars_to_remove() {
+                cmd.env_remove(&key);
+            }
+            cmd.stdout(Stdio::piped())
+                .stderr(Stdio::piped())
+                .spawn()
+                .map_err(|e| format!("Failed to spawn yt-dlp: {}", e))?
+        };
 
         let stdout = child.stdout.take().ok_or("Failed to capture stdout")?;
         let stderr = child.stderr.take().ok_or("Failed to capture stderr")?;
@@ -205,6 +262,15 @@ impl Downloader {
         // Read stdout
         loop {
             tokio::select! {
+                biased;
+                _ = cancel_rx.recv() => {
+                    let _ = child.kill().await;
+                    on_log(DownloadLog {
+                        level: "info".to_string(),
+                        message: "Download cancelled".to_string(),
+                    });
+                    return Err("Download cancelled".to_string());
+                }
                 line = stdout_reader.next_line() => {
                     match line {
                         Ok(Some(line)) => {
@@ -255,6 +321,8 @@ impl Downloader {
                             level: "error".to_string(),
                             message: line,
                         });
+                    } else {
+                        // stderr closed
                     }
                 }
             }
@@ -302,14 +370,16 @@ impl Downloader {
         
         let yt_dlp_path = self.find_yt_dlp().await?;
         
-        let cmd_future = Command::new(&yt_dlp_path)
-            .args(&["--dump-json", "--no-download", url])
-            .output();
+        let args = vec![
+            "--dump-json".to_string(),
+            "--no-download".to_string(),
+            "--socket-timeout".to_string(),
+            "10".to_string(),
+            "--no-warnings".to_string(),
+            url.to_string(),
+        ];
         
-        let output = match timeout(Duration::from_secs(60), cmd_future).await {
-            Ok(result) => result.map_err(|e| format!("Failed to execute yt-dlp: {}", e))?,
-            Err(_) => return Err("Request timed out while fetching video info. YouTube may require cookies or the video may be blocked. Try using --cookies-from-browser or a different URL.".to_string()),
-        };
+        let output = run_yt_dlp_blocking(yt_dlp_path, args, 30).await?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -337,15 +407,16 @@ impl Downloader {
         
         let yt_dlp_path = self.find_yt_dlp().await?;
         
-        // Use --dump-json to get all format information
-        let cmd_future = Command::new(&yt_dlp_path)
-            .args(&["--dump-json", "--no-download", url])
-            .output();
+        let args = vec![
+            "--dump-json".to_string(),
+            "--no-download".to_string(),
+            "--socket-timeout".to_string(),
+            "10".to_string(),
+            "--no-warnings".to_string(),
+            url.to_string(),
+        ];
         
-        let output = match timeout(Duration::from_secs(60), cmd_future).await {
-            Ok(result) => result.map_err(|e| format!("Failed to execute yt-dlp: {}", e))?,
-            Err(_) => return Err("Request timed out while fetching video formats.".to_string()),
-        };
+        let output = run_yt_dlp_blocking(yt_dlp_path, args, 60).await?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -407,15 +478,16 @@ impl Downloader {
         
         let yt_dlp_path = self.find_yt_dlp().await?;
         
-        // Use --dump-single-json to get playlist info with entries
-        let cmd_future = Command::new(&yt_dlp_path)
-            .args(&["--dump-single-json", "--flat-playlist", url])
-            .output();
+        let args = vec![
+            "--dump-single-json".to_string(),
+            "--flat-playlist".to_string(),
+            "--socket-timeout".to_string(),
+            "10".to_string(),
+            "--no-warnings".to_string(),
+            url.to_string(),
+        ];
         
-        let output = match timeout(Duration::from_secs(90), cmd_future).await {
-            Ok(result) => result.map_err(|e| format!("Failed to execute yt-dlp: {}", e))?,
-            Err(_) => return Err("Request timed out while fetching playlist info.".to_string()),
-        };
+        let output = run_yt_dlp_blocking(yt_dlp_path, args, 90).await?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -443,8 +515,8 @@ impl Downloader {
             duration: Option<f64>,
             thumbnail: Option<String>,
             uploader: Option<String>,
-            webpage_url: Option<String>,
-            url: Option<String>,
+            _webpage_url: Option<String>,
+            _url: Option<String>,
         }
 
         let info: YtdlpPlaylist = serde_json::from_slice(&output.stdout)
@@ -457,7 +529,7 @@ impl Downloader {
                 duration: e.duration.map(|d| d as i64),
                 thumbnail: e.thumbnail,
                 uploader: e.uploader,
-                webpage_url: e.webpage_url.unwrap_or_else(|| 
+                webpage_url: e._webpage_url.unwrap_or_else(|| 
                     format!("https://www.youtube.com/watch?v={}", e.id)
                 ),
             })
@@ -623,5 +695,36 @@ fn sanitize_filename(s: &str) -> String {
         s[..120].to_string()
     } else {
         s.to_string()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_get_info_blocking() {
+        // Verify Downloader::get_info() works with the spawn_blocking approach.
+        let url = "https://www.youtube.com/watch?v=oOCN30ulVyo";
+        let downloader = Downloader::new_default();
+        
+        let result = tokio::time::timeout(
+            Duration::from_secs(30),
+            downloader.get_info(url)
+        ).await;
+        
+        match result {
+            Ok(Ok(info)) => {
+                println!("✅ get_info() success: {} (id={})", info.title, info.id);
+                assert!(!info.title.is_empty(), "Title should not be empty");
+                assert!(!info.id.is_empty(), "ID should not be empty");
+            }
+            Ok(Err(e)) => {
+                panic!("❌ get_info() returned error: {}", e);
+            }
+            Err(_) => {
+                panic!("❌ get_info() timed out after 30s — blocking fix did not work");
+            }
+        }
     }
 }

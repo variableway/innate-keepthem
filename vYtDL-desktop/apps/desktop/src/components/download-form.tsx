@@ -29,10 +29,7 @@ const FORMAT_OPTIONS = [
   { value: "mov", labelKey: "downloadForm.formatMov" },
 ];
 
-async function invoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
-  const { invoke: tauriInvoke } = await import("@tauri-apps/api/core");
-  return tauriInvoke<T>(command, args);
-}
+import { apiInvoke } from "@/lib/api-client";
 
 function isValidVideoUrl(url: string): boolean {
   if (!url.trim()) return false;
@@ -69,6 +66,7 @@ export function DownloadForm({ mode }: DownloadFormProps) {
   const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null);
   const [isLoadingInfo, setIsLoadingInfo] = useState(false);
   const [infoError, setInfoError] = useState<string | null>(null);
+  const [infoRetryCount, setInfoRetryCount] = useState(0);
   const infoAbortRef = useRef<AbortController | null>(null);
 
   const [history, setHistory] = useState<{ url: string; title?: string; date: string }[]>([]);
@@ -90,9 +88,66 @@ export function DownloadForm({ mode }: DownloadFormProps) {
     }
   }, []);
 
+  // Fetch video info with auto-retry on timeout
+  const fetchVideoInfo = useCallback(async (retryAttempt = 0) => {
+    const abortController = new AbortController();
+    infoAbortRef.current = abortController;
+
+    setIsLoadingInfo(true);
+    setInfoError(null);
+
+    const done = () => {
+      if (!abortController.signal.aborted) {
+        setIsLoadingInfo(false);
+      }
+    };
+
+    // Frontend timeout: 25s to accommodate slow YouTube responses
+    const timeoutMs = 25000;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error(t("downloadForm.requestTimeout"))), timeoutMs);
+    });
+
+    let willRetry = false;
+    try {
+      console.log("[DownloadForm] Fetching video info for:", url, "retry:", retryAttempt);
+      const response = await Promise.race([
+        apiInvoke<ApiResponse<VideoInfo>>("get_video_info", { url }),
+        timeoutPromise,
+      ]);
+      console.log("[DownloadForm] Video info response:", response);
+      if (!abortController.signal.aborted) {
+        if (response.success && response.data) {
+          setVideoInfo(response.data);
+          setInfoRetryCount(0);
+        } else {
+          setInfoError(response.error || t("downloadForm.fetchFailed"));
+        }
+      }
+    } catch (err) {
+      console.error("[DownloadForm] Video info error:", err);
+      if (!abortController.signal.aborted) {
+        const errStr = String(err);
+        // Auto-retry once on timeout
+        if (errStr.includes("timed out") && retryAttempt < 1) {
+          willRetry = true;
+          setInfoRetryCount(retryAttempt + 1);
+          setTimeout(() => fetchVideoInfo(retryAttempt + 1), 1500);
+        } else {
+          setInfoError(errStr);
+        }
+      }
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (!willRetry) done();
+    }
+  }, [url, t]);
+
   useEffect(() => {
     setVideoInfo(null);
     setInfoError(null);
+    setInfoRetryCount(0);
 
     if (infoAbortRef.current) {
       infoAbortRef.current.abort();
@@ -102,48 +157,17 @@ export function DownloadForm({ mode }: DownloadFormProps) {
       return;
     }
 
-    const abortController = new AbortController();
-    infoAbortRef.current = abortController;
-
-    const timer = setTimeout(async () => {
-      if (abortController.signal.aborted) return;
-      setIsLoadingInfo(true);
-      
-      // Frontend timeout: reject if backend doesn't respond in 35s
-      const timeoutMs = 35000;
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        const id = setTimeout(() => reject(new Error("Request timed out. The server may be blocking this request or yt-dlp is not responding.")), timeoutMs);
-        abortController.signal.addEventListener("abort", () => clearTimeout(id));
-      });
-      
-      try {
-        const response = await Promise.race([
-          invoke<ApiResponse<VideoInfo>>("get_video_info", { url }),
-          timeoutPromise,
-        ]);
-        if (!abortController.signal.aborted) {
-          if (response.success && response.data) {
-            setVideoInfo(response.data);
-          } else {
-            setInfoError(response.error || "Failed to fetch video info");
-          }
-        }
-      } catch (err) {
-        if (!abortController.signal.aborted) {
-          setInfoError(String(err));
-        }
-      } finally {
-        if (!abortController.signal.aborted) {
-          setIsLoadingInfo(false);
-        }
-      }
+    const timer = setTimeout(() => {
+      fetchVideoInfo(0);
     }, 500);
 
     return () => {
       clearTimeout(timer);
-      abortController.abort();
+      if (infoAbortRef.current) {
+        infoAbortRef.current.abort();
+      }
     };
-  }, [url]);
+  }, [url, fetchVideoInfo]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -279,14 +303,30 @@ export function DownloadForm({ mode }: DownloadFormProps) {
               {isLoadingInfo && (
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-sm">{t("downloadForm.fetchingInfo")}</span>
+                  <span className="text-sm">
+                    {infoRetryCount > 0
+                      ? t("downloadForm.fetchingInfoRetry", { count: infoRetryCount })
+                      : t("downloadForm.fetchingInfo")}
+                  </span>
                 </div>
               )}
 
               {infoError && (
                 <div className="flex items-center gap-2 text-destructive">
                   <X className="h-4 w-4" />
-                  <span className="text-sm">{infoError}</span>
+                  <span className="text-sm flex-1">{infoError}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setInfoError(null);
+                      setInfoRetryCount(0);
+                      fetchVideoInfo(0);
+                    }}
+                    className="h-7 px-2 text-xs"
+                  >
+                    {t("downloadForm.retry")}
+                  </Button>
                 </div>
               )}
 

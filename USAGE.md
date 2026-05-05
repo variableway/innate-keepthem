@@ -183,12 +183,57 @@ cd vYtDL-desktop
 pnpm tauri:build
 ```
 
+### Download Queue
+
+The desktop app supports downloading multiple videos simultaneously with a configurable queue:
+
+- **Queue Position** — Pending downloads show their position in the queue
+- **Max Concurrent** — Configure how many downloads run at once (Settings → Max Concurrent Downloads, default: 3)
+- **Status Persistence** — All download states are saved to SQLite and survive app restarts
+- **Retry** — Failed or cancelled downloads can be retried with one click
+- **Cancel** — Active or queued downloads can be cancelled at any time
+- **Real-time Logs** — Toggle log viewer on any download to see yt-dlp output
+
 ### Changing Language
 
 Open **Settings** and select your preferred language from the **Language** dropdown. Supported languages:
 - English
 - 中文 (Chinese)
 - 日本語 (Japanese)
+
+## Web UI (Docker)
+
+Deploy vYtDL as a web application using Docker Compose:
+
+```bash
+# Start the web server
+docker-compose up -d
+
+# Access at http://localhost:3000
+```
+
+### Configuration
+
+Edit `docker-compose.yml` to customize ports and volumes:
+
+```yaml
+services:
+  vytdl-web:
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./downloads:/app/downloads
+      - vytdl-data:/app/data
+```
+
+### For Raspberry Pi / ARM
+
+The Dockerfile uses `node:20-slim` which supports multi-arch builds. Docker will automatically pull the correct architecture image.
+
+```bash
+docker-compose build
+docker-compose up -d
+```
 
 ## Output Files
 

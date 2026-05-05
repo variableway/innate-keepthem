@@ -1,0 +1,58 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "ui:dev",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["--filter", "@vytdl/desktop", "dev"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": { "regexp": "." },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": "Ready in.*"
+        }
+      }
+    },
+    {
+      "label": "ui:build",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["--filter", "@vytdl/desktop", "build"],
+      "options": { "cwd": "${workspaceFolder}" }
+    },
+    {
+      "label": "tauri:dev",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["--filter", "@vytdl/desktop", "tauri", "dev"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": { "regexp": "." },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": "Running DevCommand"
+        }
+      }
+    },
+    {
+      "label": "tauri:build",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["--filter", "@vytdl/desktop", "tauri", "build"],
+      "options": { "cwd": "${workspaceFolder}" }
+    },
+    {
+      "label": "desktop:check",
+      "type": "shell",
+      "command": "python3",
+      "args": ["scripts/build-desktop.py", "check"],
+      "options": { "cwd": "${workspaceFolder}" }
+    }
+  ]
+}

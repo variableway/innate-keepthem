@@ -188,6 +188,25 @@ export default function SettingsPage() {
                 </select>
               </div>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="max-concurrent">{t("settings.maxConcurrentDownloads")}</Label>
+              <select
+                id="max-concurrent"
+                value={localSettings.max_concurrent_downloads}
+                onChange={(e) => updateField("max_concurrent_downloads", parseInt(e.target.value, 10))}
+                className="w-full h-10 rounded-md border border-input bg-background px-3"
+              >
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                {t("settings.maxConcurrentHint")}
+              </p>
+            </div>
           </CardContent>
         </Card>
 

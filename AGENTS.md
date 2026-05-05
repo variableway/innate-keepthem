@@ -4,9 +4,10 @@ This document provides context for AI agents working on the vYtDL codebase.
 
 ## Project Overview
 
-vYtDL is a YouTube downloader suite with three components:
+vYtDL is a YouTube downloader suite with four components:
 - **vYtDL CLI** - Go-based CLI wrapping yt-dlp
 - **vYtDL Desktop** - Tauri v2 + Next.js + React 19 desktop app with i18n support
+- **vYtDL Web** - Docker-deployable web UI with Express backend
 - **URL Extractor** - Chrome extension for URL extraction
 
 ## Technology Stack
@@ -24,6 +25,13 @@ vYtDL is a YouTube downloader suite with three components:
 - **State**: Zustand stores (downloadStore, settingsStore)
 - **Storage**: Tauri storage adapter + SQLite database
 - **i18n**: Custom React context with JSON locale files (`src/i18n/`)
+- **API Abstraction**: `api-client.ts` supports both Tauri IPC and HTTP API modes
+
+### Web Server (vYtDL-desktop/web-server/)
+- **Backend**: Node.js + Express + WebSocket (`ws`)
+- **Database**: SQLite3 (same schema as desktop)
+- **Queue**: In-memory queue manager with configurable concurrency
+- **yt-dlp**: Spawned as child process
 
 ### URL Extractor (url-extractor/)
 - **Chrome Extension**: Manifest V3
@@ -53,9 +61,25 @@ React Components (download-form, download-list, app-shell, app-sidebar)
     ↓
 Zustand Stores (downloadStore, settingsStore)
     ↓
-Tauri IPC (commands.rs → downloader.rs, database.rs)
+api-client.ts (Tauri IPC ↔ HTTP API abstraction)
+    ↓
+Tauri IPC (commands.rs → queue.rs → downloader.rs, database.rs)
     ↓
 yt-dlp subprocess (via Tauri Rust backend)
+```
+
+### Web Server (Docker)
+
+```
+Browser
+    ↓
+Next.js Static Build (served by Express)
+    ↓
+HTTP API / WebSocket (Express server)
+    ↓
+Queue Manager → yt-dlp subprocess
+    ↓
+SQLite Database
 ```
 
 ## Key Modules
@@ -76,16 +100,51 @@ yt-dlp subprocess (via Tauri Rust backend)
 - `apps/desktop/src/components/` - React components
 - `apps/desktop/src/i18n/` - Internationalization (provider, hook, locale JSON files)
 - `apps/desktop/src/store/` - Zustand stores
-- `apps/desktop/src-tauri/src/` - Rust backend (commands, downloader, database)
+- `apps/desktop/src/lib/api-client.ts` - API abstraction (Tauri IPC / HTTP fetch)
+- `apps/desktop/src-tauri/src/` - Rust backend
+  - `commands.rs` - Tauri IPC commands
+  - `downloader.rs` - yt-dlp subprocess wrapper
+  - `database.rs` - SQLite database layer
+  - `queue.rs` - Async download queue manager (max concurrency, FIFO, cancel)
+  - `lib.rs` - App setup, bundled yt-dlp extraction
 - `packages/ui/` - Shared UI components
 - `packages/utils/` - Shared utilities
-- `scripts/` - Startup scripts (start-desktop.sh, start-desktop.ps1, start-desktop.py, vytdl-launcher.py)
+- `scripts/` - Startup scripts
+- `web-server/` - Docker web API server (Node.js + Express)
 
 ### URL Extractor (url-extractor/)
 
 - `manifest.json` - Chrome extension config (Manifest V3)
 - `popup.html/js/css` - Extension popup UI
 - `content.js` - Content script for URL extraction from YouTube pages
+
+## Download Queue System
+
+The desktop and web backends both implement a download queue:
+
+### Rust Queue (`queue.rs`)
+- `QueueManager` spawns a background Tokio task
+- Maintains a `VecDeque` of pending downloads and `HashMap` of active tasks
+- Configurable `max_concurrent` (default: 3, range: 1-10)
+- FIFO ordering with `queue_position` persisted to SQLite
+- Cancellation via `tokio::sync::mpsc` channel
+- Status transitions: `pending` → `downloading` → `completed`/`failed`/`cancelled`
+
+### Web Server Queue (`web-server/src/queue.ts`)
+- `QueueManager` with `Map` of active downloads and array of pending
+- Configurable `maxConcurrent` (default: 3)
+- WebSocket broadcast for real-time progress updates
+- Same status transitions as Rust backend
+
+## API Client Abstraction
+
+`apps/desktop/src/lib/api-client.ts` provides a unified interface:
+
+- `apiInvoke(command, args)` - Calls Tauri `invoke()` in desktop mode, `POST /api/{command}` in web mode
+- `apiListen(event, handler)` - Binds to Tauri events in desktop mode, WebSocket in web mode
+- `apiConfirm(message, options)` - Uses Tauri dialog in desktop mode, native `confirm()` in web mode
+
+This allows the same Next.js frontend to run in both Tauri desktop and Docker web contexts.
 
 ## Common Tasks
 
@@ -98,7 +157,7 @@ yt-dlp subprocess (via Tauri Rust backend)
 ### Adding a Desktop Feature
 
 1. Add Rust command in `src-tauri/src/commands.rs`
-2. Add frontend API call via `@tauri-apps/api`
+2. Add frontend API call via `api-client.ts` (not direct Tauri imports)
 3. Build React component in `src/components/`
 4. Wire into Zustand store if state management needed
 5. Add translation keys to all locale JSON files in `src/i18n/locales/`
@@ -114,6 +173,13 @@ yt-dlp subprocess (via Tauri Rust backend)
 
 - CLI: Edit `internal/downloader/downloader.go`
 - Desktop: Edit `src-tauri/src/downloader.rs`
+- Web: Edit `vYtDL-desktop/web-server/src/downloader.ts`
+
+### Adding a Web API Endpoint
+
+1. Add route in `vYtDL-desktop/web-server/src/index.ts`
+2. Implement logic using `database.ts` and `downloader.ts`
+3. Ensure the desktop frontend uses `apiInvoke()` (same command name as Tauri)
 
 ## File Conventions
 
@@ -144,3 +210,4 @@ Download wrapper scripts validate `yt-dlp`/`youtube-dl` availability before runn
 - yt-dlp must be installed separately and path configured in `config.json`
 - YouTube may block anonymous requests; use `--cookies-from-browser` as workaround
 - URL escaping issues were fixed; downloader normalizes input URLs
+- Desktop `tauriStorage` type has known TypeScript incompatibility with Zustand `PersistStorage`

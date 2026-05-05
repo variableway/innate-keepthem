@@ -18,6 +18,7 @@ export interface Download {
   filename: string | null;
   subtitles: string[];
   error: string | null;
+  queue_position: number;
   created_at: string;
   updated_at: string;
 }
@@ -73,6 +74,7 @@ export interface Settings {
   default_format: string;
   default_sub_langs: string[];
   language: string;
+  max_concurrent_downloads: number;
   ai_provider: string | null;
   ai_api_key: string | null;
   ai_model: string | null;

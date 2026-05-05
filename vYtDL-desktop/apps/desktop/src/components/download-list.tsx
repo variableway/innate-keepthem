@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Play,
   Trash2,
@@ -12,8 +12,9 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
+  RotateCcw,
 } from "lucide-react";
-import { confirm as tauriConfirm } from "@tauri-apps/plugin-dialog";
+import { apiInvoke, apiConfirm } from "@/lib/api-client";
 import { Button } from "@vytdl/ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@vytdl/ui";
 import { Badge } from "@vytdl/ui";
@@ -87,8 +88,8 @@ function LogViewer({ logs }: { logs: DownloadLog[] }) {
   );
 }
 
-function DownloadItem({ download }: { download: DownloadItemType }) {
-  const { deleteDownload, activeDownloads, downloadLogs, subscribeToProgress, subscribeToLogs } = useDownloadStore();
+function DownloadItem({ download, queuePosition }: { download: DownloadItemType; queuePosition?: number }) {
+  const { deleteDownload, retryDownload, activeDownloads, downloadLogs, subscribeToProgress, subscribeToLogs } = useDownloadStore();
   const [progress, setProgress] = useState<DownloadProgress | null>(null);
   const [showLogs, setShowLogs] = useState(false);
   const { t } = useTranslation();
@@ -118,7 +119,7 @@ function DownloadItem({ download }: { download: DownloadItemType }) {
   }, [activeDownloads, download.id]);
 
   const handleDelete = async () => {
-    const confirmed = await tauriConfirm(t("downloadList.deleteConfirm"), {
+    const confirmed = await apiConfirm(t("downloadList.deleteConfirm"), {
       title: t("common.confirm"),
       kind: "warning",
     });
@@ -172,6 +173,15 @@ function DownloadItem({ download }: { download: DownloadItemType }) {
             </div>
           )}
 
+          {download.status === "pending" && (
+            <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              {queuePosition !== undefined && queuePosition > 0
+                ? t("downloadList.queuePosition", { position: String(queuePosition) })
+                : t("downloadList.waitingInQueue")}
+            </div>
+          )}
+
           <div className="mt-2 text-xs text-muted-foreground">
             <Clock className="inline h-3 w-3 mr-1" />
             {formatDate(download.created_at)}
@@ -196,10 +206,29 @@ function DownloadItem({ download }: { download: DownloadItemType }) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => console.log("Open folder:", download.output_dir)}
+              onClick={async () => {
+                try {
+                  await apiInvoke("open_download_folder", { path: download.output_dir });
+                } catch (e) {
+                  console.error("Failed to open folder:", e);
+                }
+              }}
               title={t("downloadList.openFolder")}
             >
               <FolderOpen className="h-4 w-4" />
+            </Button>
+          )}
+
+          {(download.status === "failed" || download.status === "cancelled") && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={async () => {
+                await retryDownload(download.id);
+              }}
+              title={t("downloadList.retry")}
+            >
+              <RotateCcw className="h-4 w-4" />
             </Button>
           )}
 
@@ -231,6 +260,15 @@ export function DownloadList() {
   const filteredDownloads = downloads.filter(
     (d) => filter === "all" || d.status === filter
   );
+
+  const pendingQueuePositions = useMemo(() => {
+    const positions = new Map<string, number>();
+    const sortedPending = [...downloads]
+      .filter((d) => d.status === "pending")
+      .sort((a, b) => (a.queue_position ?? 0) - (b.queue_position ?? 0));
+    sortedPending.forEach((d, i) => positions.set(d.id, i + 1));
+    return positions;
+  }, [downloads]);
 
   const filters: { value: Download["status"] | "all"; labelKey: string }[] = [
     { value: "all", labelKey: "downloadList.filterAll" },
@@ -275,7 +313,11 @@ export function DownloadList() {
         ) : (
           <div className="divide-y">
             {filteredDownloads.map((download) => (
-              <DownloadItem key={download.id} download={download} />
+              <DownloadItem
+                key={download.id}
+                download={download}
+                queuePosition={pendingQueuePositions.get(download.id)}
+              />
             ))}
           </div>
         )}

@@ -30,6 +30,7 @@ pub struct DownloadRecord {
     pub filename: Option<String>,
     pub subtitles: Vec<String>,
     pub error: Option<String>,
+    pub queue_position: i64,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -130,8 +131,8 @@ impl Database {
     pub async fn create_download(&self, record: DownloadRecord) -> Result<(), sqlx::Error> {
         sqlx::query(
             r#"
-            INSERT INTO downloads (id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, created_at, updated_at)
-            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)
+            INSERT INTO downloads (id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, created_at, updated_at)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)
             "#,
         )
         .bind(&record.id)
@@ -145,6 +146,7 @@ impl Database {
         .bind(&record.filename)
         .bind(serde_json::to_string(&record.subtitles).unwrap())
         .bind(&record.error)
+        .bind(record.queue_position)
         .bind(record.created_at)
         .bind(record.updated_at)
         .execute(&self.pool)
@@ -156,7 +158,7 @@ impl Database {
     pub async fn get_all_downloads(&self) -> Result<Vec<DownloadRecord>, sqlx::Error> {
         let rows = sqlx::query_as::<_, DownloadRow>(
             r#"
-            SELECT id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, created_at, updated_at
+            SELECT id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, created_at, updated_at
             FROM downloads
             ORDER BY created_at DESC
             "#,
@@ -266,6 +268,22 @@ impl Database {
         Ok(())
     }
 
+    pub async fn update_queue_position(&self, id: &str, position: i64) -> Result<(), sqlx::Error> {
+        sqlx::query(
+            r#"
+            UPDATE downloads
+            SET queue_position = ?1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?2
+            "#,
+        )
+        .bind(position)
+        .bind(id)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
     pub async fn delete_download(&self, id: &str) -> Result<(), sqlx::Error> {
         sqlx::query(
             r#"
@@ -324,6 +342,7 @@ struct DownloadRow {
     filename: Option<String>,
     subtitles: String,
     error: Option<String>,
+    queue_position: i64,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -342,6 +361,7 @@ impl From<DownloadRow> for DownloadRecord {
             filename: row.filename,
             subtitles: serde_json::from_str(&row.subtitles).unwrap_or_default(),
             error: row.error,
+            queue_position: row.queue_position,
             created_at: row.created_at,
             updated_at: row.updated_at,
         }

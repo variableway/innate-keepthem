@@ -120,3 +120,23 @@ Next.js version: 16.2.2 (Turbopack)
 
 1. use: https://www.youtube.com/watch?v=oOCN30ulVyo to download to very golang cli application
 2. use the same link to verify the desktop application feature
+
+## Task 14: Add Queue feature
+
+1. please check how it works if support multiple url download
+2. if not support, please add a queue function 
+3. the download task could be saved into a file or database to persist the download task and persist the status
+4. then download the video one by one
+
+## Task 15: Add Docker Version for Web
+
+1. Add Docker-composer version for web application
+2. need to support private NAS storage or light os like Raspberry Pi
+3. please include the docker-compose.yml file in the root directory
+
+## Task 16: Please Check the implementation
+
+1. please update all the docs
+2. please check how the store download status, how to manage these status
+3. every download shoule be recorded, and show in the download list with status, and user can resume the failed one
+4. multiple tasks should be support, support 2-3 download tasks at the same time, this task num could be configurated, default is 3

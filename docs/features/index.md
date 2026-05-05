@@ -38,23 +38,45 @@
 
 ### Download Management
 
-- GUI download form with URL input
+- GUI download form with URL input and auto-fetch video info
 - Format and quality selection
-- Download progress tracking
-- Download history/library view
+- Real-time download progress tracking with speed and ETA
+- Per-download log viewer with auto-scroll
+- Download history/library view with status filtering
+- Retry failed or cancelled downloads
+- Open download folder directly from the app
+
+### Download Queue
+
+- FIFO queue system for multiple downloads
+- Configurable max concurrent downloads (1-5, default: 3)
+- Queue position display for pending downloads
+- Automatic status persistence to SQLite database
+- Cancel queued or active downloads
+- Resume failed downloads with one click
 
 ### Cross-Platform
 
 - macOS, Linux, and Windows support
 - Native desktop integration via Tauri v2
-- System tray and window management
 - Single cross-platform launcher script (`start-desktop.py`)
+- Bundled yt-dlp binaries for all platforms (no separate install needed)
+
+### Web Version (Docker)
+
+- Docker Compose deployment for NAS and Raspberry Pi
+- Same web UI running in any modern browser
+- WebSocket-based real-time progress updates
+- Shared SQLite database for persistence
+- Lightweight resource limits for low-power devices
 
 ### Settings
 
 - yt-dlp binary path configuration
 - Default download directory
 - Quality and format preferences
+- Subtitle language preferences
+- Max concurrent downloads configuration
 - AI provider configuration for video summarization
 
 ### Multiple Language Support

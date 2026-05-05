@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Manager, State};
 
 use crate::database::{Database, DownloadRecord, DownloadStatus};
-use crate::downloader::{DownloadLog, DownloadOptions, DownloadProgress, Downloader};
+use crate::downloader::{DownloadOptions, Downloader};
+use crate::queue::QueueManager;
 
 /// Load yt-dlp binary path from the shared vYtDL config file.
 /// Searches in order:
@@ -103,6 +104,7 @@ pub struct StartDownloadRequest {
 pub async fn start_download(
     app: AppHandle,
     db: State<'_, Database>,
+    queue: State<'_, QueueManager>,
     request: StartDownloadRequest,
 ) -> Result<ApiResponse<String>, String> {
     let download_id = uuid::Uuid::new_v4().to_string();
@@ -120,6 +122,7 @@ pub async fn start_download(
         filename: None,
         subtitles: vec![],
         error: None,
+        queue_position: 0,
         created_at: chrono::Utc::now(),
         updated_at: chrono::Utc::now(),
     };
@@ -134,85 +137,21 @@ pub async fn start_download(
         yt_dlp_path = load_vytdl_config_yt_dlp_path();
     }
 
-    // Start download in background
-    let app_clone = app.clone();
-    let download_id_clone = download_id.clone();
-    let db_clone = db.inner().clone();
+    // Enqueue download via queue manager
+    let options = DownloadOptions {
+        url: request.url,
+        is_playlist: request.is_playlist,
+        quality: request.quality,
+        format: request.format,
+        output_dir: request.output_dir,
+        sub_langs: request.sub_langs,
+        write_subs: request.write_subs.unwrap_or(true),
+        write_auto_subs: request.write_auto_subs.unwrap_or(true),
+        start_time: request.start_time,
+        end_time: request.end_time,
+    };
 
-    tauri::async_runtime::spawn(async move {
-        let options = DownloadOptions {
-            url: request.url,
-            is_playlist: request.is_playlist,
-            quality: request.quality,
-            format: request.format,
-            output_dir: request.output_dir,
-            sub_langs: request.sub_langs,
-            write_subs: request.write_subs.unwrap_or(true),
-            write_auto_subs: request.write_auto_subs.unwrap_or(true),
-            start_time: request.start_time,
-            end_time: request.end_time,
-        };
-
-        let downloader = Downloader::new(options, download_id_clone.clone())
-            .with_yt_dlp_path(yt_dlp_path);
-        
-        // Update status to downloading
-        let _ = db_clone.update_download_status(&download_id_clone, DownloadStatus::Downloading).await;
-
-        // Start download with progress and log callbacks
-        let app_for_progress = app_clone.clone();
-        let id_for_progress = download_id_clone.clone();
-        let app_for_logs = app_clone.clone();
-        let id_for_logs = download_id_clone.clone();
-        let result = downloader
-            .download(
-                move |progress: DownloadProgress| {
-                    // Emit progress event to frontend
-                    let _ = app_for_progress.emit(
-                        &format!("download:progress:{}", id_for_progress),
-                        progress,
-                    );
-                },
-                move |log: DownloadLog| {
-                    // Emit log event to frontend
-                    let _ = app_for_logs.emit(
-                        &format!("download:log:{}", id_for_logs),
-                        log,
-                    );
-                },
-            )
-            .await;
-
-        // Update final status
-        match result {
-            Ok(output) => {
-                let title = output.title.clone();
-                let filename = output.filename.clone();
-                let subtitles = output.subtitles.clone();
-                
-                let _ = db_clone.update_download_complete(
-                    &download_id_clone,
-                    title,
-                    filename,
-                    subtitles,
-                ).await;
-                
-                // Emit completion event
-                let _ = app_clone.emit(
-                    &format!("download:complete:{}", download_id_clone),
-                    output,
-                );
-            }
-            Err(e) => {
-                let _ = db_clone.update_download_error(&download_id_clone, &e).await;
-                
-                let _ = app_clone.emit(
-                    &format!("download:error:{}", download_id_clone),
-                    e,
-                );
-            }
-        }
-    });
+    queue.enqueue(download_id.clone(), options, yt_dlp_path, app).await;
 
     Ok(ApiResponse::ok(download_id))
 }
@@ -220,9 +159,10 @@ pub async fn start_download(
 #[tauri::command]
 pub async fn cancel_download(
     db: State<'_, Database>,
+    queue: State<'_, QueueManager>,
     download_id: String,
 ) -> Result<ApiResponse<()>, String> {
-    // TODO: Implement actual cancellation
+    queue.cancel(download_id.clone()).await;
     if let Err(e) = db.update_download_status(&download_id, DownloadStatus::Cancelled).await {
         return Ok(ApiResponse::err(format!("Failed to cancel download: {}", e)));
     }
@@ -269,6 +209,68 @@ pub async fn open_download_folder(path: String) -> Result<ApiResponse<()>, Strin
     }
 }
 
+#[tauri::command]
+pub async fn retry_download(
+    app: AppHandle,
+    db: State<'_, Database>,
+    queue: State<'_, QueueManager>,
+    id: String,
+) -> Result<ApiResponse<String>, String> {
+    // Fetch the original download
+    let original = match db.get_download_by_id(&id).await {
+        Ok(Some(record)) => record,
+        Ok(None) => return Ok(ApiResponse::err("Download not found".to_string())),
+        Err(e) => return Ok(ApiResponse::err(format!("Failed to get download: {}", e))),
+    };
+
+    // Create a new download record with the same URL
+    let download_id = uuid::Uuid::new_v4().to_string();
+    let record = DownloadRecord {
+        id: download_id.clone(),
+        url: original.url.clone(),
+        title: None,
+        status: DownloadStatus::Pending,
+        progress: 0.0,
+        speed: None,
+        eta: None,
+        output_dir: original.output_dir.clone(),
+        filename: None,
+        subtitles: vec![],
+        error: None,
+        queue_position: 0,
+        created_at: chrono::Utc::now(),
+        updated_at: chrono::Utc::now(),
+    };
+
+    if let Err(e) = db.create_download(record).await {
+        return Ok(ApiResponse::err(format!("Failed to create download: {}", e)));
+    }
+
+    // Get yt-dlp path
+    let mut yt_dlp_path = db.get_setting("yt_dlp_path").await.unwrap_or(None);
+    if yt_dlp_path.is_none() {
+        yt_dlp_path = load_vytdl_config_yt_dlp_path();
+    }
+
+    // Enqueue with default options (same output_dir if available)
+    let options = DownloadOptions {
+        url: original.url,
+        is_playlist: false,
+        quality: None,
+        format: None,
+        output_dir: original.output_dir,
+        sub_langs: Some(vec!["en".to_string(), "zh".to_string()]),
+        write_subs: true,
+        write_auto_subs: true,
+        start_time: None,
+        end_time: None,
+    };
+
+    queue.enqueue(download_id.clone(), options, yt_dlp_path, app).await;
+
+    Ok(ApiResponse::ok(download_id))
+}
+
 // Settings commands
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Settings {
@@ -278,6 +280,7 @@ pub struct Settings {
     pub default_format: String,
     pub default_sub_langs: Vec<String>,
     pub language: String,
+    pub max_concurrent_downloads: Option<i64>,
     pub ai_provider: Option<String>,
     pub ai_api_key: Option<String>,
     pub ai_model: Option<String>,
@@ -299,6 +302,7 @@ pub async fn get_settings(
     let default_format = db.get_setting("default_format").await.unwrap_or(None).unwrap_or_else(|| "mp4".to_string());
     let default_sub_langs_str = db.get_setting("default_sub_langs").await.unwrap_or(None).unwrap_or_else(|| "[\"en\",\"zh\"]".to_string());
     let default_sub_langs: Vec<String> = serde_json::from_str(&default_sub_langs_str).unwrap_or_else(|_| vec!["en".to_string(), "zh".to_string()]);
+    let max_concurrent_downloads = db.get_setting("max_concurrent_downloads").await.unwrap_or(None).and_then(|s| s.parse::<i64>().ok());
     let ai_provider = db.get_setting("ai_provider").await.unwrap_or(None);
     let ai_api_key = db.get_setting("ai_api_key").await.unwrap_or(None);
     let ai_model = db.get_setting("ai_model").await.unwrap_or(None);
@@ -310,6 +314,7 @@ pub async fn get_settings(
         default_format,
         default_sub_langs,
         language,
+        max_concurrent_downloads,
         ai_provider,
         ai_api_key,
         ai_model,
@@ -319,6 +324,7 @@ pub async fn get_settings(
 
 #[tauri::command]
 pub async fn update_settings(
+    app: AppHandle,
     db: State<'_, Database>,
     settings: Settings,
 ) -> Result<ApiResponse<()>, String> {
@@ -359,6 +365,14 @@ pub async fn update_settings(
         if let Err(e) = db.set_setting("ai_model", model).await {
             return Ok(ApiResponse::err(format!("Failed to save model: {}", e)));
         }
+    }
+    if let Some(n) = settings.max_concurrent_downloads {
+        if let Err(e) = db.set_setting("max_concurrent_downloads", &n.to_string()).await {
+            return Ok(ApiResponse::err(format!("Failed to save max concurrent: {}", e)));
+        }
+        // Notify queue manager to update concurrency
+        let queue = app.state::<crate::queue::QueueManager>();
+        queue.set_max_concurrent(n as usize).await;
     }
     Ok(ApiResponse::ok(()))
 }

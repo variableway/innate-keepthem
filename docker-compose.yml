@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  vytdl-web:
+    build:
+      context: ./vYtDL-desktop
+      dockerfile: Dockerfile
+    container_name: vytdl-web
+    ports:
+      - "3000:3000"
+    volumes:
+      - vytdl-downloads:/app/downloads
+      - vytdl-data:/app/data
+    environment:
+      - NODE_ENV=production
+      - VYTDL_DB_PATH=/app/data/vytdl.db
+      - VYTDL_OUTPUT_DIR=/app/downloads
+      - PORT=3000
+    restart: unless-stopped
+    # For NAS / Raspberry Pi: limit resources
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+
+volumes:
+  vytdl-downloads:
+    driver: local
+  vytdl-data:
+    driver: local

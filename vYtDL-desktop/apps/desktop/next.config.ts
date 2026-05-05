@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
+const isWebMode = process.env.VYTDL_WEB_MODE === "true";
+
 const nextConfig: NextConfig = {
-  output: "export",
+  output: isWebMode ? undefined : "export",
   distDir: "out",
   images: {
     unoptimized: true,

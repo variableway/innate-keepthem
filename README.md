@@ -1,6 +1,6 @@
 # vYtDL - YouTube Downloader Suite
 
-A complete YouTube downloading toolkit with CLI, desktop app, and browser extension. Powered by yt-dlp.
+A complete YouTube downloading toolkit with CLI, desktop app, web UI (Docker), and browser extension. Powered by yt-dlp.
 
 ## Features
 
@@ -18,11 +18,21 @@ A complete YouTube downloading toolkit with CLI, desktop app, and browser extens
 ### Desktop App
 - Cross-platform GUI (macOS, Linux, Windows)
 - Built with Tauri v2 + Next.js + React 19
-- Download management and history library
+- Download queue with configurable concurrency (1-5 simultaneous downloads)
+- Real-time download logs and progress tracking
+- Download status persistence in SQLite database
+- Retry failed downloads with one click
 - Settings and configuration persistence
 - AI-powered video summarization
 - Multiple language support (English, 中文, 日本語)
 - Cross-platform Python launcher script
+
+### Web UI (Docker)
+- Deploy as a web application via Docker Compose
+- Same features as the desktop app, accessible from any browser
+- Ideal for NAS, Raspberry Pi, and headless servers
+- Real-time updates via WebSocket
+- Persistent SQLite database and download storage
 
 ### URL Extractor (Chrome Extension)
 - Extract video URLs from YouTube channel and playlist pages
@@ -37,6 +47,7 @@ A complete YouTube downloading toolkit with CLI, desktop app, and browser extens
 - **Rust** - For the Tauri desktop backend
 - **yt-dlp** - Required by CLI and Desktop
 - **Python 3.6+** - For cross-platform launcher and batch scripts
+- **Docker & Docker Compose** - For the web UI (optional)
 
 ## Installation
 
@@ -52,6 +63,15 @@ go build -o vYtDL .
 ```bash
 cd vYtDL-desktop
 pnpm install
+```
+
+### Web UI (Docker)
+
+```bash
+# Start the web server
+docker-compose up -d
+
+# Access at http://localhost:3000
 ```
 
 ### Chrome Extension
@@ -91,6 +111,19 @@ python3 scripts/build-desktop.py build
 python3 scripts/build-desktop.py bundle
 ```
 
+### Web UI (Docker)
+
+```bash
+# Deploy
+docker-compose up -d
+
+# View logs
+docker-compose logs -f vytdl-web
+
+# Stop
+docker-compose down
+```
+
 ## Usage
 
 See [USAGE.md](USAGE.md) for detailed CLI usage and [docs/](docs/) for full project documentation.
@@ -103,8 +136,10 @@ See [USAGE.md](USAGE.md) for detailed CLI usage and [docs/](docs/) for full proj
 │   ├── apps/desktop/         # Desktop application
 │   ├── packages/ui/          # Shared UI components
 │   ├── packages/utils/       # Shared utilities
-│   └── scripts/              # Startup scripts
+│   ├── scripts/              # Startup scripts
+│   └── web-server/           # Docker web API server
 ├── url-extractor/            # Chrome extension
+├── docker-compose.yml        # Docker Compose for web UI
 ├── docs/                     # Documentation
 └── tasks/                    # Task definitions (PRDs)
 ```

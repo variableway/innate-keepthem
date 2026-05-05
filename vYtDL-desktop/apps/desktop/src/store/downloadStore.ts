@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { tauriStorage } from "@/lib/tauri-storage";
+import { apiInvoke, apiListen } from "@/lib/api-client";
 import type { Download, DownloadLog, DownloadOptions, DownloadProgress, ApiResponse } from "@/types";
 
 interface DownloadState {
@@ -15,6 +16,7 @@ interface DownloadState {
   fetchDownloads: () => Promise<void>;
   startDownload: (options: DownloadOptions) => Promise<string | null>;
   cancelDownload: (id: string) => Promise<void>;
+  retryDownload: (id: string) => Promise<string | null>;
   deleteDownload: (id: string) => Promise<void>;
   subscribeToProgress: (id: string) => Promise<() => void>;
   subscribeToLogs: (id: string) => Promise<() => void>;
@@ -22,15 +24,6 @@ interface DownloadState {
   clearError: () => void;
 }
 
-async function invoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
-  const { invoke: tauriInvoke } = await import("@tauri-apps/api/core");
-  return tauriInvoke<T>(command, args);
-}
-
-async function listen<T>(event: string, handler: (payload: T) => void): Promise<() => void> {
-  const { listen: tauriListen } = await import("@tauri-apps/api/event");
-  return tauriListen<T>(event, (e) => handler(e.payload));
-}
 
 export const useDownloadStore = create<DownloadState>()(
   persist(
@@ -44,7 +37,7 @@ export const useDownloadStore = create<DownloadState>()(
       fetchDownloads: async () => {
         set({ isLoading: true, error: null });
         try {
-          const response = await invoke<ApiResponse<Download[]>>("get_downloads");
+          const response = await apiInvoke<ApiResponse<Download[]>>("get_downloads");
           if (response.success && response.data) {
             set({ downloads: response.data });
           } else {
@@ -60,7 +53,7 @@ export const useDownloadStore = create<DownloadState>()(
       startDownload: async (options: DownloadOptions) => {
         set({ error: null });
         try {
-          const response = await invoke<ApiResponse<string>>("start_download", { request: options });
+          const response = await apiInvoke<ApiResponse<string>>("start_download", { request: options });
           if (response.success && response.data) {
             get().fetchDownloads();
             return response.data;
@@ -76,16 +69,33 @@ export const useDownloadStore = create<DownloadState>()(
 
       cancelDownload: async (id: string) => {
         try {
-          await invoke<ApiResponse<void>>("cancel_download", { downloadId: id });
+          await apiInvoke<ApiResponse<void>>("cancel_download", { downloadId: id });
           get().fetchDownloads();
         } catch (err) {
           set({ error: String(err) });
         }
       },
 
+      retryDownload: async (id: string) => {
+        set({ error: null });
+        try {
+          const response = await apiInvoke<ApiResponse<string>>("retry_download", { id });
+          if (response.success && response.data) {
+            get().fetchDownloads();
+            return response.data;
+          } else {
+            set({ error: response.error || "Failed to retry download" });
+            return null;
+          }
+        } catch (err) {
+          set({ error: String(err) });
+          return null;
+        }
+      },
+
       deleteDownload: async (id: string) => {
         try {
-          await invoke<ApiResponse<void>>("delete_download", { id });
+          await apiInvoke<ApiResponse<void>>("delete_download", { id });
           get().fetchDownloads();
         } catch (err) {
           set({ error: String(err) });
@@ -93,7 +103,7 @@ export const useDownloadStore = create<DownloadState>()(
       },
 
       subscribeToProgress: async (id: string) => {
-        const unlisten = await listen<DownloadProgress>(`download:progress:${id}`, (event) => {
+        const unlisten = await apiListen<DownloadProgress>(`download:progress:${id}`, (event) => {
           set((state) => {
             const newActive = new Map(state.activeDownloads);
             newActive.set(id, event);
@@ -101,7 +111,7 @@ export const useDownloadStore = create<DownloadState>()(
           });
         });
 
-        const unlistenComplete = await listen(`download:complete:${id}`, () => {
+        const unlistenComplete = await apiListen(`download:complete:${id}`, () => {
           set((state) => {
             const newActive = new Map(state.activeDownloads);
             newActive.delete(id);
@@ -110,7 +120,7 @@ export const useDownloadStore = create<DownloadState>()(
           get().fetchDownloads();
         });
 
-        const unlistenError = await listen<string>(`download:error:${id}`, () => {
+        const unlistenError = await apiListen<string>(`download:error:${id}`, () => {
           set((state) => {
             const newActive = new Map(state.activeDownloads);
             newActive.delete(id);
@@ -127,7 +137,7 @@ export const useDownloadStore = create<DownloadState>()(
       },
 
       subscribeToLogs: async (id: string) => {
-        const unlisten = await listen<DownloadLog>(`download:log:${id}`, (event) => {
+        const unlisten = await apiListen<DownloadLog>(`download:log:${id}`, (event) => {
           set((state) => {
             const newLogs = new Map(state.downloadLogs);
             const existing = newLogs.get(id) || [];

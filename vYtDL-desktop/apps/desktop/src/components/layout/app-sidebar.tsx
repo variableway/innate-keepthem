@@ -46,6 +46,12 @@ export function AppSidebar() {
         .then(({ invoke }) => invoke<string>("get_platform"))
         .then(setPlatform)
         .catch(() => setPlatform("unknown"));
+    } else if (typeof window !== "undefined") {
+      const ua = window.navigator.userAgent.toLowerCase();
+      if (ua.includes("mac")) setPlatform("macos");
+      else if (ua.includes("win")) setPlatform("windows");
+      else if (ua.includes("linux")) setPlatform("linux");
+      else setPlatform("unknown");
     }
   }, []);
 

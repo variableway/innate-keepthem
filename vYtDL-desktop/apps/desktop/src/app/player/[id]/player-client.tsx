@@ -8,16 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@vytdl/ui";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@vytdl/ui";
 import { useDownloadStore } from "@/store/downloadStore";
 import { useTranslation } from "@/i18n";
+import { apiInvoke } from "@/lib/api-client";
 import type { Download, ApiResponse } from "@/types";
 
 interface SummaryResult {
   markdown: string;
   key_points: string[];
-}
-
-async function invoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
-  const { invoke: tauriInvoke } = await import("@tauri-apps/api/core");
-  return tauriInvoke<T>(command, args);
 }
 
 export default function VideoPlayerClient() {

@@ -1,6 +1,7 @@
 mod commands;
 mod database;
 mod downloader;
+mod queue;
 
 use tauri::Manager;
 
@@ -180,7 +181,18 @@ pub fn run() {
             });
             let db = db.expect("Database initialization must not fail — all fallbacks exhausted");
 
-            app.manage(db);
+            app.manage(db.clone());
+
+            // Initialize download queue (default: 3 concurrent downloads)
+            let max_concurrent = tauri::async_runtime::block_on(async {
+                db.get_setting("max_concurrent_downloads")
+                    .await
+                    .unwrap_or(None)
+                    .and_then(|s| s.parse::<usize>().ok())
+                    .unwrap_or(3)
+            });
+            let queue_manager = queue::QueueManager::new(db, max_concurrent);
+            app.manage(queue_manager);
 
             Ok(())
         })
@@ -191,6 +203,7 @@ pub fn run() {
             commands::get_download_by_id,
             commands::delete_download,
             commands::open_download_folder,
+            commands::retry_download,
             commands::get_settings,
             commands::update_settings,
             commands::get_video_info,

@@ -116,11 +116,31 @@ cd vYtDL-desktop
 pnpm tauri:build
 ```
 
+### Download Queue
+
+The desktop app supports downloading multiple videos simultaneously with a configurable queue:
+
+1. **Queue Position** - Pending downloads show their position in the queue
+2. **Max Concurrent** - Configure how many downloads run at once (Settings → Max Concurrent Downloads)
+3. **Status Persistence** - All download states are saved to SQLite and survive app restarts
+4. **Retry** - Failed or cancelled downloads can be retried with one click
+5. **Cancel** - Active or queued downloads can be cancelled at any time
+
+### Real-time Logs
+
+Each download has a log viewer that shows:
+- yt-dlp command output
+- Progress updates
+- Warnings and errors
+- Auto-scrolls to the latest log
+
+Toggle log view by clicking the chevron icon on any download item.
+
 ### Pages
 
 - **Home** - Download form for entering URLs and selecting quality/format
 - **Library** - View download history and manage downloaded files
-- **Settings** - Configure yt-dlp path, download directory, preferences, and language
+- **Settings** - Configure yt-dlp path, download directory, preferences, language, and max concurrent downloads
 
 ### Changing Language
 
@@ -130,6 +150,49 @@ pnpm tauri:build
 4. Click **Save** — the interface updates immediately
 
 Language files are stored as JSON in `apps/desktop/src/i18n/locales/` and can be extended with new languages by adding a new JSON file and registering it in `apps/desktop/src/i18n/index.tsx`.
+
+## Web Version (Docker) Usage
+
+### Deploy with Docker Compose
+
+```bash
+# Start the web server
+docker-compose up -d
+
+# View logs
+docker-compose logs -f vytdl-web
+
+# Stop
+docker-compose down
+```
+
+### Access the UI
+
+Open `http://localhost:3000` in your browser.
+
+### Download Management
+
+The web UI provides the same features as the desktop app:
+- Paste URLs and fetch video info
+- Select quality, format, and subtitle options
+- View download progress in real-time (via WebSocket)
+- Manage download queue and history
+- Retry failed downloads
+
+### Data Persistence
+
+Downloads are stored in two Docker volumes:
+- `vytdl-downloads` - Downloaded video files
+- `vytdl-data` - SQLite database with download records and settings
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | 3000 | Server port |
+| `VYTDL_DB_PATH` | ./data/vytdl.db | SQLite database path |
+| `VYTDL_OUTPUT_DIR` | ./downloads | Download output directory |
+| `VYTDL_STATIC_DIR` | ./out | Static files directory |
 
 ## URL Extractor Usage
 

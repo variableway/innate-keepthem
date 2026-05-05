@@ -10,6 +10,7 @@
 - **Node.js 18+** and **pnpm** - For the desktop app
 - **Rust** - For the Tauri desktop backend
 - **Python 3.6+** - For the URL extractor batch download script and the cross-platform desktop launcher
+- **Docker & Docker Compose** - For the web version (optional)
 
 ## vYtDL CLI
 
@@ -96,6 +97,42 @@ Supported languages:
 - English (`en`)
 - 中文 (`zh`)
 - 日本語 (`ja`)
+
+## vYtDL Web (Docker)
+
+Deploy vYtDL as a web application using Docker Compose. Ideal for NAS, Raspberry Pi, or headless servers.
+
+### Deploy
+
+```bash
+# Clone or navigate to the project root
+docker-compose up -d
+```
+
+The web UI will be available at `http://localhost:3000`.
+
+### Configuration
+
+Edit `docker-compose.yml` to customize:
+
+```yaml
+services:
+  vytdl-web:
+    ports:
+      - "3000:3000"  # Change host port if needed
+    volumes:
+      - ./downloads:/app/downloads  # Mount host directory for downloads
+      - vytdl-data:/app/data        # Persistent database
+```
+
+### For Raspberry Pi / ARM
+
+The Dockerfile uses `node:20-slim` which supports multi-arch builds. Docker will automatically pull the correct architecture image.
+
+```bash
+# Build explicitly for ARM64
+docker-compose build
+```
 
 ## URL Extractor (Chrome Extension)
 

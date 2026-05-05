@@ -34,7 +34,7 @@ function getNestedValue(obj: Record<string, unknown>, path: string): string | un
 interface I18nContextValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: (key: string) => string;
+  t: (key: string, vars?: Record<string, string | number>) => string;
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null);
@@ -59,10 +59,13 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback(
-    (key: string): string => {
+    (key: string, vars?: Record<string, string | number>): string => {
       if (!key || typeof key !== "string") return String(key ?? "");
       const messages = translations[locale] as Record<string, unknown>;
-      const value = getNestedValue(messages, key);
+      let value = getNestedValue(messages, key);
+      if (value && vars) {
+        value = value.replace(/\{\{(\w+)\}\}/g, (_, k) => String(vars[k] ?? `{{${k}}}`));
+      }
       return value ?? key;
     },
     [locale]

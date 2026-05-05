@@ -129,7 +129,7 @@ function DownloadItem({ download, queuePosition }: { download: DownloadItemType;
   };
 
   return (
-    <div className="p-4 border-b last:border-b-0 hover:bg-muted/50 transition-colors">
+    <div className="p-4 border-b last:border-b-0 hover:bg-muted/50 transition-colors w-full min-w-0">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -278,7 +278,7 @@ export function DownloadList() {
   ];
 
   return (
-    <Card className="w-full">
+    <Card className="w-full min-w-0">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">

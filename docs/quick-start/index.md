@@ -98,6 +98,14 @@ Supported languages:
 - 中文 (`zh`)
 - 日本語 (`ja`)
 
+### Batch Download Workflow
+
+1. Switch to the **Batch** tab in the desktop app
+2. Paste multiple video URLs (one per line) into the textarea
+3. Or click **Import from file** to load a `.txt` file exported from the URL Extractor
+4. Select quality, format, and subtitle preferences
+5. Click **Download** — all URLs are queued and downloaded automatically
+
 ## vYtDL Web (Docker)
 
 Deploy vYtDL as a web application using Docker Compose. Ideal for NAS, Raspberry Pi, or headless servers.

@@ -185,15 +185,49 @@ pub fn run() {
 
             // Initialize download queue (default: 3 concurrent downloads)
             // Must create QueueManager inside block_on so tokio::spawn() has a runtime
-            let queue_manager = tauri::async_runtime::block_on(async {
+            let (queue_manager, incomplete) = tauri::async_runtime::block_on(async {
                 let max_concurrent = db
                     .get_setting("max_concurrent_downloads")
                     .await
                     .unwrap_or(None)
                     .and_then(|s| s.parse::<usize>().ok())
                     .unwrap_or(3);
-                queue::QueueManager::new(db, max_concurrent)
+                let qm = queue::QueueManager::new(db.clone(), max_concurrent);
+
+                // Resume incomplete downloads from previous session
+                let incomplete = db.get_incomplete_downloads().await.unwrap_or_default();
+                (qm, incomplete)
             });
+
+            // Reset downloading → pending and re-enqueue with saved options
+            let app_handle = app.handle().clone();
+            for record in incomplete {
+                let options = record.options.and_then(|opts| {
+                    serde_json::from_str::<crate::commands::StartDownloadRequest>(&opts).ok()
+                }).map(|req| crate::downloader::DownloadOptions {
+                    url: req.url,
+                    is_playlist: req.is_playlist,
+                    quality: req.quality,
+                    format: req.format,
+                    output_dir: req.output_dir,
+                    sub_langs: req.sub_langs,
+                    write_subs: req.write_subs.unwrap_or(true),
+                    write_auto_subs: req.write_auto_subs.unwrap_or(true),
+                    start_time: req.start_time,
+                    end_time: req.end_time,
+                }).unwrap_or_else(|| crate::downloader::DownloadOptions {
+                    url: record.url.clone(),
+                    is_playlist: false,
+                    output_dir: record.output_dir.clone(),
+                    ..Default::default()
+                });
+
+                tauri::async_runtime::block_on(async {
+                    let _ = db.update_download_status(&record.id, crate::database::DownloadStatus::Pending).await;
+                    queue_manager.enqueue(record.id, options, None, app_handle.clone()).await;
+                });
+            }
+
             app.manage(queue_manager);
 
             Ok(())

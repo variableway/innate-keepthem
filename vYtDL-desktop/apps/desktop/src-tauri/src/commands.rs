@@ -86,7 +86,7 @@ impl<T> ApiResponse<T> {
 }
 
 // Download commands
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct StartDownloadRequest {
     pub url: String,
     pub is_playlist: bool,
@@ -109,6 +109,9 @@ pub async fn start_download(
 ) -> Result<ApiResponse<String>, String> {
     let download_id = uuid::Uuid::new_v4().to_string();
     
+    // Serialize download options for resume support
+    let options_json = serde_json::to_string(&request).unwrap_or_default();
+
     // Create download record
     let record = DownloadRecord {
         id: download_id.clone(),
@@ -123,6 +126,7 @@ pub async fn start_download(
         subtitles: vec![],
         error: None,
         queue_position: 0,
+        options: Some(options_json),
         created_at: chrono::Utc::now(),
         updated_at: chrono::Utc::now(),
     };
@@ -238,6 +242,7 @@ pub async fn retry_download(
         subtitles: vec![],
         error: None,
         queue_position: 0,
+        options: original.options.clone(),
         created_at: chrono::Utc::now(),
         updated_at: chrono::Utc::now(),
     };
@@ -302,7 +307,11 @@ pub async fn get_settings(
     let default_format = db.get_setting("default_format").await.unwrap_or(None).unwrap_or_else(|| "mp4".to_string());
     let default_sub_langs_str = db.get_setting("default_sub_langs").await.unwrap_or(None).unwrap_or_else(|| "[\"en\",\"zh\"]".to_string());
     let default_sub_langs: Vec<String> = serde_json::from_str(&default_sub_langs_str).unwrap_or_else(|_| vec!["en".to_string(), "zh".to_string()]);
-    let max_concurrent_downloads = db.get_setting("max_concurrent_downloads").await.unwrap_or(None).and_then(|s| s.parse::<i64>().ok());
+    let max_concurrent_downloads = db.get_setting("max_concurrent_downloads")
+        .await
+        .unwrap_or(None)
+        .and_then(|s| s.parse::<i64>().ok())
+        .or(Some(3));
     let ai_provider = db.get_setting("ai_provider").await.unwrap_or(None);
     let ai_api_key = db.get_setting("ai_api_key").await.unwrap_or(None);
     let ai_model = db.get_setting("ai_model").await.unwrap_or(None);

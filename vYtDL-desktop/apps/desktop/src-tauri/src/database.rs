@@ -31,6 +31,7 @@ pub struct DownloadRecord {
     pub subtitles: Vec<String>,
     pub error: Option<String>,
     pub queue_position: i64,
+    pub options: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -134,14 +135,23 @@ impl Database {
         .execute(&self.pool)
         .await;
 
+        // Migration: add options column for resume support
+        let _ = sqlx::query(
+            r#"
+            ALTER TABLE downloads ADD COLUMN options TEXT
+            "#,
+        )
+        .execute(&self.pool)
+        .await;
+
         Ok(())
     }
 
     pub async fn create_download(&self, record: DownloadRecord) -> Result<(), sqlx::Error> {
         sqlx::query(
             r#"
-            INSERT INTO downloads (id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, created_at, updated_at)
-            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)
+            INSERT INTO downloads (id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, options, created_at, updated_at)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)
             "#,
         )
         .bind(&record.id)
@@ -156,6 +166,7 @@ impl Database {
         .bind(serde_json::to_string(&record.subtitles).unwrap())
         .bind(&record.error)
         .bind(record.queue_position)
+        .bind(&record.options)
         .bind(record.created_at)
         .bind(record.updated_at)
         .execute(&self.pool)
@@ -167,7 +178,7 @@ impl Database {
     pub async fn get_all_downloads(&self) -> Result<Vec<DownloadRecord>, sqlx::Error> {
         let rows = sqlx::query_as::<_, DownloadRow>(
             r#"
-            SELECT id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, created_at, updated_at
+            SELECT id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, options, created_at, updated_at
             FROM downloads
             ORDER BY created_at DESC
             "#,
@@ -181,7 +192,7 @@ impl Database {
     pub async fn get_download_by_id(&self, id: &str) -> Result<Option<DownloadRecord>, sqlx::Error> {
         let row = sqlx::query_as::<_, DownloadRow>(
             r#"
-            SELECT id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, created_at, updated_at
+            SELECT id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, options, created_at, updated_at
             FROM downloads
             WHERE id = ?1
             "#,
@@ -307,6 +318,23 @@ impl Database {
         Ok(())
     }
 
+    /// Get all downloads that are not completed, failed, or cancelled.
+    /// Used on app startup to resume interrupted downloads.
+    pub async fn get_incomplete_downloads(&self) -> Result<Vec<DownloadRecord>, sqlx::Error> {
+        let rows = sqlx::query_as::<_, DownloadRow>(
+            r#"
+            SELECT id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, options, created_at, updated_at
+            FROM downloads
+            WHERE status IN ('pending', 'downloading')
+            ORDER BY created_at ASC
+            "#,
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(rows.into_iter().map(|r| r.into()).collect())
+    }
+
     // Settings helpers
     pub async fn get_setting(&self, key: &str) -> Result<Option<String>, sqlx::Error> {
         let row: Option<(String,)> = sqlx::query_as(
@@ -352,6 +380,7 @@ struct DownloadRow {
     subtitles: String,
     error: Option<String>,
     queue_position: i64,
+    options: Option<String>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -371,6 +400,7 @@ impl From<DownloadRow> for DownloadRecord {
             subtitles: serde_json::from_str(&row.subtitles).unwrap_or_default(),
             error: row.error,
             queue_position: row.queue_position,
+            options: row.options,
             created_at: row.created_at,
             updated_at: row.updated_at,
         }

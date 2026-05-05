@@ -39,6 +39,8 @@
 ### Download Management
 
 - GUI download form with URL input and auto-fetch video info
+- **Batch download** — paste multiple URLs (one per line) or import from a `.txt` file
+- **Smart mode** — batch download with automatic playlist detection
 - Format and quality selection
 - Real-time download progress tracking with speed and ETA
 - Per-download log viewer with auto-scroll

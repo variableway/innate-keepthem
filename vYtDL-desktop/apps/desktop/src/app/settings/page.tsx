@@ -193,7 +193,7 @@ export default function SettingsPage() {
               <Label htmlFor="max-concurrent">{t("settings.maxConcurrentDownloads")}</Label>
               <select
                 id="max-concurrent"
-                value={localSettings.max_concurrent_downloads}
+                value={localSettings.max_concurrent_downloads ?? 3}
                 onChange={(e) => updateField("max_concurrent_downloads", parseInt(e.target.value, 10))}
                 className="w-full h-10 rounded-md border border-input bg-background px-3"
               >

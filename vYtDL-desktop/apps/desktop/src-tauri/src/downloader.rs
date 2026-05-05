@@ -59,6 +59,7 @@ async fn run_yt_dlp_blocking(
 
 
 #[derive(Debug, Clone, Serialize)]
+#[derive(Default)]
 pub struct DownloadOptions {
     pub url: String,
     pub is_playlist: bool,

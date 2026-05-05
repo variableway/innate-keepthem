@@ -18,6 +18,9 @@ A complete YouTube downloading toolkit with CLI, desktop app, web UI (Docker), a
 ### Desktop App
 - Cross-platform GUI (macOS, Linux, Windows)
 - Built with Tauri v2 + Next.js + React 19
+- **Single, Batch, and Smart download modes**
+- **Batch mode** — paste multiple URLs or import from `.txt` file
+- **Smart mode** — batch download with automatic playlist detection
 - Download queue with configurable concurrency (1-5 simultaneous downloads)
 - Real-time download logs and progress tracking
 - Download status persistence in SQLite database

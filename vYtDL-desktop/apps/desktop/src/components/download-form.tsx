@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Download, Loader2, Clock, User, Film, History, X } from "lucide-react";
+import { Download, Loader2, Clock, User, Film, History, X, FileUp } from "lucide-react";
 import { Button } from "@vytdl/ui";
 import { Input } from "@vytdl/ui";
 import { Label } from "@vytdl/ui";
@@ -62,6 +62,7 @@ export function DownloadForm({ mode }: DownloadFormProps) {
   const [writeSubs, setWriteSubs] = useState(true);
   const [writeAutoSubs, setWriteAutoSubs] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ submitted: 0, total: 0, failed: 0 });
 
   const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null);
   const [isLoadingInfo, setIsLoadingInfo] = useState(false);
@@ -188,6 +189,43 @@ export function DownloadForm({ mode }: DownloadFormProps) {
     });
   };
 
+  // Parse multiple URLs from textarea content (one per line)
+  const parseBatchUrls = (text: string): string[] => {
+    const lines = text.split(/\r?\n/);
+    const urls: string[] = [];
+    const seen = new Set<string>();
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      if (!isValidVideoUrl(trimmed)) continue;
+      if (seen.has(trimmed)) continue;
+      seen.add(trimmed);
+      urls.push(trimmed);
+    }
+    return urls;
+  };
+
+  // Detect if URL is a playlist
+  const isPlaylistUrl = (url: string): boolean => {
+    return /playlist|list=|\/channel\/|\/user\/|\/c\//.test(url);
+  };
+
+  // Handle file import for batch URLs
+  const handleFileImport = (file: File) => {
+    if (!file.name.endsWith(".txt")) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string || "";
+      const importedUrls = parseBatchUrls(text);
+      if (importedUrls.length > 0) {
+        const currentUrls = parseBatchUrls(url);
+        const combined = [...new Set([...currentUrls, ...importedUrls])];
+        setUrl(combined.join("\n"));
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) return;
@@ -195,6 +233,42 @@ export function DownloadForm({ mode }: DownloadFormProps) {
     clearError();
     setIsSubmitting(true);
 
+    // Batch / Smart mode: submit multiple URLs
+    if (mode === "batch" || mode === "smart") {
+      const urls = parseBatchUrls(url);
+      if (urls.length === 0) {
+        setIsSubmitting(false);
+        return;
+      }
+
+      setBatchProgress({ submitted: 0, total: urls.length, failed: 0 });
+      let failed = 0;
+
+      for (let i = 0; i < urls.length; i++) {
+        const u = urls[i];
+        const autoPlaylist = mode === "smart" && isPlaylistUrl(u);
+        const options: DownloadOptions = {
+          url: u,
+          is_playlist: autoPlaylist || isPlaylist,
+          quality,
+          format,
+          sub_langs: subLangs,
+          write_subs: writeSubs,
+          write_auto_subs: writeAutoSubs,
+        };
+        const downloadId = await startDownload(options);
+        if (!downloadId) failed++;
+        setBatchProgress({ submitted: i + 1, total: urls.length, failed });
+      }
+
+      if (failed === 0) {
+        setUrl("");
+      }
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Single mode
     const options: DownloadOptions = {
       url: url.trim(),
       is_playlist: isPlaylist,
@@ -245,60 +319,97 @@ export function DownloadForm({ mode }: DownloadFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2" ref={historyRef}>
-            <Label htmlFor="url">{t("downloadForm.urlLabel")}</Label>
-            <div className="relative">
-              <Input
-                ref={inputRef}
-                id="url"
-                placeholder={t("downloadForm.urlPlaceholder")}
-                value={url}
-                onChange={(e) => {
-                  setUrl(e.target.value);
-                  setShowHistory(true);
-                }}
-                onFocus={() => setShowHistory(true)}
-                disabled={isSubmitting}
-                className="pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowHistory(!showHistory)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                <History className="h-4 w-4" />
-              </button>
+            <Label htmlFor="url">
+              {mode === "batch" || mode === "smart"
+                ? t("downloadForm.batchUrlLabel")
+                : t("downloadForm.urlLabel")}
+            </Label>
 
-              {showHistory && filteredHistory.length > 0 && (
-                <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-60 overflow-auto">
-                  <div className="p-2 text-xs text-muted-foreground border-b">
-                    {t("downloadForm.recentUrls")}
-                  </div>
-                  {filteredHistory.map((item) => (
-                    <button
-                      key={item.url}
-                      type="button"
-                      onClick={() => {
-                        setUrl(item.url);
-                        setShowHistory(false);
-                        inputRef.current?.focus();
+            {mode === "batch" || mode === "smart" ? (
+              <div className="space-y-2">
+                <textarea
+                  id="url"
+                  placeholder={t("downloadForm.batchUrlPlaceholder")}
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  disabled={isSubmitting}
+                  className="w-full min-h-[120px] rounded-md border border-input bg-background px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">
+                    {t("downloadForm.validUrlsCount", { count: String(parseBatchUrls(url).length) })}
+                  </span>
+                  <label className="flex items-center gap-1 cursor-pointer text-xs text-primary hover:underline">
+                    <FileUp className="h-3 w-3" />
+                    <span>{t("downloadForm.importFromFile")}</span>
+                    <input
+                      type="file"
+                      accept=".txt"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileImport(file);
+                        e.target.value = "";
                       }}
-                      className="w-full px-3 py-2 text-left hover:bg-accent flex items-start gap-2"
-                    >
-                      <History className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm truncate">{item.url}</p>
-                        {item.title && (
-                          <p className="text-xs text-muted-foreground truncate">{item.title}</p>
-                        )}
-                      </div>
-                    </button>
-                  ))}
+                    />
+                  </label>
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="relative">
+                <Input
+                  ref={inputRef}
+                  id="url"
+                  placeholder={t("downloadForm.urlPlaceholder")}
+                  value={url}
+                  onChange={(e) => {
+                    setUrl(e.target.value);
+                    setShowHistory(true);
+                  }}
+                  onFocus={() => setShowHistory(true)}
+                  disabled={isSubmitting}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowHistory(!showHistory)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <History className="h-4 w-4" />
+                </button>
+
+                {showHistory && filteredHistory.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-60 overflow-auto">
+                    <div className="p-2 text-xs text-muted-foreground border-b">
+                      {t("downloadForm.recentUrls")}
+                    </div>
+                    {filteredHistory.map((item) => (
+                      <button
+                        key={item.url}
+                        type="button"
+                        onClick={() => {
+                          setUrl(item.url);
+                          setShowHistory(false);
+                          inputRef.current?.focus();
+                        }}
+                        className="w-full px-3 py-2 text-left hover:bg-accent flex items-start gap-2"
+                      >
+                        <History className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm truncate">{item.url}</p>
+                          {item.title && (
+                            <p className="text-xs text-muted-foreground truncate">{item.title}</p>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {(isLoadingInfo || videoInfo || infoError) && url && isValidVideoUrl(url) && (
+          {mode === "single" && (isLoadingInfo || videoInfo || infoError) && url && isValidVideoUrl(url) && (
             <div className="border rounded-lg p-4 bg-muted/50">
               {isLoadingInfo && (
                 <div className="flex items-center gap-2 text-muted-foreground">
@@ -367,18 +478,20 @@ export function DownloadForm({ mode }: DownloadFormProps) {
             </div>
           )}
 
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isPlaylist}
-                onChange={(e) => setIsPlaylist(e.target.checked)}
-                className="rounded border-gray-300"
-                disabled={isSubmitting}
-              />
-              <span className="text-sm">{t("downloadForm.playlistCheckbox")}</span>
-            </label>
-          </div>
+          {mode !== "smart" && (
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isPlaylist}
+                  onChange={(e) => setIsPlaylist(e.target.checked)}
+                  className="rounded border-gray-300"
+                  disabled={isSubmitting}
+                />
+                <span className="text-sm">{t("downloadForm.playlistCheckbox")}</span>
+              </label>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -460,20 +573,42 @@ export function DownloadForm({ mode }: DownloadFormProps) {
             </div>
           )}
 
+          {(mode === "batch" || mode === "smart") && isSubmitting && batchProgress.total > 0 && (
+            <div className="text-sm text-muted-foreground text-center">
+              {t("downloadForm.batchSubmitProgress", {
+                submitted: String(batchProgress.submitted),
+                total: String(batchProgress.total),
+              })}
+              {batchProgress.failed > 0 && (
+                <span className="text-destructive ml-1">
+                  ({batchProgress.failed} failed)
+                </span>
+              )}
+            </div>
+          )}
+
           <Button
             type="submit"
             className="w-full"
-            disabled={!url.trim() || isSubmitting || !isValidVideoUrl(url)}
+            disabled={
+              !url.trim() ||
+              isSubmitting ||
+              (mode === "single" ? !isValidVideoUrl(url) : parseBatchUrls(url).length === 0)
+            }
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t("downloadForm.starting")}
+                {mode === "batch" || mode === "smart"
+                  ? t("downloadForm.batchStarting")
+                  : t("downloadForm.starting")}
               </>
             ) : (
               <>
                 <Download className="mr-2 h-4 w-4" />
-                {t("downloadForm.downloadBtn")}
+                {mode === "batch" || mode === "smart"
+                  ? t("downloadForm.batchDownloadBtn", { count: String(parseBatchUrls(url).length) })
+                  : t("downloadForm.downloadBtn")}
               </>
             )}
           </Button>

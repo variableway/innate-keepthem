@@ -109,6 +109,26 @@ cd vYtDL-desktop && ./scripts/start-desktop.sh
 cd vYtDL-desktop && .\scripts\start-desktop.ps1
 ```
 
+### Batch Download
+
+Switch to the **Batch** tab to download multiple videos at once:
+
+1. Paste multiple URLs into the textarea, one per line
+2. (Optional) Click **Import from file** to load URLs from a `.txt` file
+3. Lines starting with `#` are treated as comments and ignored
+4. Select quality, format, and subtitle options
+5. Click **Download** — all URLs are added to the queue
+
+The queue processes up to 3 downloads concurrently by default.
+
+### Smart Download
+
+Switch to the **Smart** tab for batch download with automatic playlist detection:
+
+1. Paste URLs as in Batch mode
+2. The app automatically detects playlist/channel URLs and enables playlist mode for them
+3. Regular video URLs are treated as single downloads
+
 ### Building
 
 ```bash

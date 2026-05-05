@@ -125,6 +125,15 @@ impl Database {
         .execute(&self.pool)
         .await?;
 
+        // Migration: add queue_position column if it doesn't exist (added in Task 14)
+        let _ = sqlx::query(
+            r#"
+            ALTER TABLE downloads ADD COLUMN queue_position INTEGER DEFAULT 0
+            "#,
+        )
+        .execute(&self.pool)
+        .await;
+
         Ok(())
     }
 

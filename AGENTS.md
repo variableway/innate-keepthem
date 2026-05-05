@@ -29,7 +29,7 @@ vYtDL is a YouTube downloader suite with four components:
 
 ### Web Server (vYtDL-desktop/web-server/)
 - **Backend**: Node.js + Express + WebSocket (`ws`)
-- **Database**: SQLite3 (same schema as desktop)
+- **Database**: better-sqlite3 (same schema as desktop)
 - **Queue**: In-memory queue manager with configurable concurrency
 - **yt-dlp**: Spawned as child process
 
@@ -98,15 +98,17 @@ SQLite Database
 
 - `apps/desktop/src/app/` - Next.js pages (home, settings, library, player)
 - `apps/desktop/src/components/` - React components
+  - `download-form.tsx` - Single/Batch/Smart download form with textarea + file import
+  - `download-list.tsx` - Download list with progress, logs, queue position, retry
 - `apps/desktop/src/i18n/` - Internationalization (provider, hook, locale JSON files)
 - `apps/desktop/src/store/` - Zustand stores
 - `apps/desktop/src/lib/api-client.ts` - API abstraction (Tauri IPC / HTTP fetch)
 - `apps/desktop/src-tauri/src/` - Rust backend
-  - `commands.rs` - Tauri IPC commands
+  - `commands.rs` - Tauri IPC commands (start_download, cancel, get_downloads, etc.)
   - `downloader.rs` - yt-dlp subprocess wrapper
-  - `database.rs` - SQLite database layer
+  - `database.rs` - SQLite database layer (downloads + settings tables)
   - `queue.rs` - Async download queue manager (max concurrency, FIFO, cancel)
-  - `lib.rs` - App setup, bundled yt-dlp extraction
+  - `lib.rs` - App setup, bundled yt-dlp extraction, auto-resume on startup
 - `packages/ui/` - Shared UI components
 - `packages/utils/` - Shared utilities
 - `scripts/` - Startup scripts
@@ -117,6 +119,22 @@ SQLite Database
 - `manifest.json` - Chrome extension config (Manifest V3)
 - `popup.html/js/css` - Extension popup UI
 - `content.js` - Content script for URL extraction from YouTube pages
+
+## Download Form Modes
+
+The `download-form.tsx` component supports three modes via the `mode` prop:
+
+| Mode | Input | Behavior |
+|------|-------|----------|
+| `single` | Single `<Input>` | Fetches video info on URL input, shows thumbnail preview |
+| `batch` | `<textarea>` + file import | Parses multiple URLs (one per line), submits all to queue |
+| `smart` | `<textarea>` + file import | Same as batch, but auto-detects playlist URLs (regex heuristic) |
+
+Batch/Smart modes:
+- URLs are split by newlines, filtered for validity, deduplicated
+- `#` lines are treated as comments and ignored
+- `.txt` file import supported via hidden `<input type="file">`
+- Sequential `startDownload()` calls; queue handles concurrency
 
 ## Download Queue System
 
@@ -129,6 +147,12 @@ The desktop and web backends both implement a download queue:
 - FIFO ordering with `queue_position` persisted to SQLite
 - Cancellation via `tokio::sync::mpsc` channel
 - Status transitions: `pending` → `downloading` → `completed`/`failed`/`cancelled`
+
+### Resume on Startup
+- `lib.rs` calls `db.get_incomplete_downloads()` on startup
+- Downloads with `status = 'downloading'` are reset to `'pending'`
+- Saved `options` JSON is deserialized back to `DownloadOptions`
+- Each resumed download is re-enqueued via `QueueManager::enqueue()`
 
 ### Web Server Queue (`web-server/src/queue.ts`)
 - `QueueManager` with `Map` of active downloads and array of pending
@@ -145,6 +169,34 @@ The desktop and web backends both implement a download queue:
 - `apiConfirm(message, options)` - Uses Tauri dialog in desktop mode, native `confirm()` in web mode
 
 This allows the same Next.js frontend to run in both Tauri desktop and Docker web contexts.
+
+## Database Schema
+
+### `downloads` table
+| Column | Type | Notes |
+|--------|------|-------|
+| id | TEXT PRIMARY KEY | UUID |
+| url | TEXT NOT NULL | Video URL |
+| title | TEXT | Fetched from yt-dlp |
+| status | TEXT | pending/downloading/completed/failed/cancelled |
+| progress | REAL | 0.0 - 100.0 |
+| speed | TEXT | e.g. "1.5MiB/s" |
+| eta | TEXT | e.g. "00:02:15" |
+| output_dir | TEXT | Download destination |
+| filename | TEXT | Final filename |
+| subtitles | TEXT | JSON array of subtitle file paths |
+| error | TEXT | Error message if failed |
+| queue_position | INTEGER | Position in pending queue |
+| options | TEXT | JSON serialized `StartDownloadRequest` for resume |
+| created_at | TIMESTAMP | |
+| updated_at | TIMESTAMP | |
+
+### `settings` table
+| Column | Type | Notes |
+|--------|------|-------|
+| key | TEXT PRIMARY KEY | Setting key |
+| value | TEXT | Setting value |
+| updated_at | TIMESTAMP | |
 
 ## Common Tasks
 

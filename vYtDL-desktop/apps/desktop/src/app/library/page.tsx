@@ -7,6 +7,7 @@ import { Input } from "@vytdl/ui";
 import { Button } from "@vytdl/ui";
 import { Badge } from "@vytdl/ui";
 import { useDownloadStore } from "@/store/downloadStore";
+import { apiInvoke } from "@/lib/api-client";
 import { formatDate } from "@vytdl/utils";
 import { useTranslation } from "@/i18n";
 import type { Download } from "@/types";
@@ -14,25 +15,34 @@ import type { Download } from "@/types";
 function VideoCard({ download }: { download: Download }) {
   const { t } = useTranslation();
 
+  const handleOpenFolder = async () => {
+    if (!download.output_dir) return;
+    try {
+      await apiInvoke("open_download_folder", { path: download.output_dir });
+    } catch (e) {
+      console.error("Failed to open folder:", e);
+    }
+  };
+
   return (
-    <Card className="overflow-hidden group cursor-pointer hover:shadow-lg transition-shadow">
+    <Card className="overflow-hidden group cursor-pointer hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
       <div className="aspect-video bg-muted relative overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-            <Play className="h-8 w-8 text-primary" />
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-muted via-muted/80 to-muted/40">
+          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300 shadow-sm">
+            <Play className="h-6 w-6 text-primary" strokeWidth={1.5} />
           </div>
         </div>
 
         {download.subtitles.length > 0 && (
-          <Badge className="absolute bottom-2 right-2 bg-black/70">
-            <FileText className="h-3 w-3 mr-1" />
+          <Badge className="absolute bottom-2 right-2 bg-black/60 hover:bg-black/70 backdrop-blur-sm">
+            <FileText className="h-3.5 w-3.5 mr-1" strokeWidth={1.5} />
             {download.subtitles.length}
           </Badge>
         )}
       </div>
 
       <CardContent className="p-4">
-        <h3 className="font-medium line-clamp-2 mb-1" title={download.title || undefined}>
+        <h3 className="font-medium line-clamp-2 mb-1 text-sm" title={download.title || undefined}>
           {download.title || t("common.untitled")}
         </h3>
         <p className="text-xs text-muted-foreground">
@@ -40,12 +50,18 @@ function VideoCard({ download }: { download: Download }) {
         </p>
 
         <div className="flex gap-2 mt-3">
-          <Button size="sm" variant="secondary" className="flex-1">
-            <Play className="h-3 w-3 mr-1" />
+          <Button size="sm" variant="secondary" className="flex-1 text-xs">
+            <Play className="h-4 w-4 mr-1.5" strokeWidth={1.5} />
             {t("common.play")}
           </Button>
-          <Button size="sm" variant="ghost">
-            <FolderOpen className="h-3 w-3" />
+          <Button
+            size="sm"
+            variant="ghost"
+            className="px-2.5"
+            onClick={handleOpenFolder}
+            title={t("downloadList.openFolder")}
+          >
+            <FolderOpen className="h-4 w-4" strokeWidth={1.5} />
           </Button>
         </div>
       </CardContent>
@@ -93,8 +109,8 @@ export default function LibraryPage() {
 
       {completedDownloads.length === 0 ? (
         <div className="text-center py-16">
-          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
-            <Play className="h-12 w-12 text-muted-foreground opacity-50" />
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center shadow-sm">
+            <Play className="h-9 w-9 text-muted-foreground/40" strokeWidth={1.5} />
           </div>
           <h3 className="text-lg font-medium mb-2">{t("library.noVideos")}</h3>
           <p className="text-muted-foreground max-w-md mx-auto">

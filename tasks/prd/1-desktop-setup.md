@@ -140,3 +140,9 @@ Next.js version: 16.2.2 (Turbopack)
 2. please check how the store download status, how to manage these status
 3. every download shoule be recorded, and show in the download list with status, and user can resume the failed one
 4. multiple tasks should be support, support 2-3 download tasks at the same time, this task num could be configurated, default is 3
+
+
+## Task 17: 媒体库打不开文件夹
+
+- 媒体库点击文件夹，打不开文件夹
+- 媒体库的图表看起来太硬，不够平滑，或者图表太大一点，需要美化一下

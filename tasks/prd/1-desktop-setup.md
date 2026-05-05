@@ -159,3 +159,9 @@ Next.js version: 16.2.2 (Turbopack)
 3. 提供一键式安装所有依赖的脚本
 4. 整个内容放到docs目录下，目录为how-to
 5. 同时进行bilili站点测试，测试地址是：https://www.bilibili.com/video/BV1kqdxBEEoe
+
+## Task 20: 请总结yt-dlp 和FFMPEG 可以做哪些事情
+
+1. 请整理一份yt-dlp 和FFMPEG 可以做哪些事情的总结
+2. 包括了下载视频，提取音频，合并视频，合并音频，转换视频格式，转换音频格式，添加水印，添加字幕，添加背景音乐等
+3. 主要重点是常用的功能，重点可以放在10-15左右，然后文档放入how-to目录下

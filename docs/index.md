@@ -59,3 +59,4 @@ A Chrome extension for extracting video URLs from YouTube pages.
 - [Tips & Troubleshooting](tips/)
 - [Technical Spec](spec/)
 - [How-To Guide](how-to/)
+- [yt-dlp & FFmpeg 手册](how-to/yt-dlp-ffmpeg-guide.md)

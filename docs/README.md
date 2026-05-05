@@ -12,6 +12,7 @@ Documentation for the vYtDL project - a YouTube downloader suite with CLI, deskt
 | [Tips & Troubleshooting](tips/) | Common issues and solutions |
 | [Technical Spec](spec/) | Architecture and technical details |
 | [How-To Guide](how-to/) | AI-assisted development tutorial and setup |
+| [yt-dlp & FFmpeg 手册](how-to/yt-dlp-ffmpeg-guide.md) | Video download and processing capabilities |
 | [Agents](Agents.md) | AI agent context for codebase contributors |
 
 ## Project Components

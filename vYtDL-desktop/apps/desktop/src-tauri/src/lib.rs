@@ -184,14 +184,16 @@ pub fn run() {
             app.manage(db.clone());
 
             // Initialize download queue (default: 3 concurrent downloads)
-            let max_concurrent = tauri::async_runtime::block_on(async {
-                db.get_setting("max_concurrent_downloads")
+            // Must create QueueManager inside block_on so tokio::spawn() has a runtime
+            let queue_manager = tauri::async_runtime::block_on(async {
+                let max_concurrent = db
+                    .get_setting("max_concurrent_downloads")
                     .await
                     .unwrap_or(None)
                     .and_then(|s| s.parse::<usize>().ok())
-                    .unwrap_or(3)
+                    .unwrap_or(3);
+                queue::QueueManager::new(db, max_concurrent)
             });
-            let queue_manager = queue::QueueManager::new(db, max_concurrent);
             app.manage(queue_manager);
 
             Ok(())

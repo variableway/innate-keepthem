@@ -1,0 +1,110 @@
+[
+  {
+    "video_id": "9A98hWZs5yU",
+    "title": "AI的正确打开方式：不学概念，学动作",
+    "url": "https://www.youtube.com/watch?v=9A98hWZs5yU",
+    "output_dir": "./downloads_case",
+    "filename": "downloads_case/AI的正确打开方式：不学概念，学动作.mp4",
+    "success": true,
+    "error": "",
+    "started_at": "2026-05-16T11:20:16.550178+08:00",
+    "finished_at": "2026-05-16T11:25:16.913229+08:00",
+    "duration": "5m0s"
+  },
+  {
+    "video_id": "",
+    "title": "",
+    "url": "https://www.youtube.com/watch?v=BIl5vJn6ohI",
+    "output_dir": "./downloads_case",
+    "filename": "",
+    "success": false,
+    "error": "WARNING: [youtube] No supported JavaScript runtime could be found. Only deno is enabled by default; to use another runtime add  --js-runtimes RUNTIME[:PATH]  to your command/config. YouTube extraction without a JS runtime has been deprecated, and some formats may be missing. See  https://github.com/yt-dlp/yt-dlp/wiki/EJS  for details on installing one; WARNING: The extractor specified to use impersonation for this download, but no impersonate target is available. If you encounter errors, then see  https://github.com/yt-dlp/yt-dlp#impersonation  for information on installing the required dependencies; ERROR: \r[download] Got error: HTTPSConnectionPool(host='rr1---sn-a5meknds.googlevideo.com', port=443): Read timed out. (read timeout=30.0). Giving up after 10 retries",
+    "started_at": "2026-05-16T11:31:30.803954+08:00",
+    "finished_at": "2026-05-16T11:43:53.775093+08:00",
+    "duration": "12m23s"
+  },
+  {
+    "video_id": "",
+    "title": "",
+    "url": "https://www.youtube.com/watch?v=8nsxuB3Vsts",
+    "output_dir": "./downloads_case",
+    "filename": "",
+    "success": false,
+    "error": "WARNING: [youtube] No supported JavaScript runtime could be found. Only deno is enabled by default; to use another runtime add  --js-runtimes RUNTIME[:PATH]  to your command/config. YouTube extraction without a JS runtime has been deprecated, and some formats may be missing. See  https://github.com/yt-dlp/yt-dlp/wiki/EJS  for details on installing one; WARNING: The extractor specified to use impersonation for this download, but no impersonate target is available. If you encounter errors, then see  https://github.com/yt-dlp/yt-dlp#impersonation  for information on installing the required dependencies; ERROR: \r[download] Got error: ('Unable to connect to proxy', RemoteDisconnected('Remote end closed connection without response')). Giving up after 10 retries",
+    "started_at": "2026-05-16T11:44:16.16904+08:00",
+    "finished_at": "2026-05-16T12:15:51.356533+08:00",
+    "duration": "16m18s"
+  },
+  {
+    "video_id": "",
+    "title": "",
+    "url": "https://www.youtube.com/watch?v=8nsxuB3Vsts",
+    "output_dir": "./downloads_case",
+    "filename": "",
+    "success": false,
+    "error": "WARNING: [youtube] [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028). Retrying (1/10)...; WARNING: [youtube] [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028). Retrying (2/10)...; WARNING: [youtube] [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028). Retrying (3/10)...; WARNING: [youtube] [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028). Retrying (4/10)...; WARNING: [youtube] [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028). Retrying (5/10)...; WARNING: [youtube] [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028). Retrying (6/10)...; WARNING: [youtube] [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028). Retrying (7/10)...; WARNING: [youtube] [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028). Retrying (8/10)...; WARNING: [youtube] [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028). Retrying (9/10)...; WARNING: [youtube] [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028). Retrying (10/10)...; WARNING: [youtube] Unable to download webpage: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028) (caused by SSLError('[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028)')); please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U. Giving up after 10 retries; WARNING: [youtube] No supported JavaScript runtime could be found. Only deno is enabled by default; to use another runtime add  --js-runtimes RUNTIME[:PATH]  to your command/config. YouTube extraction without a JS runtime has been deprecated, and some formats may be missing. See  https://github.com/yt-dlp/yt-dlp/wiki/EJS  for details on installing one; WARNING: [youtube] No title found in player responses; falling back to title from initial data. Other metadata may also be missing; ERROR: [youtube] 8nsxuB3Vsts: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies",
+    "started_at": "2026-05-16T12:16:14.979144+08:00",
+    "finished_at": "2026-05-16T12:16:25.525696+08:00",
+    "duration": "11s"
+  },
+  {
+    "video_id": "",
+    "title": "",
+    "url": "https://www.youtube.com/watch?v=8nsxuB3Vsts",
+    "output_dir": "./downloads_case",
+    "filename": "",
+    "success": false,
+    "error": "WARNING: [youtube] 8nsxuB3Vsts: n challenge solving failed: Some formats may be missing. Ensure you have a supported JavaScript runtime and challenge solver script distribution installed. Review any warnings presented before this message. For more details, refer to  https://github.com/yt-dlp/yt-dlp/wiki/EJS; WARNING: Only images are available for download. use --list-formats to see them; ERROR: [youtube] 8nsxuB3Vsts: Requested format is not available. Use --list-formats for a list of available formats",
+    "started_at": "2026-05-16T12:16:35.489906+08:00",
+    "finished_at": "2026-05-16T12:16:51.385427+08:00",
+    "duration": "16s"
+  },
+  {
+    "video_id": "",
+    "title": "",
+    "url": "https://www.youtube.com/watch?v=8nsxuB3Vsts",
+    "output_dir": "./downloads_case",
+    "filename": "",
+    "success": false,
+    "error": "WARNING: [youtube] Skipping client \"android\" since it does not support cookies; WARNING: [youtube] 8nsxuB3Vsts: n challenge solving failed: Some formats may be missing. Ensure you have a supported JavaScript runtime and challenge solver script distribution installed. Review any warnings presented before this message. For more details, refer to  https://github.com/yt-dlp/yt-dlp/wiki/EJS; WARNING: [youtube] 8nsxuB3Vsts: Some web client subtitles require a PO Token which was not provided. They will be discarded since they are not downloadable as-is. You can manually pass a Subtitles PO Token for this client with --extractor-args \"youtube:po_token=web.subs+XXX\" . For more information, refer to  https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide; WARNING: [youtube] 8nsxuB3Vsts: There are missing subtitles languages because a PO token was not provided. Automatic captions for 1 languages are missing.; WARNING: Only images are available for download. use --list-formats to see them; ERROR: [youtube] 8nsxuB3Vsts: Requested format is not available. Use --list-formats for a list of available formats",
+    "started_at": "2026-05-16T12:17:03.67633+08:00",
+    "finished_at": "2026-05-16T12:17:20.796148+08:00",
+    "duration": "17s"
+  },
+  {
+    "video_id": "",
+    "title": "",
+    "url": "https://www.youtube.com/watch?v=BIl5vJn6ohI",
+    "output_dir": "./downloads_case",
+    "filename": "",
+    "success": false,
+    "error": "WARNING: [youtube] No supported JavaScript runtime could be found. Only deno is enabled by default; to use another runtime add  --js-runtimes RUNTIME[:PATH]  to your command/config. YouTube extraction without a JS runtime has been deprecated, and some formats may be missing. See  https://github.com/yt-dlp/yt-dlp/wiki/EJS  for details on installing one; WARNING: [youtube] No title found in player responses; falling back to title from initial data. Other metadata may also be missing; ERROR: [youtube] BIl5vJn6ohI: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies",
+    "started_at": "2026-05-16T12:30:34.010026+08:00",
+    "finished_at": "2026-05-16T12:30:36.312122+08:00",
+    "duration": "2s"
+  },
+  {
+    "video_id": "",
+    "title": "",
+    "url": "https://www.youtube.com/watch?v=9A98hWZs5yU",
+    "output_dir": "./downloads_case",
+    "filename": "",
+    "success": false,
+    "error": "WARNING: [youtube] No supported JavaScript runtime could be found. Only deno is enabled by default; to use another runtime add  --js-runtimes RUNTIME[:PATH]  to your command/config. YouTube extraction without a JS runtime has been deprecated, and some formats may be missing. See  https://github.com/yt-dlp/yt-dlp/wiki/EJS  for details on installing one; WARNING: [youtube] No title found in player responses; falling back to title from initial data. Other metadata may also be missing; ERROR: [youtube] 9A98hWZs5yU: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies",
+    "started_at": "2026-05-16T12:30:34.01003+08:00",
+    "finished_at": "2026-05-16T12:30:36.754983+08:00",
+    "duration": "3s"
+  },
+  {
+    "video_id": "",
+    "title": "",
+    "url": "https://www.youtube.com/watch?v=NeQRVnLLXGc",
+    "output_dir": "./downloads_case",
+    "filename": "",
+    "success": false,
+    "error": "WARNING: [youtube] No supported JavaScript runtime could be found. Only deno is enabled by default; to use another runtime add  --js-runtimes RUNTIME[:PATH]  to your command/config. YouTube extraction without a JS runtime has been deprecated, and some formats may be missing. See  https://github.com/yt-dlp/yt-dlp/wiki/EJS  for details on installing one; WARNING: [youtube] No title found in player responses; falling back to title from initial data. Other metadata may also be missing; ERROR: [youtube] NeQRVnLLXGc: Sign in to confirm you’re not a bot. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies",
+    "started_at": "2026-05-16T12:34:53.785817+08:00",
+    "finished_at": "2026-05-16T12:34:55.998201+08:00",
+    "duration": "2s"
+  }
+]

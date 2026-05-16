@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"sync"
 	"os"
 	"path/filepath"
 	"strings"
@@ -64,9 +65,10 @@ func MappingFromResult(r downloader.DownloadResult) SubtitleMapping {
 // Manager maintains an in-memory list of records and mappings,
 // and flushes them to disk in JSON or CSV format.
 type Manager struct {
-	format      string // "json" or "csv"
+	format      string             // "json" or "csv"
 	recordPath  string
 	mappingPath string
+	mu          sync.Mutex
 	records     []DownloadRecord
 	mappings    []SubtitleMapping
 }
@@ -86,12 +88,16 @@ func NewManager(format, baseRecord, baseMapping, dir string) *Manager {
 
 // Add appends a result to both the record list and mapping list.
 func (m *Manager) Add(r downloader.DownloadResult) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.records = append(m.records, FromResult(r))
 	m.mappings = append(m.mappings, MappingFromResult(r))
 }
 
 // Flush writes all records and mappings to disk.
 func (m *Manager) Flush() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if err := m.writeRecords(); err != nil {
 		return fmt.Errorf("write records: %w", err)
 	}

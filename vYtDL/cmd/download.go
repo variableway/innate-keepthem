@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"sync"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -39,6 +40,7 @@ var (
 	flagTimeout     string
 	flagForceIPv4   bool
 	flagResetState  bool
+	flagConcurrency int
 )
 
 func init() {
@@ -91,6 +93,8 @@ func init() {
 		"Force IPv4 for yt-dlp network requests")
 	dl.Flags().BoolVar(&flagResetState, "reset-playlist-state", false,
 		"Discard saved playlist state and start the playlist from the beginning")
+	dl.Flags().IntVarP(&flagConcurrency, "concurrency", "j", 1,
+		"Maximum number of concurrent downloads (1 = sequential)")
 
 	rootCmd.AddCommand(dl)
 }
@@ -190,16 +194,68 @@ func runDownload(cmd *cobra.Command, args []string) error {
 
 	dl := downloader.New(opts, progressCh)
 
-	var allResults []downloader.DownloadResult
+	if flagConcurrency < 1 {
+		flagConcurrency = 1
+	}
 
+	concurrency := flagConcurrency
+
+	// --- Concurrent dispatch ---
+	type workItem struct {
+		url      string
+		playlist bool
+	}
+
+	queue := make(chan workItem, len(args))
 	for _, url := range args {
-		if flagPlaylist {
-			results := dl.DownloadPlaylist(url)
-			allResults = append(allResults, results...)
-		} else {
-			result := dl.DownloadSingle(url)
-			allResults = append(allResults, result)
+		queue <- workItem{url: url, playlist: flagPlaylist}
+	}
+	close(queue)
+
+	var (
+		allResults   []downloader.DownloadResult
+		resultsMu    sync.Mutex
+		wg           sync.WaitGroup
+		sem          = make(chan struct{}, concurrency)
+	)
+
+	// If concurrency == 1, just do sequential (avoids goroutine overhead)
+	if concurrency == 1 {
+		for item := range queue {
+			if item.playlist {
+				results := dl.DownloadPlaylist(item.url)
+				resultsMu.Lock()
+				allResults = append(allResults, results...)
+				resultsMu.Unlock()
+			} else {
+				result := dl.DownloadSingle(item.url)
+				resultsMu.Lock()
+				allResults = append(allResults, result)
+				resultsMu.Unlock()
+			}
 		}
+	} else {
+		for item := range queue {
+			wg.Add(1)
+			go func(wi workItem) {
+				defer wg.Done()
+				sem <- struct{}{}        // acquire
+				defer func() { <-sem }() // release
+
+				if wi.playlist {
+					results := dl.DownloadPlaylist(wi.url)
+					resultsMu.Lock()
+					allResults = append(allResults, results...)
+					resultsMu.Unlock()
+				} else {
+					result := dl.DownloadSingle(wi.url)
+					resultsMu.Lock()
+					allResults = append(allResults, result)
+					resultsMu.Unlock()
+				}
+			}(item)
+		}
+		wg.Wait()
 	}
 
 	// Signal TUI that all downloads are complete

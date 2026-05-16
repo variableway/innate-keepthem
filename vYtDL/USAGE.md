@@ -192,6 +192,45 @@ The playlist state file includes:
 - last error
 - last finished filename
 
+## Concurrent Downloads
+
+Use the `--concurrency` / `-j` flag to download multiple URLs in parallel:
+
+```bash
+# Two videos at once
+./vYtDL download --no-tui -j 2 \
+  "URL1" "URL2" "URL3"
+
+# Batch with configurable concurrency
+./vYtDL download --no-tui --concurrency 3 \
+  --output ./downloads \
+  "URL1" "URL2" "URL3" "URL4"
+```
+
+- Default: `-j 1` (sequential, same as old behavior)
+- Internally uses a worker pool with semaphore + WaitGroup
+- Results and records are thread-safe
+- Higher concurrency = more YouTube requests = higher chance of triggering anti-bot measures
+
+## Subtitle Analysis
+
+Once you have downloaded `.vtt` subtitle files, you can extract plain text with the `analyze` command:
+
+```bash
+# Plain text extraction
+./vYtDL analyze --mode text video.zh.vtt
+
+# Write to file
+./vYtDL analyze --mode text --output transcript.txt video.en.vtt
+
+# Pipe from stdin
+./vYtDL analyze < video.vtt
+```
+
+Aliases: `an`, `ana`
+
+The parser handles both simple manual captions and YouTube auto-generated captions (with `<c>` word-timing tags). More analysis modes (`summary`, `keypoints`) are planned — see `tasks/vtt-analysis-spec.md`.
+
 ## Recovery Options
 
 If YouTube blocks anonymous extraction, use the recovery flags from `help.md`:
@@ -205,6 +244,18 @@ If YouTube blocks anonymous extraction, use the recovery flags from `help.md`:
   --retries 10 \
   "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
+
+**YouTube `n` challenge**: If you see `Sign in to confirm you're not a bot` even with cookies, YouTube's JavaScript challenge requires a JS runtime:
+
+```bash
+# Use Node.js (if available) via yt-dlp directly:
+yt-dlp --cookies-from-browser chrome --js-runtimes node "URL"
+
+# Or install deno:
+brew install deno
+```
+
+The vYtDL CLI does not yet pass `--js-runtimes` through; use yt-dlp directly for now when the `n` challenge appears.
 
 Supported passthrough flags:
 

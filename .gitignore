@@ -22,3 +22,4 @@ __pycache__/
 *.tsbuildinfo
 */test_download/*
 .next/
+vYtDL-desktop/apps/desktop/.next

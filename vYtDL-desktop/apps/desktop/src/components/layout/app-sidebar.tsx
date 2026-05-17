@@ -8,6 +8,7 @@ import {
   Settings,
   Youtube,
   ChevronUp,
+  FileText,
 } from "lucide-react";
 import {
   Sidebar,
@@ -36,6 +37,7 @@ export function AppSidebar() {
 
   const navItems = [
     { titleKey: "common.home", href: "/", icon: Download },
+    { titleKey: "analyze.nav", href: "/analyze", icon: FileText },
     { titleKey: "common.library", href: "/library", icon: Library },
     { titleKey: "common.settings", href: "/settings", icon: Settings },
   ];

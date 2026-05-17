@@ -151,3 +151,55 @@ export function getPlatform(): string {
   if (userAgent.includes("linux")) return "linux";
   return "unknown";
 }
+
+export async function apiFetch<T>(path: string): Promise<T> {
+  const response = await fetch(path);
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `HTTP ${response.status}`);
+  }
+  return response.json();
+}
+
+export interface VttReport {
+  id: string;
+  youtube_url: string;
+  video_id: string | null;
+  title: string | null;
+  language: string | null;
+  content: string;
+  cue_count: number;
+  duration_sec: number | null;
+  created_at: string;
+  status: "pending" | "processing" | "done" | "failed";
+  error: string | null;
+}
+
+export async function startVttAnalysis(url: string): Promise<{ reportId: string }> {
+  const res = await apiInvoke<{ success: boolean; data: { reportId: string } }>(
+    "analyze-vtt",
+    { url }
+  );
+  return res.data;
+}
+
+export async function getVttReport(id: string): Promise<VttReport> {
+  const res = await apiFetch<{ success: boolean; data: VttReport }>(
+    `/api/vtt-report/${id}`
+  );
+  return res.data;
+}
+
+export async function listVttReports(page = 1, limit = 20, lang?: string) {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (lang) params.set("lang", lang);
+  const res = await apiFetch<{
+    success: boolean;
+    data: { reports: VttReport[]; total: number };
+  }>(`/api/vtt-reports?${params}`);
+  return res.data;
+}
+
+export async function deleteVttReport(id: string): Promise<void> {
+  await apiInvoke("delete-vtt-report", { id });
+}

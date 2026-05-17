@@ -30,10 +30,20 @@
   "home": {
     "title": "下载",
     "subtitle": "从 YouTube、Bilibili、小红书等平台下载视频",
-    "single": "单视频",
+    "single": "单个",
     "batch": "批量",
     "smart": "智能",
-    "newBadge": "新功能"
+    "newBadge": "新"
+  },
+  "analyze": {
+    "nav": "字幕分析",
+    "title": "VTT 字幕分析器",
+    "subtitle": "从任意 YouTube 视频生成可分享的转录报告。",
+    "inputTitle": "分析视频",
+    "analyze": "分析",
+    "analyzing": "分析中...",
+    "recent": "最近分析",
+    "empty": "暂无分析记录。粘贴 YouTube 链接开始使用。"
   },
   "downloadForm": {
     "newDownload": "新建下载",

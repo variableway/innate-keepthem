@@ -9,6 +9,22 @@ export type DownloadStatus =
   | "failed"
   | "cancelled";
 
+export type VttReportStatus = "pending" | "processing" | "done" | "failed";
+
+export interface VttReport {
+  id: string;
+  youtube_url: string;
+  video_id: string | null;
+  title: string | null;
+  language: string | null;
+  content: string;
+  cue_count: number;
+  duration_sec: number | null;
+  created_at: string;
+  status: VttReportStatus;
+  error: string | null;
+}
+
 export interface DownloadRecord {
   id: string;
   url: string;
@@ -58,6 +74,20 @@ export class Database {
         key TEXT PRIMARY KEY,
         value TEXT,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS vtt_reports (
+        id TEXT PRIMARY KEY,
+        youtube_url TEXT NOT NULL,
+        video_id TEXT,
+        title TEXT,
+        language TEXT,
+        content TEXT NOT NULL DEFAULT '',
+        cue_count INTEGER DEFAULT 0,
+        duration_sec REAL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        status TEXT NOT NULL DEFAULT 'pending',
+        error TEXT
       );
     `);
   }
@@ -165,5 +195,71 @@ export class Database {
          ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP`
       )
       .run(key, value);
+  }
+
+  createVttReport(report: VttReport): void {
+    this.db
+      .prepare(
+        `INSERT INTO vtt_reports (id, youtube_url, video_id, title, language, content, cue_count, duration_sec, created_at, status, error)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      )
+      .run(
+        report.id,
+        report.youtube_url,
+        report.video_id,
+        report.title,
+        report.language,
+        report.content,
+        report.cue_count,
+        report.duration_sec,
+        report.created_at,
+        report.status,
+        report.error
+      );
+  }
+
+  getVttReport(id: string): VttReport | undefined {
+    return this.db
+      .prepare("SELECT * FROM vtt_reports WHERE id = ?")
+      .get(id) as VttReport | undefined;
+  }
+
+  listVttReports(
+    page: number,
+    limit: number,
+    lang?: string
+  ): { reports: VttReport[]; total: number } {
+    const offset = (page - 1) * limit;
+    let where = "";
+    const params: (string | number)[] = [];
+    if (lang) {
+      where = " WHERE language = ?";
+      params.push(lang);
+    }
+    const countStmt = this.db.prepare(`SELECT COUNT(*) as count FROM vtt_reports${where}`);
+    const countRow = lang ? countStmt.get(lang) as { count: number } : countStmt.get() as { count: number };
+    const listStmt = this.db.prepare(
+      `SELECT * FROM vtt_reports${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`
+    );
+    const rows = lang
+      ? listStmt.all(lang, limit, offset) as VttReport[]
+      : listStmt.all(limit, offset) as VttReport[];
+    return { reports: rows, total: countRow.count };
+  }
+
+  updateVttReport(
+    id: string,
+    updates: Partial<Pick<VttReport, "title" | "language" | "content" | "cue_count" | "duration_sec" | "status" | "error" | "video_id">>
+  ): void {
+    const keys = Object.keys(updates) as (keyof typeof updates)[];
+    const fields = keys.map((k) => `${k} = ?`).join(", ");
+    const values = keys.map((k) => updates[k]);
+    this.db
+      .prepare(`UPDATE vtt_reports SET ${fields} WHERE id = ?`)
+      .run(...values, id);
+  }
+
+  deleteVttReport(id: string): void {
+    this.db.prepare("DELETE FROM vtt_reports WHERE id = ?").run(id);
   }
 }

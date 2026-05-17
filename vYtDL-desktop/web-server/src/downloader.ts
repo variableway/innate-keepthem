@@ -131,7 +131,7 @@ export async function extractAudio(videoPath: string, outputDir?: string, audioF
   });
 }
 
-function runYtDlp(args: string[], timeoutMs = 30000): Promise<{ stdout: string; stderr: string }> {
+export function runYtDlp(args: string[], timeoutMs = 30000): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
     const ytDlpPath = findYtDlp();
     const env = { ...process.env };

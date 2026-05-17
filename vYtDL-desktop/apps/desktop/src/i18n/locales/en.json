@@ -35,6 +35,16 @@
     "smart": "Smart",
     "newBadge": "New"
   },
+  "analyze": {
+    "nav": "Analyze",
+    "title": "VTT Subtitle Analyzer",
+    "subtitle": "Generate shareable transcript reports from any YouTube video.",
+    "inputTitle": "Analyze a Video",
+    "analyze": "Analyze",
+    "analyzing": "Analyzing...",
+    "recent": "Recent Analyses",
+    "empty": "No analyses yet. Paste a YouTube URL above to get started."
+  },
   "downloadForm": {
     "newDownload": "New Download",
     "batchDownload": "Batch Download",

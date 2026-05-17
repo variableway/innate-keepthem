@@ -35,6 +35,16 @@
     "smart": "スマート",
     "newBadge": "新機能"
   },
+  "analyze": {
+    "nav": "分析",
+    "title": "VTT字幕アナライザー",
+    "subtitle": "YouTube動画から共有可能な文字起こしレポートを生成",
+    "inputTitle": "動画を分析",
+    "analyze": "分析",
+    "analyzing": "分析中...",
+    "recent": "最近の分析",
+    "empty": "まだ分析がありません。YouTube URLを貼り付けて始めましょう。"
+  },
   "downloadForm": {
     "newDownload": "新規ダウンロード",
     "batchDownload": "一括ダウンロード",

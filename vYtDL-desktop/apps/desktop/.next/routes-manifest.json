@@ -23,6 +23,14 @@
   },
   "dynamicRoutes": [
     {
+      "page": "/analyze/[id]",
+      "regex": "^/analyze/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/analyze/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/player/[id]",
       "regex": "^/player/([^/]+?)(?:/)?$",
       "routeKeys": {
@@ -49,6 +57,12 @@
       "regex": "^/_not\\-found(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/analyze",
+      "regex": "^/analyze(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/analyze(?:/)?$"
     },
     {
       "page": "/library",

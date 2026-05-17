@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Database } from "./database";
 import { QueueManager } from "./queue";
 import { getVideoInfo, getVideoFormats, getPlaylistInfo, findYtDlp, extractAudio } from "./downloader";
+import { VttAnalyzer } from "./vtt-analysis";
 
 const app = express();
 const server = createServer(app);
@@ -29,6 +30,7 @@ mkdirSync(outputDir, { recursive: true });
 
 const db = new Database(dbPath);
 const queue = new QueueManager(db, wss);
+const vttAnalyzer = new VttAnalyzer(db, wss);
 
 // Default settings
 const defaults: Record<string, string> = {
@@ -280,6 +282,67 @@ app.post("/api/extract-audio", async (req, res) => {
     const { video_path, output_dir, audio_format } = req.body;
     const audioPath = await extractAudio(video_path, output_dir, audio_format || "mp3");
     res.json({ success: true, data: { audio_path: audioPath } });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+});
+
+app.post("/api/analyze-vtt", async (req, res) => {
+  try {
+    const { url } = req.body;
+    if (!url || typeof url !== "string") {
+      res.status(400).json({ success: false, error: "url is required" });
+      return;
+    }
+    const reportId = await vttAnalyzer.startAnalysis(url);
+    res.json({ success: true, data: { reportId } });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+});
+
+app.get("/api/vtt-report/:id", (req, res) => {
+  try {
+    const report = db.getVttReport(req.params.id);
+    if (!report) {
+      res.status(404).json({ success: false, error: "Report not found" });
+      return;
+    }
+    res.json({ success: true, data: report });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+});
+
+app.get("/api/vtt-reports", (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(String(req.query.page || "1"), 10));
+    const limit = Math.min(100, Math.max(1, parseInt(String(req.query.limit || "20"), 10)));
+    const lang = typeof req.query.lang === "string" ? req.query.lang : undefined;
+    const result = db.listVttReports(page, limit, lang);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+});
+
+app.post("/api/delete-vtt-report", (req, res) => {
+  try {
+    const { id } = req.body;
+    db.deleteVttReport(id);
+    res.json({ success: true, data: null });
   } catch (err) {
     res.status(500).json({
       success: false,

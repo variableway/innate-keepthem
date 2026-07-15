@@ -1,0 +1,89 @@
+{
+  "id": "preset-youtube-to-notes",
+  "name": "YouTube → 笔记",
+  "description": "下载 YouTube 视频，提取字幕，生成结构化笔记",
+  "steps": [
+    {
+      "id": "transcribe",
+      "type": "transcribe",
+      "config": {
+        "backend": "auto",
+        "language": "auto"
+      },
+      "input_mapping": {},
+      "output_mapping": {
+        "extracted_text": "extracted_text"
+      },
+      "max_retries": 3,
+      "backoff": "exponential",
+      "delay_ms": 2000,
+      "timeout_ms": 300000
+    },
+    {
+      "id": "summarize",
+      "type": "summarize",
+      "config": {
+        "max_length": 500,
+        "format": "structured"
+      },
+      "input_mapping": {
+        "text": "extracted_text"
+      },
+      "output_mapping": {
+        "summary": "summary",
+        "key_points": "key_points"
+      },
+      "condition": "len(extracted_text) > 50",
+      "max_retries": 3,
+      "backoff": "exponential",
+      "delay_ms": 1000,
+      "timeout_ms": 60000
+    },
+    {
+      "id": "translate",
+      "type": "translate",
+      "config": {
+        "target_language": "zh"
+      },
+      "input_mapping": {
+        "text": "summary"
+      },
+      "output_mapping": {
+        "translated_text": "translated_text"
+      },
+      "condition": "len(summary) > 0",
+      "max_retries": 3,
+      "backoff": "exponential",
+      "delay_ms": 1000,
+      "timeout_ms": 30000
+    },
+    {
+      "id": "analyze",
+      "type": "analyze",
+      "config": {
+        "extract_topics": true,
+        "sentiment": true
+      },
+      "input_mapping": {
+        "text": "extracted_text"
+      },
+      "output_mapping": {
+        "topics": "topics",
+        "sentiment": "sentiment"
+      },
+      "max_retries": 2,
+      "backoff": "exponential",
+      "delay_ms": 1000,
+      "timeout_ms": 30000
+    }
+  ],
+  "trigger": "manual",
+  "input_config": {
+    "source": "url",
+    "platform": "youtube"
+  },
+  "output_config": {
+    "format": "markdown",
+    "template": "note_template"
+  }
+}

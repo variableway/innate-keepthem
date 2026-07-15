@@ -1,0 +1,84 @@
+{
+  "id": "preset-twitter-to-xiaohongshu",
+  "name": "Twitter → 小红书文案",
+  "description": "抓取 Twitter 内容，翻译并转换为小红书风格文案",
+  "steps": [
+    {
+      "id": "ingest",
+      "type": "ingest",
+      "config": {
+        "backend": "agent-reach",
+        "platform": "twitter"
+      },
+      "input_mapping": {},
+      "output_mapping": {
+        "extracted_text": "extracted_text"
+      },
+      "max_retries": 3,
+      "backoff": "exponential",
+      "delay_ms": 1000,
+      "timeout_ms": 30000
+    },
+    {
+      "id": "translate",
+      "type": "translate",
+      "config": {
+        "target_language": "zh"
+      },
+      "input_mapping": {
+        "text": "extracted_text"
+      },
+      "output_mapping": {
+        "translated_text": "translated_text"
+      },
+      "condition": "len(extracted_text) > 10",
+      "max_retries": 3,
+      "backoff": "exponential",
+      "delay_ms": 1000,
+      "timeout_ms": 30000
+    },
+    {
+      "id": "convert",
+      "type": "xiaohongshu",
+      "config": {
+        "style": "normal"
+      },
+      "input_mapping": {
+        "text": "translated_text"
+      },
+      "output_mapping": {
+        "rewritten_text": "rewritten_text"
+      },
+      "max_retries": 3,
+      "backoff": "exponential",
+      "delay_ms": 1000,
+      "timeout_ms": 30000
+    },
+    {
+      "id": "tag",
+      "type": "tag",
+      "config": {
+        "auto_tags": true
+      },
+      "input_mapping": {
+        "text": "rewritten_text"
+      },
+      "output_mapping": {
+        "tags": "tags"
+      },
+      "max_retries": 2,
+      "backoff": "exponential",
+      "delay_ms": 1000,
+      "timeout_ms": 15000
+    }
+  ],
+  "trigger": "manual",
+  "input_config": {
+    "source": "url",
+    "platform": "twitter"
+  },
+  "output_config": {
+    "format": "markdown",
+    "include_metadata": true
+  }
+}

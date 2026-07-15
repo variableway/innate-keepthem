@@ -10,6 +10,7 @@ import { useDownloadStore } from "@/store/downloadStore";
 import { apiInvoke } from "@/lib/api-client";
 import { formatDate } from "@vytdl/utils";
 import { useTranslation } from "@/i18n";
+import { MainContent } from "@/components/layout/main-content";
 import type { Download } from "@/types";
 
 function VideoCard({ download }: { download: Download }) {
@@ -87,7 +88,7 @@ export default function LibraryPage() {
   );
 
   return (
-    <div className="p-6">
+    <MainContent width="full">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">{t("common.library")}</h1>
@@ -124,6 +125,6 @@ export default function LibraryPage() {
           ))}
         </div>
       )}
-    </div>
+    </MainContent>
   );
 }

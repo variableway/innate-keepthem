@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@vytdl/ui";
 import { Badge } from "@vytdl/ui";
 import { DownloadForm } from "@/components/download-form";
 import { DownloadList } from "@/components/download-list";
+import { MainContent } from "@/components/layout/main-content";
 import { useDownloadStore } from "@/store/downloadStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useTranslation } from "@/i18n";
@@ -22,7 +23,7 @@ export default function HomePage() {
   }, [fetchDownloads, fetchSettings]);
 
   return (
-    <div className="p-6 w-full min-w-[640px] max-w-full space-y-6">
+    <MainContent width="full" className="min-w-0 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">{t("home.title")}</h1>
         <p className="text-muted-foreground">
@@ -61,6 +62,6 @@ export default function HomePage() {
       </Tabs>
 
       <DownloadList />
-    </div>
+    </MainContent>
   );
 }

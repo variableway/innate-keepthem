@@ -2,14 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  Download,
-  Library,
-  Settings,
-  Youtube,
-  ChevronUp,
-  FileText,
-} from "lucide-react";
+import { Youtube, ChevronUp } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -22,25 +15,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
 } from "@vytdl/ui";
 import { useTranslation } from "@/i18n";
+import { isModuleActive, primaryModules } from "@/lib/navigation";
 
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [platform, setPlatform] = useState("web");
   const { t } = useTranslation();
-
-  const navItems = [
-    { titleKey: "common.home", href: "/", icon: Download },
-    { titleKey: "analyze.nav", href: "/analyze", icon: FileText },
-    { titleKey: "common.library", href: "/library", icon: Library },
-    { titleKey: "common.settings", href: "/settings", icon: Settings },
-  ];
 
   useEffect(() => {
     if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
@@ -62,6 +45,8 @@ export function AppSidebar() {
     platform.includes("windows") ? "🪟" :
     platform.includes("linux") ? "🐧" : "🌐";
 
+  const enabledModules = primaryModules.filter((m) => m.enabled !== false);
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -82,18 +67,18 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>{t("sidebar.navigation")}</SidebarGroupLabel>
+          <SidebarGroupLabel>{t("sidebar.modules")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
+              {enabledModules.map((module) => (
+                <SidebarMenuItem key={module.id}>
                   <SidebarMenuButton
-                    isActive={pathname === item.href}
-                    tooltip={t(item.titleKey)}
-                    onClick={() => router.push(item.href)}
+                    isActive={isModuleActive(pathname, module)}
+                    tooltip={t(module.titleKey)}
+                    onClick={() => router.push(module.href)}
                   >
-                    <item.icon className="size-4" />
-                    <span>{t(item.titleKey)}</span>
+                    <module.icon className="size-4" />
+                    <span>{t(module.titleKey)}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -105,29 +90,13 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size="lg"
-                  className="data-[open]:bg-sidebar-accent"
-                >
-                  <span className="text-sm">{platformIcon}</span>
-                  <div className="flex flex-col gap-0.5 leading-none">
-                    <span className="font-medium text-sm">{platform}</span>
-                  </div>
-                  <ChevronUp className="ml-auto size-4" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                side="top"
-                className="min-w-[8rem]"
-              >
-                <DropdownMenuItem onClick={() => router.push("/settings")}>
-                  <Settings className="mr-2 size-4" />
-                  {t("common.settings")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <SidebarMenuButton size="lg" className="cursor-default hover:bg-transparent">
+              <span className="text-sm">{platformIcon}</span>
+              <div className="flex flex-col gap-0.5 leading-none">
+                <span className="font-medium text-sm">{platform}</span>
+              </div>
+              <ChevronUp className="ml-auto size-4 opacity-0" />
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

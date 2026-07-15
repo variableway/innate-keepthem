@@ -85,7 +85,7 @@ export async function apiInvoke<T>(
   await loadTauri();
 
   if (tauriInvoke) {
-    return tauriInvoke<T>(command, args);
+    return tauriInvoke<T>(command.replace(/-/g, "_"), args);
   }
 
   // Web mode: HTTP API
@@ -176,14 +176,28 @@ export interface VttReport {
 }
 
 export async function startVttAnalysis(url: string): Promise<{ reportId: string }> {
-  const res = await apiInvoke<{ success: boolean; data: { reportId: string } }>(
-    "analyze-vtt",
+  const res = await apiInvoke<{ success: boolean; data: { reportId: string }; error?: string }>(
+    "analyze_vtt",
     { url }
   );
+  if (!res.success || !res.data) {
+    throw new Error(res.error || "Analysis failed");
+  }
   return res.data;
 }
 
 export async function getVttReport(id: string): Promise<VttReport> {
+  await loadTauri();
+  if (tauriInvoke) {
+    const res = await tauriInvoke<{ success: boolean; data: VttReport; error?: string }>(
+      "get_vtt_report",
+      { id }
+    );
+    if (!res.success || !res.data) {
+      throw new Error(res.error || "Failed to load report");
+    }
+    return res.data;
+  }
   const res = await apiFetch<{ success: boolean; data: VttReport }>(
     `/api/vtt-report/${id}`
   );
@@ -191,6 +205,20 @@ export async function getVttReport(id: string): Promise<VttReport> {
 }
 
 export async function listVttReports(page = 1, limit = 20, lang?: string) {
+  await loadTauri();
+  if (tauriInvoke) {
+    const args: Record<string, unknown> = { page, limit };
+    if (lang) args.lang = lang;
+    const res = await tauriInvoke<{
+      success: boolean;
+      data: { reports: VttReport[]; total: number };
+      error?: string;
+    }>("list_vtt_reports", args);
+    if (!res.success || !res.data) {
+      throw new Error(res.error || "Failed to load reports");
+    }
+    return res.data;
+  }
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
   if (lang) params.set("lang", lang);
   const res = await apiFetch<{
@@ -201,5 +229,8 @@ export async function listVttReports(page = 1, limit = 20, lang?: string) {
 }
 
 export async function deleteVttReport(id: string): Promise<void> {
-  await apiInvoke("delete-vtt-report", { id });
+  const res = await apiInvoke<{ success: boolean; error?: string }>("delete_vtt_report", { id });
+  if (!res.success) {
+    throw new Error(res.error || "Delete failed");
+  }
 }

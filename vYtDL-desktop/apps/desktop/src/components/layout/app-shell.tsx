@@ -1,8 +1,9 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
-import { SidebarProvider, SidebarInset } from "@vytdl/ui";
+import { Separator, SidebarInset, SidebarProvider, SidebarTrigger } from "@vytdl/ui";
 import { AppSidebar } from "@/components/layout/app-sidebar";
+import { SectionLayout } from "@/components/layout/section-layout";
 import { useTranslation } from "@/i18n";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -25,13 +26,18 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen>
       <AppSidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <SidebarInset className="flex-1 overflow-auto">
-          {children}
-        </SidebarInset>
-      </div>
+      <SidebarInset className="min-w-0 flex flex-col">
+        <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          <span className="text-sm text-muted-foreground hidden sm:inline">
+            {t("sidebar.toggleHint")}
+          </span>
+        </header>
+        <SectionLayout>{children}</SectionLayout>
+      </SidebarInset>
     </SidebarProvider>
   );
 }

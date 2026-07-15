@@ -43,6 +43,12 @@ A complete YouTube downloading toolkit with CLI, desktop app, web UI (Docker), a
 - Export selected URLs to text file
 - Batch download support
 
+### ContentForge (CLI, in development)
+- Scrape content from Twitter, YouTube, web, RSS
+- AI processing: summarize, translate, analyze, Xiaohongshu conversion
+- Pipeline presets for end-to-end workflows
+- Go CLI + Python core engine
+
 ## Requirements
 
 - **Go 1.24+** - For the CLI
@@ -98,19 +104,22 @@ docker-compose up -d
 
 ### Desktop App
 
+**Recommended (Task):**
+
+```bash
+task desktop:check    # verify Node / pnpm / Rust
+task desktop:dev      # development mode
+task desktop:build    # production build
+task desktop:bundle   # build + installer
+```
+
+**Direct Python scripts (still supported):**
+
 ```bash
 cd vYtDL-desktop
-
-# Check dependencies
 python3 scripts/build-desktop.py check
-
-# Development mode
 python3 scripts/build-desktop.py dev
-
-# Build production app
 python3 scripts/build-desktop.py build
-
-# Build + create distributable package
 python3 scripts/build-desktop.py bundle
 ```
 
@@ -141,7 +150,9 @@ See [USAGE.md](USAGE.md) for detailed CLI usage and [docs/](docs/) for full proj
 │   ├── packages/utils/       # Shared utilities
 │   ├── scripts/              # Startup scripts
 │   └── web-server/           # Docker web API server
+├── contentforge/             # Content pipeline CLI (Go + Python)
 ├── url-extractor/            # Chrome extension
+├── .agents/skills/           # AI Agent Skills
 ├── docker-compose.yml        # Docker Compose for web UI
 ├── docs/                     # Documentation
 └── tasks/                    # Task definitions (PRDs)

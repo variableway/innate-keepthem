@@ -221,12 +221,16 @@ irm https://raw.githubusercontent.com/your-repo/vYtDL/main/docs/how-to/setup.ps1
 
 ## 如何使用 SKILL 功能
 
-本项目包含一个 AI Skill（`.agents/skills/vytdl-dev/`），当使用支持 Skill 的 AI 工具（如 Kimi Code CLI）时，AI 会自动加载项目上下文，包括：
+本项目包含 AI Skills（`.agents/skills/`），当使用支持 Skill 的 AI 工具（如 Kimi Code CLI、Cursor）时，AI 会自动加载项目上下文。
 
-- 项目架构和技术栈说明
-- 各组件开发指南
-- 常见任务模式（添加命令、添加语言、修改下载行为等）
-- 数据库 schema 和 API 规范
+完整索引：`.agents/skills/_index.md`
+
+| Skill | 用途 |
+|-------|------|
+| `vytdl-dev` | vYtDL 开发指南 |
+| `vtt-analyze` | VTT 字幕 AI 分析 |
+| `contentforge` | ContentForge 开发 |
+| `contentforge-pipeline` | Pipeline 预设与 DAG |
 
 ### Skill 使用场景
 

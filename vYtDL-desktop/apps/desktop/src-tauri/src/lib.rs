@@ -1,8 +1,11 @@
+mod agent_cli;
+mod agent_runner;
 mod audio_extractor;
 mod commands;
 mod database;
 mod downloader;
 mod queue;
+mod vtt_analysis;
 
 use tauri::Manager;
 
@@ -243,11 +246,17 @@ pub fn run() {
             commands::retry_download,
             commands::get_settings,
             commands::update_settings,
+            commands::detect_agent_cli,
             commands::get_video_info,
             commands::get_video_formats,
             commands::get_playlist_info,
             commands::summarize_video,
             commands::extract_audio,
+            commands::analyze_vtt,
+            commands::get_vtt_report,
+            commands::list_vtt_reports,
+            commands::delete_vtt_report,
+            commands::agent_chat_send,
             get_platform,
         ])
         .run(tauri::generate_context!())

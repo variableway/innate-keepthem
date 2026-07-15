@@ -262,9 +262,21 @@ Located in `vYtDL-desktop/scripts/`:
 
 Download wrapper scripts validate `yt-dlp`/`youtube-dl` availability before running.
 
+## AI Skills
+
+项目 Skills 位于 `.agents/skills/`，Cursor 通过 `.cursor/skills` 符号链接访问同一目录。
+
+| Skill | 用途 |
+|-------|------|
+| `vytdl-dev` | vYtDL 全栈开发（CLI、Desktop、Web、Extension） |
+| `vtt-analyze` | VTT 字幕 AI 分析工作流 |
+| `contentforge` | ContentForge 采集 / 处理 / 发布开发 |
+| `contentforge-pipeline` | Pipeline 预设与 DAG 引擎 |
+
+完整索引：`.agents/skills/_index.md`
+
 ## AI Skill & Development Guide
 
-- **Project Skill**: `.agents/skills/vytdl-dev/SKILL.md` — Loaded automatically by Kimi Code CLI when working on this project. Contains architecture reference, component patterns, and common task workflows.
 - **How-To Tutorial**: `docs/how-to/README.md` — Step-by-step guide for implementing this project with AI assistance, including tech stack overview and dependency installation.
 - **One-Click Setup**: `docs/how-to/setup.sh` (macOS/Linux) and `docs/how-to/setup.ps1` (Windows) — Install all dependencies (Go, Node.js, Rust, yt-dlp, FFmpeg) in one command.
 

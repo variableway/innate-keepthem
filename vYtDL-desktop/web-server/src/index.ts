@@ -232,6 +232,8 @@ app.get("/api/settings", (_req, res) => {
       "ai_provider",
       "ai_api_key",
       "ai_model",
+      "agent_cli_kimi_bin",
+      "agent_cli_other_bin",
     ];
     const settings: Record<string, unknown> = {};
     for (const key of keys) {

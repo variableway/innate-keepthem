@@ -17,6 +17,21 @@ pub enum DownloadStatus {
     Cancelled,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
+pub struct VttReport {
+    pub id: String,
+    pub youtube_url: String,
+    pub video_id: Option<String>,
+    pub title: Option<String>,
+    pub language: Option<String>,
+    pub content: String,
+    pub cue_count: i64,
+    pub duration_sec: Option<f64>,
+    pub created_at: DateTime<Utc>,
+    pub status: String,
+    pub error: Option<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DownloadRecord {
     pub id: String,
@@ -143,6 +158,26 @@ impl Database {
         )
         .execute(&self.pool)
         .await;
+
+        sqlx::query(
+            r#"
+            CREATE TABLE IF NOT EXISTS vtt_reports (
+                id TEXT PRIMARY KEY,
+                youtube_url TEXT NOT NULL,
+                video_id TEXT,
+                title TEXT,
+                language TEXT,
+                content TEXT NOT NULL DEFAULT '',
+                cue_count INTEGER DEFAULT 0,
+                duration_sec REAL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                status TEXT NOT NULL DEFAULT 'pending',
+                error TEXT
+            )
+            "#,
+        )
+        .execute(&self.pool)
+        .await?;
 
         Ok(())
     }
@@ -362,6 +397,168 @@ impl Database {
         .execute(&self.pool)
         .await?;
 
+        Ok(())
+    }
+
+    pub async fn create_vtt_report(&self, report: &VttReport) -> Result<(), sqlx::Error> {
+        sqlx::query(
+            r#"
+            INSERT INTO vtt_reports (
+                id, youtube_url, video_id, title, language, content,
+                cue_count, duration_sec, created_at, status, error
+            )
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+            "#,
+        )
+        .bind(&report.id)
+        .bind(&report.youtube_url)
+        .bind(&report.video_id)
+        .bind(&report.title)
+        .bind(&report.language)
+        .bind(&report.content)
+        .bind(report.cue_count)
+        .bind(report.duration_sec)
+        .bind(report.created_at)
+        .bind(&report.status)
+        .bind(&report.error)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
+    pub async fn get_vtt_report(&self, id: &str) -> Result<Option<VttReport>, sqlx::Error> {
+        sqlx::query_as::<_, VttReport>(
+            "SELECT * FROM vtt_reports WHERE id = ?1",
+        )
+        .bind(id)
+        .fetch_optional(&self.pool)
+        .await
+    }
+
+    pub async fn list_vtt_reports(
+        &self,
+        page: u32,
+        limit: u32,
+        lang: Option<&str>,
+    ) -> Result<(Vec<VttReport>, i64), sqlx::Error> {
+        let offset = ((page.saturating_sub(1)) * limit) as i64;
+        let limit = limit as i64;
+
+        let (reports, total) = if let Some(lang) = lang {
+            let total: (i64,) = sqlx::query_as(
+                "SELECT COUNT(*) FROM vtt_reports WHERE language = ?1",
+            )
+            .bind(lang)
+            .fetch_one(&self.pool)
+            .await?;
+
+            let reports = sqlx::query_as::<_, VttReport>(
+                "SELECT * FROM vtt_reports WHERE language = ?1 ORDER BY created_at DESC LIMIT ?2 OFFSET ?3",
+            )
+            .bind(lang)
+            .bind(limit)
+            .bind(offset)
+            .fetch_all(&self.pool)
+            .await?;
+
+            (reports, total.0)
+        } else {
+            let total: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM vtt_reports")
+                .fetch_one(&self.pool)
+                .await?;
+
+            let reports = sqlx::query_as::<_, VttReport>(
+                "SELECT * FROM vtt_reports ORDER BY created_at DESC LIMIT ?1 OFFSET ?2",
+            )
+            .bind(limit)
+            .bind(offset)
+            .fetch_all(&self.pool)
+            .await?;
+
+            (reports, total.0)
+        };
+
+        Ok((reports, total))
+    }
+
+    pub async fn update_vtt_report(
+        &self,
+        id: &str,
+        title: Option<&str>,
+        language: Option<&str>,
+        content: Option<&str>,
+        cue_count: Option<i64>,
+        duration_sec: Option<f64>,
+        video_id: Option<&str>,
+        status: Option<&str>,
+        error: Option<&str>,
+    ) -> Result<(), sqlx::Error> {
+        if let Some(title) = title {
+            sqlx::query("UPDATE vtt_reports SET title = ?1 WHERE id = ?2")
+                .bind(title)
+                .bind(id)
+                .execute(&self.pool)
+                .await?;
+        }
+        if let Some(language) = language {
+            sqlx::query("UPDATE vtt_reports SET language = ?1 WHERE id = ?2")
+                .bind(language)
+                .bind(id)
+                .execute(&self.pool)
+                .await?;
+        }
+        if let Some(content) = content {
+            sqlx::query("UPDATE vtt_reports SET content = ?1 WHERE id = ?2")
+                .bind(content)
+                .bind(id)
+                .execute(&self.pool)
+                .await?;
+        }
+        if let Some(cue_count) = cue_count {
+            sqlx::query("UPDATE vtt_reports SET cue_count = ?1 WHERE id = ?2")
+                .bind(cue_count)
+                .bind(id)
+                .execute(&self.pool)
+                .await?;
+        }
+        if let Some(duration_sec) = duration_sec {
+            sqlx::query("UPDATE vtt_reports SET duration_sec = ?1 WHERE id = ?2")
+                .bind(duration_sec)
+                .bind(id)
+                .execute(&self.pool)
+                .await?;
+        }
+        if let Some(video_id) = video_id {
+            sqlx::query("UPDATE vtt_reports SET video_id = ?1 WHERE id = ?2")
+                .bind(video_id)
+                .bind(id)
+                .execute(&self.pool)
+                .await?;
+        }
+        if let Some(status) = status {
+            sqlx::query("UPDATE vtt_reports SET status = ?1 WHERE id = ?2")
+                .bind(status)
+                .bind(id)
+                .execute(&self.pool)
+                .await?;
+        }
+        if let Some(error) = error {
+            sqlx::query("UPDATE vtt_reports SET error = ?1 WHERE id = ?2")
+                .bind(error)
+                .bind(id)
+                .execute(&self.pool)
+                .await?;
+        }
+
+        Ok(())
+    }
+
+    pub async fn delete_vtt_report(&self, id: &str) -> Result<(), sqlx::Error> {
+        sqlx::query("DELETE FROM vtt_reports WHERE id = ?1")
+            .bind(id)
+            .execute(&self.pool)
+            .await?;
         Ok(())
     }
 }

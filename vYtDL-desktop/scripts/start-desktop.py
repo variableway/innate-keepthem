@@ -65,17 +65,11 @@ def main() -> int:
         print("[INFO] Please install pnpm: https://pnpm.io/installation")
         return 1
 
-    # Check for Rust (required by Tauri)
-    has_rust = check_command(["rustc", "--version"])
-    if not has_rust:
-        print("[WARN] Rust does not appear to be installed.")
-        print("[INFO] Tauri requires Rust. Install it from: https://rustup.rs/")
-        # Continue anyway — user might have it in a non-standard location
-
     print(f"[INFO] Project directory: {project_dir}")
-    print("[INFO] Starting vYtDL Desktop in development mode...")
+    print("[INFO] Delegating to build-desktop.py dev ...")
 
-    return run_command(["pnpm", "tauri:dev"], cwd=project_dir)
+    build_script = project_dir / "scripts" / "build-desktop.py"
+    return run_command([sys.executable, str(build_script), "dev"], cwd=project_dir)
 
 
 if __name__ == "__main__":

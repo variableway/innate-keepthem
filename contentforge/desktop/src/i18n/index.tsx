@@ -1,0 +1,89 @@
+"use client";
+
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+
+import en from "./locales/en.json";
+import zh from "./locales/zh.json";
+
+export type Locale = "en" | "zh";
+
+const translations: Record<Locale, Record<string, unknown>> = {
+  en,
+  zh,
+};
+
+const STORAGE_KEY = "contentforge-language";
+const DEFAULT_LOCALE: Locale = "zh";
+
+function getNestedValue(obj: Record<string, unknown>, path: string): string | undefined {
+  if (!path || typeof path !== "string") return undefined;
+  const keys = path.split(".");
+  let value: unknown = obj;
+  for (const key of keys) {
+    if (value && typeof value === "object" && key in value) {
+      value = (value as Record<string, unknown>)[key];
+    } else {
+      return undefined;
+    }
+  }
+  return typeof value === "string" ? value : undefined;
+}
+
+interface I18nContextValue {
+  locale: Locale;
+  setLocale: (locale: Locale) => void;
+  t: (key: string, vars?: Record<string, string | number>) => string;
+}
+
+const I18nContext = createContext<I18nContextValue | null>(null);
+
+export function I18nProvider({ children }: { children: React.ReactNode }) {
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(STORAGE_KEY) as Locale | null;
+      if (saved && saved in translations) {
+        return saved;
+      }
+    }
+    return DEFAULT_LOCALE;
+  });
+
+  const setLocale = useCallback((newLocale: Locale) => {
+    setLocaleState(newLocale);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY, newLocale);
+      document.documentElement.lang = newLocale;
+    }
+  }, []);
+
+  const t = useCallback(
+    (key: string, vars?: Record<string, string | number>): string => {
+      if (!key || typeof key !== "string") return String(key ?? "");
+      const messages = translations[locale] as Record<string, unknown>;
+      let value = getNestedValue(messages, key);
+      if (value && vars) {
+        value = value.replace(/\{\{(\w+)\}\}/g, (_, k) => String(vars[k] ?? `{{${k}}}`));
+      }
+      return value ?? key;
+    },
+    [locale]
+  );
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
+
+  return (
+    <I18nContext.Provider value={{ locale, setLocale, t }}>
+      {children}
+    </I18nContext.Provider>
+  );
+}
+
+export function useTranslation() {
+  const context = useContext(I18nContext);
+  if (!context) {
+    throw new Error("useTranslation must be used within an I18nProvider");
+  }
+  return context;
+}

@@ -27,6 +27,59 @@
     "untitled": "Untitled",
     "unknown": "Unknown"
   },
+  "nav": {
+    "modules": {
+      "video": "Video",
+      "workspace": "AI Workspace",
+      "settings": "Settings"
+    },
+    "video": {
+      "subtitle": "Download, library, and analysis",
+      "download": "Download",
+      "library": "Library",
+      "analyze": "Analyze"
+    },
+    "settings": {
+      "subtitle": "App preferences",
+      "download": "Download",
+      "ai": "AI",
+      "agentCli": "Agent CLI"
+    },
+    "workspace": {
+      "subtitle": "Chat with your media library",
+      "chat": "Chat"
+    }
+  },
+  "workspace": {
+    "chatTitle": "AI Workspace",
+    "chatSubtitle": "Ask questions about your videos, subtitles, and transcript reports.",
+    "contextTitle": "Context",
+    "contextHint": "Select assets to include in the conversation.",
+    "searchAssets": "Search assets…",
+    "selectedCount": "{{count}} selected",
+    "noAssets": "No media assets yet. Download videos or run VTT analysis first.",
+    "groupReports": "Transcript Reports",
+    "groupVideos": "Videos",
+    "groupSubtitles": "Subtitles",
+    "hasTranscript": "transcript",
+    "assetType": {
+      "video": "Video",
+      "subtitle": "Subtitle",
+      "vtt_report": "Report"
+    },
+    "agentTitle": "Agent",
+    "agentProvider": "Provider",
+    "agentMock": "Mock (dev)",
+    "agentKimi": "Kimi CLI",
+    "mockBadge": "Placeholder responses",
+    "kimiHint": "Uses Kimi Code CLI with project skills from .agents/skills/",
+    "quickActions": "Quick Actions",
+    "actionSummarize": "Summarize selected",
+    "newSession": "New session",
+    "emptyTitle": "Start a conversation",
+    "emptyHint": "Select transcript reports or videos on the left, then ask a question.",
+    "inputPlaceholder": "Ask about your videos…"
+  },
   "home": {
     "title": "Download",
     "subtitle": "Download videos from YouTube, Bilibili, XHS and more",
@@ -149,7 +202,32 @@
     "language": "Language",
     "languageEn": "English",
     "languageZh": "中文",
-    "languageJa": "日本語"
+    "languageJa": "日本語",
+    "agentCliTitle": "AI Agent CLI",
+    "agentCliDescription": "Configure local AI agent CLI tools that load project skills from .agents/skills/",
+    "agentCliDetect": "Detect",
+    "agentCliDetectFailed": "Failed to detect agent CLI tools",
+    "agentCliKimiLabel": "Kimi CLI Binary",
+    "agentCliKimiPlaceholder": "Auto-detect from PATH (kimi, kimi-cli)",
+    "agentCliKimiHint": "Kimi Code CLI loads .agents/skills/ automatically when working in this project",
+    "agentCliOtherLabel": "Other Agent CLI",
+    "agentCliOtherPlaceholder": "Coming soon",
+    "agentCliOtherHint": "Reserved for additional agent CLI tools (Cursor CLI, Claude Code, etc.)",
+    "agentCliStatusFound": "Detected",
+    "agentCliStatusNotFound": "Not found",
+    "agentCliVersion": "Version",
+    "agentCliConfigTitle": "Configuration Status",
+    "agentCliConfigDir": "Config directory",
+    "agentCliDefaultModel": "Default model",
+    "agentCliTokenExpires": "Token expires",
+    "agentCliNeedsLoginHint": "Run `kimi login` in terminal to authenticate.",
+    "agentCliConfigStatus": {
+      "ready": "Ready",
+      "needs_login": "Login required",
+      "token_expired": "Token expired",
+      "config_missing": "Config missing",
+      "not_installed": "Not installed"
+    }
   },
   "player": {
     "infoTab": "Info",
@@ -179,7 +257,9 @@
     "appName": "vYtDL",
     "appSubtitle": "Desktop",
     "navigation": "Navigation",
-    "platform": "Platform"
+    "modules": "Modules",
+    "platform": "Platform",
+    "toggleHint": "Collapse sidebar (⌘B)"
   },
   "metadata": {
     "title": "vYtDL Desktop",

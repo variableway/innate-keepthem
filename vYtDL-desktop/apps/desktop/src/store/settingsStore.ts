@@ -26,6 +26,8 @@ const defaultSettings: Settings = {
   ai_provider: null,
   ai_api_key: null,
   ai_model: null,
+  agent_cli_kimi_bin: null,
+  agent_cli_other_bin: null,
 };
 
 export const useSettingsStore = create<SettingsState>()(

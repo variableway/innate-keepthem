@@ -9,6 +9,8 @@ import { Label } from "@vytdl/ui";
 import { Alert, AlertDescription } from "@vytdl/ui";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useTranslation, type Locale } from "@/i18n";
+import { MainContent } from "@/components/layout/main-content";
+import { AgentCliSettings } from "@/components/settings/agent-cli-settings";
 import type { Settings } from "@/types";
 
 const QUALITY_OPTIONS = [
@@ -42,6 +44,15 @@ export default function SettingsPage() {
   useEffect(() => {
     fetchSettings();
   }, [fetchSettings]);
+
+  useEffect(() => {
+    if (!localSettings || typeof window === "undefined") return;
+    const hash = window.location.hash.replace("#", "");
+    if (!hash) return;
+    requestAnimationFrame(() => {
+      document.getElementById(`section-${hash}`)?.scrollIntoView({ behavior: "smooth" });
+    });
+  }, [localSettings]);
 
   useEffect(() => {
     if (settings) {
@@ -78,14 +89,14 @@ export default function SettingsPage() {
 
   if (!localSettings) {
     return (
-      <div className="p-6">
+      <MainContent width="wide">
         <p className="text-muted-foreground">{t("settings.loading")}</p>
-      </div>
+      </MainContent>
     );
   }
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <MainContent width="wide">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">{t("settings.title")}</h1>
         <p className="text-muted-foreground">
@@ -94,7 +105,7 @@ export default function SettingsPage() {
       </div>
 
       <div className="space-y-6">
-        <Card>
+        <Card id="section-download" className="scroll-mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Wrench className="h-5 w-5" />
@@ -156,7 +167,7 @@ export default function SettingsPage() {
               </select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="default-quality">{t("settings.defaultQuality")}</Label>
                 <select
@@ -210,7 +221,7 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card id="section-ai" className="scroll-mt-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Key className="h-5 w-5" />
@@ -266,6 +277,8 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
+        <AgentCliSettings settings={localSettings} onChange={updateField} />
+
         {saveStatus === "success" && (
           <Alert className="bg-green-500/10 text-green-600 border-green-500/20">
             <AlertDescription>{t("settings.saveSuccess")}</AlertDescription>
@@ -292,7 +305,7 @@ export default function SettingsPage() {
             )}
           </Button>
         </div>
-      </div>
-    </div>
+        </div>
+    </MainContent>
   );
 }

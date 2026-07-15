@@ -15,6 +15,7 @@ import {
   VttReport,
 } from "@/lib/api-client";
 import { useTranslation } from "@/i18n";
+import { MainContent } from "@/components/layout/main-content";
 
 function formatDuration(sec: number | null): string {
   if (!sec) return "--:--";
@@ -84,7 +85,7 @@ export default function AnalyzePage() {
   }
 
   return (
-    <div className="p-6 w-full min-w-[640px] max-w-4xl mx-auto space-y-6">
+    <MainContent width="wide" className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <FileText className="h-8 w-8" />
@@ -187,6 +188,6 @@ export default function AnalyzePage() {
           </div>
         )}
       </div>
-    </div>
+    </MainContent>
   );
 }

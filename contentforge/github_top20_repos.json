@@ -1,0 +1,162 @@
+[
+  {
+    "full_name": "enescingoz/awesome-n8n-templates",
+    "description": "280+ free n8n automation templates — ready-to-use workflows for Gmail, Telegram, Slack, Discord, WhatsApp, Google Drive, Notion, OpenAI, and more. AI agents, RAG   chatbots, email automation, social media, DevOps, and document processing. The largest open-source n8n template collection.",
+    "stars": 23799,
+    "language": "Unknown",
+    "url": "https://github.com/enescingoz/awesome-n8n-templates",
+    "updated_at": "2026-07-11T02:02:23Z"
+  },
+  {
+    "full_name": "HBAI-Ltd/Toonflow-app",
+    "description": "Toonflow 是开源一站式 AI 短剧创作工具，将小说、剧本快速转化为动画短剧。集成 AI 编剧、智能分镜、角色与视频生成，跨平台桌面端轻量部署，助力创作者低成本批量产出视觉内容。Toonflow is an open-source AI tool that turns stories and scripts into animated short dramas. Features AI scriptwriting, storyboarding, character and video generation. A cross-platform desktop app for efficient content creation.",
+    "stars": 11331,
+    "language": "TypeScript",
+    "url": "https://github.com/HBAI-Ltd/Toonflow-app",
+    "updated_at": "2026-07-11T01:57:52Z"
+  },
+  {
+    "full_name": "ericosiu/ai-marketing-skills",
+    "description": "Open-source AI marketing skills — growth experiments, sales pipeline, content ops, outbound, SEO, and finance automation",
+    "stars": 2822,
+    "language": "Python",
+    "url": "https://github.com/ericosiu/ai-marketing-skills",
+    "updated_at": "2026-07-10T12:33:06Z"
+  },
+  {
+    "full_name": "BetaStreetOmnis/xhs_ai_publisher",
+    "description": "AI-powered Xiaohongshu/Rednote content creation and publishing tool with PyQt desktop UI, FastAPI service, login-state reuse, preview publish, and automated browser workflows.",
+    "stars": 2016,
+    "language": "Python",
+    "url": "https://github.com/BetaStreetOmnis/xhs_ai_publisher",
+    "updated_at": "2026-07-10T08:19:27Z"
+  },
+  {
+    "full_name": "apify/apify-mcp-server",
+    "description": "The Apify MCP server enables your AI agents to extract data from social media, search engines, maps, e-commerce sites, or any other website using thousands of ready-made scrapers, crawlers, and automation tools available on the Apify Store.",
+    "stars": 1800,
+    "language": "TypeScript",
+    "url": "https://github.com/apify/apify-mcp-server",
+    "updated_at": "2026-07-10T22:51:42Z"
+  },
+  {
+    "full_name": "LocoreMind/locoagent",
+    "description": "AI-powered social media agent with real browser automation",
+    "stars": 1027,
+    "language": "TypeScript",
+    "url": "https://github.com/LocoreMind/locoagent",
+    "updated_at": "2026-07-07T06:58:04Z"
+  },
+  {
+    "full_name": "itbrowser-net/undetectable-fingerprint-browser",
+    "description": "Free open-source Multilogin/Incogniton/Kameleo alternative for fingerprint spoofing (Canvas/WebGL/User-Agent). Perfect for Selenium/Playwright/Puppeteer automation, web scraping, social media bots, ads verification, and multi-accounting based on chromium. Avoid bans, bypass anti-bot systems, and prevent tracking with customizable stealth browsing",
+    "stars": 813,
+    "language": "Unknown",
+    "url": "https://github.com/itbrowser-net/undetectable-fingerprint-browser",
+    "updated_at": "2026-07-10T16:13:03Z"
+  },
+  {
+    "full_name": "BotLibre/BotLibre",
+    "description": "An open platform for artificial intelligence, chat bots, virtual agents, social media automation, and live chat automation.",
+    "stars": 633,
+    "language": "Java",
+    "url": "https://github.com/BotLibre/BotLibre",
+    "updated_at": "2026-07-09T18:33:52Z"
+  },
+  {
+    "full_name": "jihe520/social-push",
+    "description": "🤖 AI social-media automation skill | Self-evolution workflows | AI 社交媒体自动化 skill | 自我进化工作流",
+    "stars": 487,
+    "language": "Shell",
+    "url": "https://github.com/jihe520/social-push",
+    "updated_at": "2026-07-10T09:46:53Z"
+  },
+  {
+    "full_name": "ChaitanyaEswarRajeshJakki/gemini-youtube-automation",
+    "description": "A fully autonomous AI Agent/Python pipeline that utilizes Large Language Models (LLMs) like Gemini to generate content, produce videos, and automatically upload educational videos to YouTube.",
+    "stars": 299,
+    "language": "Python",
+    "url": "https://github.com/ChaitanyaEswarRajeshJakki/gemini-youtube-automation",
+    "updated_at": "2026-07-10T10:29:52Z"
+  },
+  {
+    "full_name": "microsoft/content-generation-solution-accelerator",
+    "description": "Accelerate marketing content creation with an AI-powered multi-agent system using Microsoft Foundry.",
+    "stars": 241,
+    "language": "Python",
+    "url": "https://github.com/microsoft/content-generation-solution-accelerator",
+    "updated_at": "2026-07-07T08:48:07Z"
+  },
+  {
+    "full_name": "OrangeViolin/content-pipeline",
+    "description": "AI-powered content production pipeline for creators. One prompt → multi-platform publishing. Claude Code Skill.",
+    "stars": 200,
+    "language": "TypeScript",
+    "url": "https://github.com/OrangeViolin/content-pipeline",
+    "updated_at": "2026-07-07T12:46:33Z"
+  },
+  {
+    "full_name": "AnkitNayak-dev/CrawlAI-RAG",
+    "description": "CrawlAI RAG is an AI-powered website intelligence platform that allows users to crawl entire websites, index their content, and ask natural-language questions using Retrieval-Augmented Generation (RAG).  It transforms static websites into queryable knowledge bases.",
+    "stars": 149,
+    "language": "Python",
+    "url": "https://github.com/AnkitNayak-dev/CrawlAI-RAG",
+    "updated_at": "2026-07-07T21:48:06Z"
+  },
+  {
+    "full_name": "NVIDIA-Omniverse/content-agents",
+    "description": "AI-powered agents for automating 3D content workflows using Vision-Language Models (VLMs). Content Agents analyze 3D assets and automate material assignment, physics property classification, and texture generation for USD files.",
+    "stars": 145,
+    "language": "Python",
+    "url": "https://github.com/NVIDIA-Omniverse/content-agents",
+    "updated_at": "2026-07-10T07:46:27Z"
+  },
+  {
+    "full_name": "degausai/wonda",
+    "description": "Wonda CLI — AI-powered content creation from your terminal",
+    "stars": 135,
+    "language": "TypeScript",
+    "url": "https://github.com/degausai/wonda",
+    "updated_at": "2026-07-10T17:14:10Z"
+  },
+  {
+    "full_name": "cameronking4/ReplyGuy-clone",
+    "description": "Ship your own replyguy.com. Gain organic sales by replying to posts on social media scraped using keywords on X, Linkedin & Reddit. Use the AI agent to craft UGC buzz about your product / startup / channel etc. on a daily schedule.",
+    "stars": 113,
+    "language": "TypeScript",
+    "url": "https://github.com/cameronking4/ReplyGuy-clone",
+    "updated_at": "2026-07-10T13:57:26Z"
+  },
+  {
+    "full_name": "HiFoxAI/HiFox",
+    "description": "All-in-one AI platform for Content Creation, Copywriting, Q&A, Image/Video/Voice Generation, Intelligent Agents, Automated Workflows, and Custom AI Apps.",
+    "stars": 106,
+    "language": "Unknown",
+    "url": "https://github.com/HiFoxAI/HiFox",
+    "updated_at": "2026-06-28T22:03:52Z"
+  },
+  {
+    "full_name": "Genaker/AgentoAI",
+    "description": "AgentoAI: Magento MCP AI Agent and AI features for Magento: - product content creation, report generation, grid filters, product promotion image creation, product video creation. AI analytics.",
+    "stars": 90,
+    "language": "PHP",
+    "url": "https://github.com/Genaker/AgentoAI",
+    "updated_at": "2026-06-16T05:49:25Z"
+  },
+  {
+    "full_name": "toki-plus/ai-mixed-cut",
+    "description": "颠覆性AI内容再创作引擎，通过“解构-重构”爆款视频模式，全自动生成高度原创短视频。AIGC, Content Creation, Video Generation, Automation, LLM, Python, FFmpeg.",
+    "stars": 82,
+    "language": "Unknown",
+    "url": "https://github.com/toki-plus/ai-mixed-cut",
+    "updated_at": "2026-07-08T19:11:56Z"
+  },
+  {
+    "full_name": "vicperdana/SemantiClip",
+    "description": "SemantiClip is an intelligent video processing application that transforms video content into rich, structured written formats. Built with Microsoft Agent Framework, SemantiClip automates the transcription, segmentation, and content generation process - demonstrating agents orchestration with the use of SLM & LLM.",
+    "stars": 80,
+    "language": "C#",
+    "url": "https://github.com/vicperdana/SemantiClip",
+    "updated_at": "2026-05-17T12:16:54Z"
+  }
+]

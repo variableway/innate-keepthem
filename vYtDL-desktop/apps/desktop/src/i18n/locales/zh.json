@@ -27,6 +27,59 @@
     "untitled": "未命名",
     "unknown": "未知"
   },
+  "nav": {
+    "modules": {
+      "video": "视频",
+      "workspace": "AI 工作区",
+      "settings": "设置"
+    },
+    "video": {
+      "subtitle": "下载、媒体库与分析",
+      "download": "下载",
+      "library": "媒体库",
+      "analyze": "分析"
+    },
+    "settings": {
+      "subtitle": "应用偏好设置",
+      "download": "下载",
+      "ai": "AI",
+      "agentCli": "Agent CLI"
+    },
+    "workspace": {
+      "subtitle": "与媒体库对话",
+      "chat": "对话"
+    }
+  },
+  "workspace": {
+    "chatTitle": "AI 工作区",
+    "chatSubtitle": "对视频、字幕和转录报告进行问答与分析。",
+    "contextTitle": "上下文",
+    "contextHint": "勾选要纳入对话的媒体资产。",
+    "searchAssets": "搜索资产…",
+    "selectedCount": "已选 {{count}} 项",
+    "noAssets": "暂无媒体资产。请先下载视频或运行 VTT 分析。",
+    "groupReports": "转录报告",
+    "groupVideos": "视频",
+    "groupSubtitles": "字幕",
+    "hasTranscript": "含文稿",
+    "assetType": {
+      "video": "视频",
+      "subtitle": "字幕",
+      "vtt_report": "报告"
+    },
+    "agentTitle": "Agent",
+    "agentProvider": "提供方",
+    "agentMock": "Mock（开发）",
+    "agentKimi": "Kimi CLI",
+    "mockBadge": "占位回复",
+    "kimiHint": "使用 Kimi Code CLI，自动加载项目 .agents/skills/",
+    "quickActions": "快捷操作",
+    "actionSummarize": "总结所选内容",
+    "newSession": "新会话",
+    "emptyTitle": "开始对话",
+    "emptyHint": "在左侧选择转录报告或视频，然后输入问题。",
+    "inputPlaceholder": "询问关于视频的问题…"
+  },
   "home": {
     "title": "下载",
     "subtitle": "从 YouTube、Bilibili、小红书等平台下载视频",
@@ -149,7 +202,32 @@
     "language": "语言",
     "languageEn": "English",
     "languageZh": "中文",
-    "languageJa": "日本語"
+    "languageJa": "日本語",
+    "agentCliTitle": "AI Agent CLI",
+    "agentCliDescription": "配置本地 AI Agent CLI 工具，用于加载项目 .agents/skills/ 中的 Skills",
+    "agentCliDetect": "识别",
+    "agentCliDetectFailed": "识别 Agent CLI 失败",
+    "agentCliKimiLabel": "Kimi CLI 可执行文件",
+    "agentCliKimiPlaceholder": "从 PATH 自动识别 (kimi, kimi-cli)",
+    "agentCliKimiHint": "Kimi Code CLI 在本项目中会自动加载 .agents/skills/",
+    "agentCliOtherLabel": "其他 Agent CLI",
+    "agentCliOtherPlaceholder": "即将支持",
+    "agentCliOtherHint": "预留给其他 Agent CLI（Cursor CLI、Claude Code 等）",
+    "agentCliStatusFound": "已识别",
+    "agentCliStatusNotFound": "未找到",
+    "agentCliVersion": "版本",
+    "agentCliConfigTitle": "配置状态",
+    "agentCliConfigDir": "配置目录",
+    "agentCliDefaultModel": "默认模型",
+    "agentCliTokenExpires": "令牌过期时间",
+    "agentCliNeedsLoginHint": "请在终端运行 `kimi login` 完成登录。",
+    "agentCliConfigStatus": {
+      "ready": "就绪",
+      "needs_login": "需要登录",
+      "token_expired": "令牌已过期",
+      "config_missing": "配置缺失",
+      "not_installed": "未安装"
+    }
   },
   "player": {
     "infoTab": "信息",
@@ -179,7 +257,9 @@
     "appName": "vYtDL",
     "appSubtitle": "桌面版",
     "navigation": "导航",
-    "platform": "平台"
+    "modules": "模块",
+    "platform": "平台",
+    "toggleHint": "折叠侧边栏 (⌘B)"
   },
   "metadata": {
     "title": "vYtDL 桌面版",

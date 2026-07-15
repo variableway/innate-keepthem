@@ -63,17 +63,29 @@ Migrations are handled via `ALTER TABLE ... ADD COLUMN` in `database.rs::init()`
 See `references/architecture.md` for full dependency map and data flow.
 See `references/components.md` for per-component development patterns.
 
+## Related Skills
+
+| Task | Skill |
+|------|-------|
+| VTT subtitle AI analysis | `vtt-analyze` |
+| ContentForge ingest/process/publish | `contentforge` |
+| ContentForge pipeline presets | `contentforge-pipeline` |
+
+Full index: [`_index.md`](../_index.md)
+
 ## Build Commands
 
 ```bash
 # CLI
 cd vYtDL && go build -o vYtDL .
 
-# Desktop dev
-cd vYtDL-desktop/apps/desktop && pnpm tauri dev
+# Desktop (Task — recommended)
+task desktop:check
+task desktop:dev
+task desktop:build
 
-# Desktop build
-cd vYtDL-desktop/apps/desktop && pnpm tauri build
+# Desktop (Python script — equivalent)
+cd vYtDL-desktop && python3 scripts/build-desktop.py dev
 
 # Web (Docker)
 docker-compose up -d

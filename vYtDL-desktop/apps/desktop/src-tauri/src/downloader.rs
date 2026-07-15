@@ -150,6 +150,11 @@ impl Downloader {
         self
     }
 
+    pub async fn run_yt_dlp(&self, args: Vec<String>, timeout_secs: u64) -> Result<std::process::Output, String> {
+        let yt_dlp_path = self.find_yt_dlp().await?;
+        run_yt_dlp_blocking(yt_dlp_path, args, timeout_secs).await
+    }
+
     pub async fn download<F, G>(&self, mut on_progress: F, mut on_log: G, cancel_rx: &mut tokio::sync::mpsc::Receiver<()>) -> Result<DownloadOutput, String>
     where
         F: FnMut(DownloadProgress),

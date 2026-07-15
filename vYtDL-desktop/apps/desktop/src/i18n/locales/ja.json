@@ -27,6 +27,59 @@
     "untitled": "無題",
     "unknown": "不明"
   },
+  "nav": {
+    "modules": {
+      "video": "動画",
+      "workspace": "AIワークスペース",
+      "settings": "設定"
+    },
+    "video": {
+      "subtitle": "ダウンロード・ライブラリ・分析",
+      "download": "ダウンロード",
+      "library": "ライブラリ",
+      "analyze": "分析"
+    },
+    "settings": {
+      "subtitle": "アプリ設定",
+      "download": "ダウンロード",
+      "ai": "AI",
+      "agentCli": "Agent CLI"
+    },
+    "workspace": {
+      "subtitle": "メディアライブラリと対話",
+      "chat": "チャット"
+    }
+  },
+  "workspace": {
+    "chatTitle": "AIワークスペース",
+    "chatSubtitle": "動画・字幕・文字起こしレポートについて質問できます。",
+    "contextTitle": "コンテキスト",
+    "contextHint": "会話に含めるアセットを選択してください。",
+    "searchAssets": "アセットを検索…",
+    "selectedCount": "{{count}} 件選択中",
+    "noAssets": "メディアアセットがありません。動画をダウンロードするか VTT 分析を実行してください。",
+    "groupReports": "文字起こしレポート",
+    "groupVideos": "動画",
+    "groupSubtitles": "字幕",
+    "hasTranscript": "文稿あり",
+    "assetType": {
+      "video": "動画",
+      "subtitle": "字幕",
+      "vtt_report": "レポート"
+    },
+    "agentTitle": "エージェント",
+    "agentProvider": "プロバイダー",
+    "agentMock": "Mock（開発）",
+    "agentKimi": "Kimi CLI",
+    "mockBadge": "プレースホルダー応答",
+    "kimiHint": "Kimi Code CLI を使用し、.agents/skills/ のスキルを読み込みます",
+    "quickActions": "クイック操作",
+    "actionSummarize": "選択を要約",
+    "newSession": "新しいセッション",
+    "emptyTitle": "会話を始める",
+    "emptyHint": "左側でレポートや動画を選択し、質問を入力してください。",
+    "inputPlaceholder": "動画について質問…"
+  },
   "home": {
     "title": "ダウンロード",
     "subtitle": "YouTube、Bilibili、XHS などから動画をダウンロード",
@@ -149,7 +202,32 @@
     "language": "言語",
     "languageEn": "English",
     "languageZh": "中文",
-    "languageJa": "日本語"
+    "languageJa": "日本語",
+    "agentCliTitle": "AI Agent CLI",
+    "agentCliDescription": "プロジェクトの .agents/skills/ を読み込むローカル AI Agent CLI を設定",
+    "agentCliDetect": "検出",
+    "agentCliDetectFailed": "Agent CLI の検出に失敗しました",
+    "agentCliKimiLabel": "Kimi CLI バイナリ",
+    "agentCliKimiPlaceholder": "PATH から自動検出 (kimi, kimi-cli)",
+    "agentCliKimiHint": "Kimi Code CLI は本プロジェクトで .agents/skills/ を自動読み込みします",
+    "agentCliOtherLabel": "その他の Agent CLI",
+    "agentCliOtherPlaceholder": "近日対応",
+    "agentCliOtherHint": "その他の Agent CLI（Cursor CLI、Claude Code など）用に予約",
+    "agentCliStatusFound": "検出済み",
+    "agentCliStatusNotFound": "未検出",
+    "agentCliVersion": "バージョン",
+    "agentCliConfigTitle": "設定ステータス",
+    "agentCliConfigDir": "設定ディレクトリ",
+    "agentCliDefaultModel": "デフォルトモデル",
+    "agentCliTokenExpires": "トークン有効期限",
+    "agentCliNeedsLoginHint": "ターミナルで `kimi login` を実行して認証してください。",
+    "agentCliConfigStatus": {
+      "ready": "準備完了",
+      "needs_login": "ログインが必要",
+      "token_expired": "トークン期限切れ",
+      "config_missing": "設定がありません",
+      "not_installed": "未インストール"
+    }
   },
   "player": {
     "infoTab": "情報",
@@ -179,7 +257,9 @@
     "appName": "vYtDL",
     "appSubtitle": "デスクトップ",
     "navigation": "ナビゲーション",
-    "platform": "プラットフォーム"
+    "modules": "モジュール",
+    "platform": "プラットフォーム",
+    "toggleHint": "サイドバーを折りたたむ (⌘B)"
   },
   "metadata": {
     "title": "vYtDL デスクトップ",

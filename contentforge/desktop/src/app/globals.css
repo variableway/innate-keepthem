@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: hsl(240 10% 3.9%);
+  --color-foreground: hsl(0 0% 98%);
+  --color-card: hsl(240 10% 6%);
+  --color-card-foreground: hsl(0 0% 98%);
+  --color-popover: hsl(240 10% 6%);
+  --color-popover-foreground: hsl(0 0% 98%);
+  --color-primary: hsl(217 91% 60%);
+  --color-primary-foreground: hsl(0 0% 100%);
+  --color-secondary: hsl(240 4% 16%);
+  --color-secondary-foreground: hsl(0 0% 98%);
+  --color-muted: hsl(240 4% 16%);
+  --color-muted-foreground: hsl(240 5% 65%);
+  --color-accent: hsl(240 4% 16%);
+  --color-accent-foreground: hsl(0 0% 98%);
+  --color-destructive: hsl(0 63% 31%);
+  --color-destructive-foreground: hsl(0 0% 98%);
+  --color-border: hsl(240 4% 16%);
+  --color-input: hsl(240 4% 16%);
+  --color-ring: hsl(217 91% 60%);
+  --radius: 0.625rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(240 4% 25%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(240 4% 35%);
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}

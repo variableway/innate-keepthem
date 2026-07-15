@@ -78,6 +78,47 @@ export interface Settings {
   ai_provider: string | null;
   ai_api_key: string | null;
   ai_model: string | null;
+  agent_cli_kimi_bin: string | null;
+  agent_cli_other_bin: string | null;
+}
+
+export interface AgentCliDetection {
+  id: string;
+  label: string;
+  found: boolean;
+  path: string | null;
+  version: string | null;
+  source: string;
+  config?: KimiConfigStatus | null;
+}
+
+export interface ConfigCheck {
+  id: string;
+  label: string;
+  ok: boolean;
+  detail: string | null;
+}
+
+export interface KimiConfigStatus {
+  status: "ready" | "needs_login" | "token_expired" | "config_missing" | "not_installed" | string;
+  ready: boolean;
+  config_dir: string | null;
+  config_toml_path: string | null;
+  tui_toml_path: string | null;
+  credentials_path: string | null;
+  default_model: string | null;
+  authenticated: boolean;
+  token_expired: boolean;
+  token_expires_at: string | null;
+  skills_count: number;
+  project_skills_exists: boolean;
+  project_skills_path: string | null;
+  checks: ConfigCheck[];
+}
+
+export interface DetectAgentCliResult {
+  kimi: AgentCliDetection;
+  other: AgentCliDetection;
 }
 
 export interface ApiResponse<T> {
@@ -113,4 +154,45 @@ export interface ExtractAudioRequest {
 
 export interface ExtractAudioResult {
   audio_path: string;
+}
+
+export type MediaAssetType = "video" | "subtitle" | "vtt_report";
+
+export interface MediaAsset {
+  id: string;
+  type: MediaAssetType;
+  title: string;
+  source_url?: string | null;
+  file_path?: string | null;
+  transcript?: string | null;
+  metadata: {
+    duration_sec?: number | null;
+    language?: string | null;
+    cue_count?: number;
+    download_id?: string;
+    report_id?: string;
+    status?: string;
+  };
+}
+
+export type AgentId = "kimi" | "mock";
+
+export type ChatRole = "user" | "assistant" | "system";
+
+export interface ChatMessage {
+  id: string;
+  role: ChatRole;
+  content: string;
+  created_at: string;
+  asset_ids?: string[];
+}
+
+export interface AssetContextPayload {
+  id: string;
+  title: string;
+  type: MediaAssetType;
+  source_url?: string | null;
+  transcript_excerpt?: string | null;
+  language?: string | null;
+  duration_sec?: number | null;
 }

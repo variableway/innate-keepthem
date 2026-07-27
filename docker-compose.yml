@@ -3,7 +3,7 @@ version: "3.8"
 services:
   vytdl-web:
     build:
-      context: ./vYtDL-desktop
+      context: .
       dockerfile: Dockerfile
     container_name: vytdl-web
     ports:

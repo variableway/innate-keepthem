@@ -1,9 +1,9 @@
 version: "3"
 
 vars:
-  CLI_DIR: ./vYtDL
-  DESKTOP_DIR: ./vYtDL-desktop
-  CONTENTFORGE_DIR: ./contentforge/cli
+  CLI_DIR: ./tools/vytdl-cli
+  DESKTOP_DIR: .
+  CONTENTFORGE_DIR: ./tools/contentforge-cli
   CLI_BIN: vYtDL
   CF_BIN: contentforge
   DIST_DIR: ./dist
@@ -119,7 +119,7 @@ tasks:
     desc: Load ContentForge environment (print instructions)
     cmds:
       - |
-        echo "Run: source contentforge/core/scripts/cf-env.sh"
+        echo "Run: source packages/contentforge-core/scripts/cf-env.sh"
 
   contentforge:build:
     desc: Build ContentForge Go CLI
@@ -134,7 +134,7 @@ tasks:
   contentforge:check:
     desc: Verify ContentForge Python modules import
     cmds:
-      - bash -c 'source contentforge/core/scripts/cf-env.sh && python3 -c "import contentforge.models; print(\"contentforge.models OK\")"'
+      - bash -c 'source packages/contentforge-core/scripts/cf-env.sh && python3 -c "import contentforge.models; print(\"contentforge.models OK\")"'
 
   contentforge:help:
     desc: Show ContentForge CLI help
@@ -180,8 +180,8 @@ tasks:
       - rm -rf {{.DIST_DIR}}
       - rm -f {{.CLI_DIR}}/{{.CLI_BIN}}
       - rm -f {{.CONTENTFORGE_DIR}}/{{.CF_BIN}}
-      - rm -rf {{.DESKTOP_DIR}}/apps/desktop/out
-      - rm -rf {{.DESKTOP_DIR}}/apps/desktop/src-tauri/target
+      - rm -rf {{.DESKTOP_DIR}}/apps/vytdl-desktop/out
+      - rm -rf {{.DESKTOP_DIR}}/apps/vytdl-desktop/src-tauri/target
       - echo "Cleaned."
 
   # ── Help ─────────────────────────────────────────────────
@@ -209,7 +209,7 @@ tasks:
         echo "  ContentForge:"
         echo "    task setup:macos"
         echo "    task contentforge:build"
-        echo "    source contentforge/core/scripts/cf-env.sh"
+        echo "    source packages/contentforge-core/scripts/cf-env.sh"
         echo ""
         echo "  Direct Python (still supported):"
         echo "    cd vYtDL-desktop && python3 scripts/build-desktop.py dev"

@@ -1,0 +1,81 @@
+pageType: cover
+background:
+  type: gradient
+  gradientType: linear
+  angle: 135
+  stops:
+    - {position: 0, color: "#0A0E1A"}
+    - {position: 0.5, color: "#0F1530"}
+    - {position: 1, color: "#141B2D"}
+elements:
+  - elementId: bg-glow
+    elementType: shape
+    shapeName: ellipse
+    bounds: [440, 120, 400, 400]
+    fill:
+      type: gradient
+      gradientType: radial
+      stops:
+        - {position: 0, color: "#4285F420"}
+        - {position: 1, color: "#4285F400"}
+  - elementId: logo-icon
+    elementType: icon
+    bounds: [616, 140, 48, 48]
+    iconName: "fab:google"
+    fill:
+      type: solid
+      color: "$primary"
+  - elementId: main-title
+    elementType: text
+    bounds: [140, 220, 1000, 80]
+    content:
+      style: "$heroTitle"
+      align: [center, middle]
+      wrap: false
+      text: |
+        <p><strong>Alphabet Q3 2025</strong></p>
+  - elementId: subtitle
+    elementType: text
+    bounds: [240, 310, 800, 40]
+    content:
+      style: "$subtitle"
+      align: [center, middle]
+      wrap: false
+      text: |
+        <p>Earnings Deep Dive</p>
+  - elementId: tagline
+    elementType: text
+    bounds: [190, 380, 900, 60]
+    content:
+      fontSize: 22
+      color: "$highlight"
+      fontFamily: "MiSans"
+      align: [center, middle]
+      lineHeight: 1.4
+      text: |
+        <p><em>The "Death Spiral" Narrative Is Officially Dead</em></p>
+  - elementId: divider
+    elementType: shape
+    shapeName: rect
+    bounds: [540, 470, 200, 2]
+    fill:
+      type: solid
+      color: "$border"
+  - elementId: badge-text
+    elementType: text
+    bounds: [340, 500, 600, 30]
+    content:
+      style: "$caption"
+      align: [center, middle]
+      wrap: false
+      text: |
+        <p>A Community-Powered Analysis  ·  Reddit  ·  Hacker News  ·  X</p>
+  - elementId: date-text
+    elementType: text
+    bounds: [440, 550, 400, 24]
+    content:
+      style: "$caption"
+      align: [center, middle]
+      wrap: false
+      text: |
+        <p>July 2026  ·  Based on Vizplainer Research</p>

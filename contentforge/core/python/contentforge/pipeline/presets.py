@@ -337,6 +337,15 @@ class PresetRegistry:
     """预设注册表（Go CLI 兼容）。"""
 
     def list_all(self) -> List[Dict]:
+        """返回所有预设列表（Go CLI 兼容格式）。"""
+        return [
+            {
+                "id": name,
+                "name": name,
+                "description": PRESETS[name].description,
+            }
+            for name in list_presets()
+        ]
         """返回所有预设列表。"""
         return list_presets()
 

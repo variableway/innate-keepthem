@@ -50,6 +50,33 @@ class IngestionHandler(StepHandler):
         return "ingest"
 
     def execute(self, step: PipelineStep, inputs: List[ContentUnit], context: Dict) -> List[ContentUnit]:
+        from contentforge.ingestion.agent_reach import AgentReachIngestor
+        
+        source_url = step.config.get("url", "")
+        platform = step.config.get("platform", "auto")
+        
+        ingestor = AgentReachIngestor()
+        
+        if platform == "twitter":
+            unit = ingestor.fetch_twitter(source_url)
+        elif platform == "youtube":
+            unit = ingestor.fetch_youtube(source_url)
+        elif platform == "rss":
+            units = ingestor.fetch_rss(source_url, limit=step.config.get("limit", 5))
+            return units
+        elif platform == "web":
+            unit = ingestor.fetch_web(source_url)
+        else:
+            unit = ingestor.fetch(source_url)
+        
+        return [unit]
+    """采集步骤处理器。"""
+
+    @property
+    def step_type(self) -> str:
+        return "ingest"
+
+    def execute(self, step: PipelineStep, inputs: List[ContentUnit], context: Dict) -> List[ContentUnit]:
         from contentforge.ingestion.agent_reach import AgentReachCollector
         
         source_url = step.config.get("url", "")

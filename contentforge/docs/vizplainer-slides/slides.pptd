@@ -1,0 +1,63 @@
+title: "Alphabet Q3 2025 Earnings Deep Dive"
+size: [1280, 720]
+theme:
+  colors:
+    primary: "#4285F4"
+    secondary: "#34A853"
+    accent: "#EA4335"
+    highlight: "#FBBC05"
+    background: "#0A0E1A"
+    surface: "#141B2D"
+    surfaceLight: "#1E2746"
+    text: "#E8ECF1"
+    textMuted: "#8B95A5"
+    border: "#2A3550"
+  textStyles:
+    heroTitle:
+      fontSize: 56
+      color: "$text"
+      fontFamily: "MiSans"
+      letterSpacing: -1
+    title:
+      fontSize: 40
+      color: "$text"
+      fontFamily: "MiSans"
+      letterSpacing: -0.5
+    subtitle:
+      fontSize: 24
+      color: "$textMuted"
+      fontFamily: "MiSans"
+      lineHeight: 1.4
+    body:
+      fontSize: 18
+      color: "$text"
+      fontFamily: "MiSans"
+      lineHeight: 1.6
+    caption:
+      fontSize: 14
+      color: "$textMuted"
+      fontFamily: "MiSans"
+      lineHeight: 1.4
+    dataNumber:
+      fontSize: 48
+      color: "$primary"
+      fontFamily: "MiSans"
+      letterSpacing: -1
+    label:
+      fontSize: 12
+      color: "$textMuted"
+      fontFamily: "MiSans"
+      letterSpacing: 1
+pages:
+  - pages/cover.page
+  - pages/toc.page
+  - pages/ch1.page
+  - pages/metrics.page
+  - pages/ch2.page
+  - pages/insight1.page
+  - pages/insight2.page
+  - pages/insight3.page
+  - pages/ch3.page
+  - pages/bullbear.page
+  - pages/takeaway.page
+  - pages/final.page

@@ -11,10 +11,10 @@
     "tauri:build": "pnpm --filter @vytdl/desktop tauri:build",
     "lint": "pnpm -r lint",
     "format": "pnpm -r format",
-    "desktop:check": "python3 scripts/build-desktop.py check",
-    "desktop:dev": "python3 scripts/build-desktop.py dev --skip-deps",
-    "desktop:build": "python3 scripts/build-desktop.py build",
-    "desktop:bundle": "python3 scripts/build-desktop.py bundle"
+    "desktop:check": "task check",
+    "desktop:dev": "task dev",
+    "desktop:build": "task build",
+    "desktop:bundle": "task bundle"
   },
   "devDependencies": {
     "typescript": "^5.6.0"

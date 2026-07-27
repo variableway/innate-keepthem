@@ -1,0 +1,164 @@
+version: "3"
+
+vars:
+  PROJECT_ROOT:
+    sh: pwd
+  DESKTOP_DIR: "{{.PROJECT_ROOT}}/apps/desktop"
+  TAURI_SRC_DIR: "{{.DESKTOP_DIR}}/src-tauri"
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  dev:
+    desc: Start desktop app in development mode
+    deps: [install]
+    cmds:
+      - pnpm tauri:dev
+    interactive: true
+
+  stop:
+    desc: Stop running desktop dev processes
+    cmds:
+      - |
+        stopped=0
+        # Kill Tauri dev (next-dev + cargo run)
+        for pattern in "next dev" "tauri" "vytdl-desktop"; do
+          pids=$(pgrep -f "$pattern" 2>/dev/null || true)
+          if [ -n "$pids" ]; then
+            echo "Stopping $pattern (PIDs: $pids)"
+            echo "$pids" | xargs kill 2>/dev/null || true
+            stopped=$((stopped + 1))
+          fi
+        done
+        if [ $stopped -eq 0 ]; then
+          echo "No running desktop processes found."
+        else
+          # Wait briefly for graceful shutdown
+          sleep 1
+          # Force kill any survivors
+          for pattern in "next dev" "tauri" "vytdl-desktop"; do
+            pids=$(pgrep -f "$pattern" 2>/dev/null || true)
+            if [ -n "$pids" ]; then
+              echo "$pids" | xargs kill -9 2>/dev/null || true
+            fi
+          done
+          echo "All desktop processes stopped."
+        fi
+    ignore_error: true
+
+  restart:
+    desc: Stop running app and restart in dev mode
+    cmds:
+      - task: stop
+      - task: dev
+
+  build:
+    desc: Build desktop app for production
+    deps: [install, download-ytdlp]
+    cmds:
+      - pnpm tauri:build
+
+  bundle:
+    desc: Build + show installer/package locations
+    deps: [build]
+    cmds:
+      - echo "Build artifacts:"
+      - find {{.TAURI_SRC_DIR}}/target/release/bundle -type f 2>/dev/null || echo "No bundle output found"
+
+  check:
+    desc: Check all required dependencies
+    cmds:
+      - |
+        echo "Dependency Check"
+        echo "================"
+        for cmd in pnpm node rustc cargo git; do
+          if command -v $cmd >/dev/null 2>&1; then
+            ver=$($cmd --version 2>/dev/null | head -1)
+            printf "%-12s OK    %s\n" "$cmd" "$ver"
+          else
+            printf "%-12s MISSING\n" "$cmd"
+          fi
+        done
+
+  install:
+    desc: Install Node dependencies via pnpm
+    cmds:
+      - pnpm install --silent
+    status:
+      - test -d node_modules/.pnpm
+
+  clean:
+    desc: Clean all build artifacts
+    cmds:
+      - rm -rf {{.DESKTOP_DIR}}/.next
+      - rm -rf {{.DESKTOP_DIR}}/out
+      - rm -rf {{.DESKTOP_DIR}}/node_modules/.cache
+      - rm -rf {{.TAURI_SRC_DIR}}/target
+      - rm -rf {{.PROJECT_ROOT}}/packages/ui/.turbo
+      - rm -rf {{.PROJECT_ROOT}}/packages/ui/.cache
+      - echo "Clean complete."
+
+  download-ytdlp:
+    desc: Download yt-dlp binaries for bundling
+    cmds:
+      - python3 scripts/download-yt-dlp-binaries.py
+    status:
+      - test -f {{.TAURI_SRC_DIR}}/resources/yt-dlp/.downloaded
+
+  schedule:
+    desc: Run scheduled download tasks from schedule.json
+    cmds:
+      - |
+        CONFIG="scripts/schedule.json"
+        if [ ! -f "$CONFIG" ]; then
+          echo "No schedule.json found. Create one with task schedule:init"
+          exit 1
+        fi
+        python3 -c "
+        import json, os, subprocess, sys
+        config = json.load(open('$CONFIG'))
+        tasks = [t for t in config.get('tasks', []) if t.get('enabled')]
+        if not tasks:
+            print('No enabled tasks.')
+            sys.exit(0)
+        yt_dlp = config.get('settings', {}).get('yt_dlp_path', 'yt-dlp')
+        for t in tasks:
+            print(f\"Running: {t['name']}\")
+            out = os.path.expanduser(t.get('output_dir', '~/Downloads/vYtDL/scheduled'))
+            os.makedirs(out, exist_ok=True)
+            q = t.get('quality', 'best')
+            fmt = t.get('format', 'mp4')
+            cmd = [yt_dlp, '--format', f'bestvideo[height<={q}]+bestaudio/best' if q != 'best' else 'best',
+                   '--merge-output-format', fmt, '--output', os.path.join(out, '%(title)s.%(ext)s'),
+                   '--write-subs', '--sub-langs', 'en,zh', t['url']]
+            r = subprocess.run(cmd)
+            print(f\"  {'OK' if r.returncode == 0 else 'FAILED'}\")
+        "
+
+  schedule:init:
+    desc: Create example schedule.json config
+    generates: [scripts/schedule.json]
+    cmds:
+      - |
+        cat > scripts/schedule.json << 'EOF'
+        {
+          "tasks": [
+            {
+              "name": "Example Playlist Backup",
+              "url": "https://www.youtube.com/playlist?list=...",
+              "quality": "1080",
+              "format": "mp4",
+              "output_dir": "~/Downloads/vYtDL/scheduled",
+              "enabled": false
+            }
+          ],
+          "settings": {
+            "yt_dlp_path": "yt-dlp",
+            "default_output_dir": "~/Downloads/vYtDL/scheduled"
+          }
+        }
+        EOF
+        echo "Created scripts/schedule.json — edit it and run: task schedule"

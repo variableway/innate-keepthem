@@ -15,7 +15,7 @@ import logging
 import re
 from typing import Dict, List, Optional
 
-from contentforge.models import ContentUnit, ContentStatus
+from contentforge.models import ContentUnit, ContentStatus, ContentType, SourceInfo
 from contentforge.processing.ai_engine import AIEngine, AIEngineError
 
 logger = logging.getLogger(__name__)
@@ -164,8 +164,8 @@ class XiaohongshuConverter:
         """转换纯文本。"""
         unit = ContentUnit(
             id="temp",
-            source=ContentUnit.__dataclass_fields__["source"].default_factory(),  # type: ignore
-            type=ContentUnit.__dataclass_fields__["type"].default,
+            source=SourceInfo(platform="text", url=""),
+            type=ContentType.ARTICLE,
             extracted_text=text,
         )
         return self.convert(unit, max_length=max_length, language=language, emoji_density=emoji_density)

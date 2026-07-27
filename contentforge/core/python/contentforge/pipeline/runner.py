@@ -82,6 +82,9 @@ class PipelineRunner:
         # 从预设加载 pipeline
         if pipeline_id is not None and pipeline is None:
             preset = get_preset(pipeline_id)
+            pipeline = preset.to_pipeline()
+        if pipeline_id is not None and pipeline is None:
+            preset = get_preset(pipeline_id)
             pipeline = preset
 
         if pipeline is None:

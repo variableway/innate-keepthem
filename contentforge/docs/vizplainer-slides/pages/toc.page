@@ -1,0 +1,162 @@
+pageType: table_of_contents
+background:
+  type: solid
+  color: "$background"
+elements:
+  - elementId: toc-title
+    elementType: text
+    bounds: [60, 50, 500, 50]
+    content:
+      style: "$title"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p><strong>Executive Overview</strong></p>
+  - elementId: toc-line
+    elementType: shape
+    shapeName: rect
+    bounds: [60, 110, 60, 4]
+    fill:
+      type: solid
+      color: "$primary"
+  - elementId: item1-num
+    elementType: text
+    bounds: [60, 160, 80, 60]
+    content:
+      fontSize: 48
+      color: "$primary"
+      fontFamily: "MiSans"
+      align: [left, middle]
+      wrap: false
+      text: "01"
+  - elementId: item1-title
+    elementType: text
+    bounds: [150, 160, 400, 36]
+    content:
+      fontSize: 24
+      color: "$text"
+      fontFamily: "MiSans"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p><strong>Financial Snapshot</strong></p>
+  - elementId: item1-desc
+    elementType: text
+    bounds: [150, 200, 500, 30]
+    content:
+      style: "$caption"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p>First-ever $100B quarter and headline numbers</p>
+  - elementId: divider1
+    elementType: shape
+    shapeName: rect
+    bounds: [60, 260, 1160, 1]
+    fill:
+      type: solid
+      color: "$border"
+  - elementId: item2-num
+    elementType: text
+    bounds: [60, 290, 80, 60]
+    content:
+      fontSize: 48
+      color: "$primary"
+      fontFamily: "MiSans"
+      align: [left, middle]
+      wrap: false
+      text: "02"
+  - elementId: item2-title
+    elementType: text
+    bounds: [150, 290, 400, 36]
+    content:
+      fontSize: 24
+      color: "$text"
+      fontFamily: "MiSans"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p><strong>Three Core Insights</strong></p>
+  - elementId: item2-desc
+    elementType: text
+    bounds: [150, 330, 600, 30]
+    content:
+      style: "$caption"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p>What the community is obsessing over beyond the headlines</p>
+  - elementId: divider2
+    elementType: shape
+    shapeName: rect
+    bounds: [60, 390, 1160, 1]
+    fill:
+      type: solid
+      color: "$border"
+  - elementId: item3-num
+    elementType: text
+    bounds: [60, 420, 80, 60]
+    content:
+      fontSize: 48
+      color: "$primary"
+      fontFamily: "MiSans"
+      align: [left, middle]
+      wrap: false
+      text: "03"
+  - elementId: item3-title
+    elementType: text
+    bounds: [150, 420, 400, 36]
+    content:
+      fontSize: 24
+      color: "$text"
+      fontFamily: "MiSans"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p><strong>Community Sentiment</strong></p>
+  - elementId: item3-desc
+    elementType: text
+    bounds: [150, 460, 600, 30]
+    content:
+      style: "$caption"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p>What Reddit, Hacker News, and X are saying</p>
+  - elementId: divider3
+    elementType: shape
+    shapeName: rect
+    bounds: [60, 520, 1160, 1]
+    fill:
+      type: solid
+      color: "$border"
+  - elementId: item4-num
+    elementType: text
+    bounds: [60, 550, 80, 60]
+    content:
+      fontSize: 48
+      color: "$primary"
+      fontFamily: "MiSans"
+      align: [left, middle]
+      wrap: false
+      text: "04"
+  - elementId: item4-title
+    elementType: text
+    bounds: [150, 550, 400, 36]
+    content:
+      fontSize: 24
+      color: "$text"
+      fontFamily: "MiSans"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p><strong>The Bottom Line</strong></p>
+  - elementId: item4-desc
+    elementType: text
+    bounds: [150, 590, 600, 30]
+    content:
+      style: "$caption"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p>Takeaways for builders and investors</p>

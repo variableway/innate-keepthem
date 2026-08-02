@@ -255,10 +255,13 @@ Located in `tools/vytdl-cli/scripts/`:
 - `build.ps1` - Cross-build helper for macOS/Linux/Windows targets on PowerShell
 
 Located in `scripts/`:
-- `start-desktop.sh` - Mac/Linux desktop startup
-- `start-desktop.ps1` - Windows desktop startup
-- `start-desktop.py` - Cross-platform desktop launcher
-- `vytdl-launcher.py` - Python launcher (dev/build/clean/schedule)
+- `download-yt-dlp-binaries.py` - Download yt-dlp binaries for bundling
+- `bootstrap-ytdlp-dev.sh` - Bootstrap yt-dlp dev resources from system PATH
+
+Desktop dev/build is driven by Task (`apps/vytdl-desktop/Taskfile.yml`):
+- `task -d apps/vytdl-desktop dev` - Start desktop app in dev mode
+- `task -d apps/vytdl-desktop build` / `bundle` - Production build
+- Root shortcuts: `task desktop:dev` / `desktop:build` / `desktop:bundle` / `desktop:check`
 
 Download wrapper scripts validate `yt-dlp`/`youtube-dl` availability before running.
 

@@ -30,7 +30,7 @@ def get_project_root() -> Path:
 
 def get_resources_dir() -> Path:
     return (
-        get_project_root() / "apps" / "desktop" / "src-tauri" / "resources" / "yt-dlp"
+        get_project_root() / "apps" / "vytdl-desktop" / "src-tauri" / "resources" / "yt-dlp"
     )
 
 

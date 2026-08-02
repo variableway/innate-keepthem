@@ -11,7 +11,7 @@ import json
 import logging
 from typing import Dict, List, Optional
 
-from contentforge.models import ContentUnit, ContentStatus
+from contentforge.models import ContentUnit, ContentStatus, ContentType, SourceInfo
 from contentforge.processing.ai_engine import AIEngine, AIEngineError
 
 logger = logging.getLogger(__name__)
@@ -182,12 +182,10 @@ class Summarizer:
         """对纯文本生成摘要。"""
         if max_length > 0:
             max_input_length = max_length
-        # 创建临时 ContentUnit
-        from contentforge.models import SourceInfo
         unit = ContentUnit(
             id="temp",
             source=SourceInfo(platform="text", url=""),
-            type=ContentUnit.type,  # type: ignore
+            type=ContentType.ARTICLE,
             extracted_text=text,
         )
         return self.summarize(unit, style=style, max_input_length=max_input_length)

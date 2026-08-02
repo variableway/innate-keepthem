@@ -11,7 +11,11 @@
     "check": "turbo lint typecheck",
     "clean": "turbo clean",
     "vytdl:dev": "pnpm --filter @vytdl/desktop tauri:dev",
-    "vytdl:build": "pnpm --filter @vytdl/desktop tauri:build"
+    "vytdl:build": "pnpm --filter @vytdl/desktop tauri:build",
+    "desktop:check": "task -d apps/vytdl-desktop check",
+    "desktop:dev": "task -d apps/vytdl-desktop dev",
+    "desktop:build": "task -d apps/vytdl-desktop build",
+    "desktop:bundle": "task -d apps/vytdl-desktop bundle"
   },
   "devDependencies": {
     "prettier": "^3.4.0",

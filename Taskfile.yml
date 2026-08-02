@@ -61,58 +61,52 @@ tasks:
     cmds:
       - go install -trimpath -ldflags "-s -w" .
 
-  # ── Desktop App (via Python scripts) ─────────────────────
+  # ── Desktop App (via apps/vytdl-desktop Taskfile) ────────
   desktop:check:
     desc: Check desktop build dependencies (Node, pnpm, Rust)
-    dir: "{{.DESKTOP_DIR}}"
     cmds:
-      - "{{.PYTHON}} scripts/build-desktop.py check"
+      - task -d apps/vytdl-desktop check
 
   desktop:install:
     desc: Install desktop Node dependencies
-    dir: "{{.DESKTOP_DIR}}"
     cmds:
-      - pnpm install
+      - task -d apps/vytdl-desktop install
 
   desktop:yt-dlp:
     desc: Download yt-dlp binaries for production bundling
-    dir: "{{.DESKTOP_DIR}}"
     cmds:
       - "{{.PYTHON}} scripts/download-yt-dlp-binaries.py"
 
   desktop:bootstrap-ytdlp:
     desc: Bootstrap yt-dlp dev resources from system PATH (fallback)
-    dir: "{{.DESKTOP_DIR}}"
     cmds:
       - bash scripts/bootstrap-ytdlp-dev.sh
 
   desktop:dev:
     desc: Start desktop app in development mode
-    dir: "{{.DESKTOP_DIR}}"
     deps: [desktop:bootstrap-ytdlp]
     cmds:
-      - "{{.PYTHON}} scripts/build-desktop.py dev"
+      - task -d apps/vytdl-desktop dev
+    interactive: true
 
   desktop:dev:fast:
-    desc: Start desktop dev mode (skip pnpm install)
-    dir: "{{.DESKTOP_DIR}}"
+    desc: Start desktop dev mode (install auto-skips when up to date)
     deps: [desktop:bootstrap-ytdlp]
     cmds:
-      - "{{.PYTHON}} scripts/build-desktop.py dev --skip-deps"
+      - task -d apps/vytdl-desktop dev
+    interactive: true
 
   desktop:build:
     desc: Build desktop app for production
-    dir: "{{.DESKTOP_DIR}}"
     deps: [desktop:yt-dlp]
     cmds:
-      - "{{.PYTHON}} scripts/build-desktop.py build"
+      - task -d apps/vytdl-desktop build
 
   desktop:bundle:
     desc: Build desktop app and create distributable package
-    dir: "{{.DESKTOP_DIR}}"
     deps: [desktop:yt-dlp]
     cmds:
-      - "{{.PYTHON}} scripts/build-desktop.py bundle"
+      - task -d apps/vytdl-desktop bundle
 
   # ── ContentForge (via Go CLI + Python core) ──────────────
   contentforge:env:
@@ -211,6 +205,6 @@ tasks:
         echo "    task contentforge:build"
         echo "    source packages/contentforge-core/scripts/cf-env.sh"
         echo ""
-        echo "  Direct Python (still supported):"
-        echo "    cd vYtDL-desktop && python3 scripts/build-desktop.py dev"
+        echo "  Desktop Taskfile (direct):"
+        echo "    task -d apps/vytdl-desktop dev"
         echo ""

@@ -50,8 +50,8 @@
     {
       "label": "desktop:check",
       "type": "shell",
-      "command": "python3",
-      "args": ["scripts/build-desktop.py", "check"],
+      "command": "task",
+      "args": ["-d", "apps/vytdl-desktop", "check"],
       "options": { "cwd": "${workspaceFolder}" }
     }
   ]

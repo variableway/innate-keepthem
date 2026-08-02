@@ -15,7 +15,7 @@ import re
 from collections import Counter
 from typing import Dict, List, Optional, Set
 
-from contentforge.models import ContentUnit
+from contentforge.models import ContentUnit, ContentType, SourceInfo
 from contentforge.processing.ai_engine import AIEngine, AIEngineError
 
 logger = logging.getLogger(__name__)
@@ -45,11 +45,11 @@ Return a JSON object with exactly these keys:
   "topics": ["topic1", "topic2", ...],
   "keywords": ["keyword1", "keyword2", ...],
   "entities": ["entity1", "entity2", ...],
-  "sentiment": {{
+  "sentiment": {
     "label": "positive|neutral|negative",
     "confidence": 0.85,
     "explanation": "..."
-  }},
+  },
   "audience": "description",
   "quality_score": 8,
   "quality_notes": "..."
@@ -185,8 +185,8 @@ class Analyzer:
         """分析纯文本。"""
         unit = ContentUnit(
             id="temp",
-            source=ContentUnit.__dataclass_fields__["source"].default_factory(),  # type: ignore
-            type=ContentUnit.__dataclass_fields__["type"].default,
+            source=SourceInfo(platform="text", url=""),
+            type=ContentType.ARTICLE,
             extracted_text=text,
         )
         return self.analyze(unit, mode=mode)

@@ -11,7 +11,7 @@
 import logging
 from typing import Dict, List, Optional
 
-from contentforge.models import ContentUnit, ContentStatus
+from contentforge.models import ContentUnit, ContentStatus, ContentType, SourceInfo
 from contentforge.processing.ai_engine import AIEngine, AIEngineError
 
 logger = logging.getLogger(__name__)
@@ -229,11 +229,10 @@ class Translator:
         mode: str = "full",
     ) -> TranslationResult:
         """翻译纯文本。"""
-        from contentforge.models import SourceInfo
         unit = ContentUnit(
             id="temp",
             source=SourceInfo(platform="text", url=""),
-            type=ContentUnit.__dataclass_fields__["type"].default,  # type: ignore
+            type=ContentType.ARTICLE,
             extracted_text=text,
         )
         return self.translate(unit, target_language=target_language, source_language=source_language, mode=mode)

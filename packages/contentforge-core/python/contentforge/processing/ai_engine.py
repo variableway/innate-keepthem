@@ -28,7 +28,7 @@ class AIAPIError(AIEngineError):
 
 @dataclass
 class AIConfig:
-    provider: str  # "openai" | "claude" | "ollama"
+    provider: str = "openai"  # "openai" | "claude" | "ollama"
     api_key: Optional[str] = None
     base_url: Optional[str] = None
     model: str = "gpt-4o-mini"

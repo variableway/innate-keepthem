@@ -9,6 +9,7 @@ Thumbs.db
 
 # ── Build artifacts ───────────────────────────────────────
 tools/vytdl-cli/vYtDL
+tools/vytdl-cli/bin/*.zip
 tools/contentforge-cli/contentforge
 *.exe
 *.mp4
@@ -20,6 +21,8 @@ dist/
 .next/
 .turbo/
 *.tsbuildinfo
+.task/
+downloadeds/*
 
 # ── Tauri / Rust ──────────────────────────────────────────
 **/src-tauri/target/

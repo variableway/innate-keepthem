@@ -1,0 +1,210 @@
+pageType: content
+background:
+  type: solid
+  color: "$background"
+elements:
+  - elementId: title-bar
+    elementType: shape
+    shapeName: rect
+    bounds: [60, 40, 4, 40]
+    fill:
+      type: solid
+      color: "$highlight"
+  - elementId: page-title
+    elementType: text
+    bounds: [80, 35, 900, 50]
+    content:
+      style: "$title"
+      fontSize: 32
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p><strong>Insight 3: The $3.5B Fine as "Cost of Business"</strong></p>
+  - elementId: insight-badge
+    elementType: shape
+    shapeName: roundRect
+    adjustments: [50000]
+    bounds: [80, 105, 180, 28]
+    fill:
+      type: solid
+      color: "#FBBC0520"
+    border:
+      style: solid
+      width: 1
+      color: "$highlight"
+  - elementId: insight-badge-text
+    elementType: text
+    bounds: [80, 105, 180, 28]
+    content:
+      fontSize: 12
+      color: "$highlight"
+      fontFamily: "MiSans"
+      align: [center, middle]
+      wrap: false
+      text: "RESILIENCE TEST"
+  - elementId: fine-card-bg
+    elementType: shape
+    shapeName: roundRect
+    adjustments: [8000]
+    bounds: [60, 160, 500, 200]
+    fill:
+      type: solid
+      color: "$surface"
+    border:
+      style: solid
+      width: 1
+      color: "$border"
+  - elementId: fine-icon
+    elementType: icon
+    bounds: [85, 180, 36, 36]
+    iconName: "fas:gavel"
+    fill:
+      type: solid
+      color: "$accent"
+  - elementId: fine-amount
+    elementType: text
+    bounds: [85, 225, 450, 70]
+    content:
+      fontSize: 52
+      color: "$accent"
+      fontFamily: "MiSans"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p><strong>$3.5B</strong></p>
+  - elementId: fine-label
+    elementType: text
+    bounds: [85, 305, 450, 30]
+    content:
+      fontSize: 18
+      color: "$textMuted"
+      fontFamily: "MiSans"
+      align: [left, middle]
+      wrap: false
+      text: "EU Antitrust Fine (European Commission)"
+  - elementId: impact-card-bg
+    elementType: shape
+    shapeName: roundRect
+    adjustments: [8000]
+    bounds: [600, 160, 620, 200]
+    fill:
+      type: solid
+      color: "$surface"
+    border:
+      style: solid
+      width: 1
+      color: "$border"
+  - elementId: impact-title
+    elementType: text
+    bounds: [625, 175, 300, 30]
+    content:
+      fontSize: 16
+      color: "$textMuted"
+      fontFamily: "MiSans"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p><strong>MARKET IMPACT</strong></p>
+  - elementId: impact-then
+    elementType: text
+    bounds: [625, 215, 270, 120]
+    content:
+      fontSize: 16
+      color: "$text"
+      fontFamily: "MiSans"
+      lineHeight: 1.5
+      align: [left, top]
+      text: |
+        <p><span style="color:#8B95A5;">Two Years Ago</span></p>
+        <p style="margin-top:4px">News like this would have <span style="color:#EA4335;">tanked the stock</span></p>
+  - elementId: impact-arrow
+    elementType: shape
+    shapeName: straightConnector1
+    bounds: [910, 260, 60, 0]
+    arrow: [null, "arrow"]
+    border:
+      style: solid
+      width: 2
+      color: "$secondary"
+  - elementId: impact-now
+    elementType: text
+    bounds: [980, 215, 220, 120]
+    content:
+      fontSize: 16
+      color: "$text"
+      fontFamily: "MiSans"
+      lineHeight: 1.5
+      align: [left, top]
+      text: |
+        <p><span style="color:#8B95A5;">Today</span></p>
+        <p style="margin-top:4px">Treated as <span style="color:#34A853;">"cost of doing business"</span></p>
+  - elementId: quote-bg
+    elementType: shape
+    shapeName: roundRect
+    adjustments: [8000]
+    bounds: [60, 390, 1160, 120]
+    fill:
+      type: solid
+      color: "#141B2D"
+    border:
+      style: solid
+      width: 1
+      color: "$border"
+  - elementId: quote-icon
+    elementType: icon
+    bounds: [85, 415, 24, 24]
+    iconName: "fas:quote-left"
+    fill:
+      type: solid
+      color: "$textMuted"
+  - elementId: quote-text
+    elementType: text
+    bounds: [125, 410, 1060, 80]
+    content:
+      fontSize: 18
+      color: "$text"
+      fontFamily: "MiSans"
+      lineHeight: 1.5
+      align: [left, top]
+      text: |
+        <p><em>"The fact that they can absorb a multi-billion dollar hit and still grow Net Income by 33% is frankly ridiculous."</em></p>
+        <p style="margin-top:8px"><span style="color:#8B95A5; font-size:14px;">— Community analysis consensus</span></p>
+  - elementId: takeaway-bg
+    elementType: shape
+    shapeName: roundRect
+    adjustments: [8000]
+    bounds: [60, 540, 1160, 100]
+    fill:
+      type: solid
+      color: "#FBBC0515"
+    border:
+      style: solid
+      width: 1
+      color: "#FBBC0540"
+  - elementId: takeaway-icon
+    elementType: icon
+    bounds: [85, 568, 28, 28]
+    iconName: "fas:shield-halved"
+    fill:
+      type: solid
+      color: "$highlight"
+  - elementId: takeaway-text
+    elementType: text
+    bounds: [125, 555, 1070, 70]
+    content:
+      fontSize: 18
+      color: "$text"
+      fontFamily: "MiSans"
+      lineHeight: 1.5
+      align: [left, middle]
+      text: |
+        <p><strong>Key Takeaway:</strong> Alphabet's financial resilience has reached a point where multi-billion regulatory fines are no longer market-moving events.</p>
+  - elementId: source
+    elementType: text
+    bounds: [60, 650, 600, 20]
+    content:
+      style: "$caption"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p>Source: European Commission  ·  <a href="https://www.vizplainer.com/">Vizplainer Analysis</a></p>

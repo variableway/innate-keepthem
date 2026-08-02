@@ -1,0 +1,171 @@
+pageType: content
+background:
+  type: solid
+  color: "$background"
+elements:
+  - elementId: title-bar
+    elementType: shape
+    shapeName: rect
+    bounds: [60, 40, 4, 40]
+    fill:
+      type: solid
+      color: "$primary"
+  - elementId: page-title
+    elementType: text
+    bounds: [80, 35, 800, 50]
+    content:
+      style: "$title"
+      fontSize: 32
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p><strong>Bull vs Bear: The Community Divide</strong></p>
+  - elementId: bull-card-bg
+    elementType: shape
+    shapeName: roundRect
+    adjustments: [8000]
+    bounds: [60, 110, 555, 400]
+    fill:
+      type: solid
+      color: "#34A85310"
+    border:
+      style: solid
+      width: 1
+      color: "#34A85340"
+  - elementId: bull-header-bg
+    elementType: shape
+    shapeName: roundRect
+    adjustments: [8000]
+    bounds: [60, 110, 555, 50]
+    fill:
+      type: solid
+      color: "#34A85330"
+  - elementId: bull-icon
+    elementType: icon
+    bounds: [80, 122, 24, 24]
+    iconName: "fas:arrow-trend-up"
+    fill:
+      type: solid
+      color: "$secondary"
+  - elementId: bull-title
+    elementType: text
+    bounds: [115, 115, 200, 36]
+    content:
+      fontSize: 22
+      color: "$secondary"
+      fontFamily: "MiSans"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p><strong>BULL CASE</strong></p>
+  - elementId: bull-content
+    elementType: text
+    bounds: [80, 180, 520, 310]
+    content:
+      fontSize: 17
+      color: "$text"
+      fontFamily: "MiSans"
+      lineHeight: 1.7
+      align: [left, top]
+      text: |
+        <p><span style="color:#34A853;">▸</span> <strong>650M Gemini MAU</strong> — massive user adoption</p>
+        <p><span style="color:#34A853;">▸</span> <strong>Search revenue up double digits</strong> — chatbots didn't kill search</p>
+        <p><span style="color:#34A853;">▸</span> <strong>34% operating margin</strong> — capital efficiency maintained</p>
+        <p><span style="color:#34A853;">▸</span> <strong>Cloud +34%</strong> — enterprise AI migration real</p>
+        <p><span style="color:#34A853;">▸</span> <strong>$102B quarter</strong> — first in history</p>
+        <p style="margin-top:16px"><span style="color:#34A853;">▸</span> <strong>"Insurmountable moat"</strong></p>
+        <p><span style="font-size:14px; color:#8B95A5;">via infrastructure scale</span></p>
+  - elementId: bear-card-bg
+    elementType: shape
+    shapeName: roundRect
+    adjustments: [8000]
+    bounds: [645, 110, 575, 400]
+    fill:
+      type: solid
+      color: "#EA433510"
+    border:
+      style: solid
+      width: 1
+      color: "#EA433540"
+  - elementId: bear-header-bg
+    elementType: shape
+    shapeName: roundRect
+    adjustments: [8000]
+    bounds: [645, 110, 575, 50]
+    fill:
+      type: solid
+      color: "#EA433530"
+  - elementId: bear-icon
+    elementType: icon
+    bounds: [665, 122, 24, 24]
+    iconName: "fas:arrow-trend-down"
+    fill:
+      type: solid
+      color: "$accent"
+  - elementId: bear-title
+    elementType: text
+    bounds: [700, 115, 200, 36]
+    content:
+      fontSize: 22
+      color: "$accent"
+      fontFamily: "MiSans"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p><strong>BEAR CASE</strong></p>
+  - elementId: bear-content
+    elementType: text
+    bounds: [665, 180, 540, 310]
+    content:
+      fontSize: 17
+      color: "$text"
+      fontFamily: "MiSans"
+      lineHeight: 1.7
+      align: [left, top]
+      text: |
+        <p><span style="color:#EA4335;">▸</span> <strong>$93B CapEx</strong> — unsustainable spending?</p>
+        <p><span style="color:#EA4335;">▸</span> <strong>"Arms race"</strong> — just keeping up with OpenAI & Meta</p>
+        <p><span style="color:#EA4335;">▸</span> <strong>Regulatory overhang</strong> — EU fines keep coming</p>
+        <p><span style="color:#EA4335;">▸</span> <strong>Search disruption risk</strong> — long-term AI threat</p>
+        <p><span style="color:#EA4335;">▸</span> <strong>Competition intensifying</strong> — LLM market crowded</p>
+        <p style="margin-top:16px"><span style="color:#EA4335;">▸</span> <strong>"Bubble?"</strong></p>
+        <p><span style="font-size:14px; color:#8B95A5;">infrastructure spending may not ROI</span></p>
+  - elementId: question-bg
+    elementType: shape
+    shapeName: roundRect
+    adjustments: [8000]
+    bounds: [60, 540, 1160, 100]
+    fill:
+      type: solid
+      color: "$surfaceLight"
+    border:
+      style: solid
+      width: 1
+      color: "$border"
+  - elementId: question-icon
+    elementType: icon
+    bounds: [90, 568, 28, 28]
+    iconName: "fas:circle-question"
+    fill:
+      type: solid
+      color: "$highlight"
+  - elementId: question-text
+    elementType: text
+    bounds: [130, 555, 1060, 70]
+    content:
+      fontSize: 20
+      color: "$text"
+      fontFamily: "MiSans"
+      lineHeight: 1.5
+      align: [left, middle]
+      text: |
+        <p><strong>The Key Question:</strong> Is $93B in infrastructure spending <span style="color:#34A853;">buying a moat</span> or <span style="color:#EA4335;">inflating a bubble</span>?</p>
+  - elementId: source
+    elementType: text
+    bounds: [60, 650, 700, 20]
+    content:
+      style: "$caption"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p>Source: Reddit r/investing, Hacker News, X discussions  ·  <a href="https://www.vizplainer.com/">Vizplainer</a></p>

@@ -1,0 +1,173 @@
+pageType: content
+background:
+  type: solid
+  color: "$background"
+elements:
+  - elementId: title-bar
+    elementType: shape
+    shapeName: rect
+    bounds: [60, 40, 4, 40]
+    fill:
+      type: solid
+      color: "$primary"
+  - elementId: page-title
+    elementType: text
+    bounds: [80, 35, 600, 50]
+    content:
+      style: "$title"
+      fontSize: 32
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p><strong>The Bottom Line</strong></p>
+  - elementId: conclusion-card-bg
+    elementType: shape
+    shapeName: roundRect
+    adjustments: [8000]
+    bounds: [60, 110, 1160, 180]
+    fill:
+      type: gradient
+      gradientType: linear
+      angle: 90
+      stops:
+        - {position: 0, color: "#4285F420"}
+        - {position: 1, color: "#141B2D"}
+    border:
+      style: solid
+      width: 1
+      color: "#4285F440"
+  - elementId: conclusion-icon
+    elementType: icon
+    bounds: [90, 140, 40, 40]
+    iconName: "fas:bullseye"
+    fill:
+      type: solid
+      color: "$primary"
+  - elementId: conclusion-text
+    elementType: text
+    bounds: [150, 130, 1040, 140]
+    content:
+      fontSize: 20
+      color: "$text"
+      fontFamily: "MiSans"
+      lineHeight: 1.6
+      align: [left, top]
+      text: |
+        <p>The fear that search would <strong style="color:#EA4335;">vanish overnight</strong> due to chatbots hasn't materialized.</p>
+        <p style="margin-top:8px"><span style="color:#34A853;">▲</span> "Search & Other" revenue is up <strong>double digits</strong></p>
+        <p><span style="color:#34A853;">▲</span> <strong>650 million</strong> monthly active users on the Gemini App</p>
+        <p><span style="color:#34A853;">▲</span> Successfully managing the transition from traditional search to an <strong>AI-first model</strong></p>
+  - elementId: for-builders-bg
+    elementType: shape
+    shapeName: roundRect
+    adjustments: [8000]
+    bounds: [60, 320, 555, 180]
+    fill:
+      type: solid
+      color: "$surface"
+    border:
+      style: solid
+      width: 1
+      color: "$border"
+  - elementId: for-builders-icon
+    elementType: icon
+    bounds: [85, 345, 28, 28]
+    iconName: "fas:code"
+    fill:
+      type: solid
+      color: "$primary"
+  - elementId: for-builders-title
+    elementType: text
+    bounds: [125, 340, 300, 36]
+    content:
+      fontSize: 20
+      color: "$primary"
+      fontFamily: "MiSans"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p><strong>For Builders</strong></p>
+  - elementId: for-builders-body
+    elementType: text
+    bounds: [85, 385, 510, 100]
+    content:
+      fontSize: 16
+      color: "$text"
+      fontFamily: "MiSans"
+      lineHeight: 1.6
+      align: [left, top]
+      text: |
+        <p>The infrastructure is scaling fast. Gemini's 7B tokens/minute and GCP's 34% growth signal a mature AI platform ready for enterprise workloads.</p>
+  - elementId: for-investors-bg
+    elementType: shape
+    shapeName: roundRect
+    adjustments: [8000]
+    bounds: [645, 320, 575, 180]
+    fill:
+      type: solid
+      color: "$surface"
+    border:
+      style: solid
+      width: 1
+      color: "$border"
+  - elementId: for-investors-icon
+    elementType: icon
+    bounds: [670, 345, 28, 28]
+    iconName: "fas:chart-pie"
+    fill:
+      type: solid
+      color: "$secondary"
+  - elementId: for-investors-title
+    elementType: text
+    bounds: [710, 340, 300, 36]
+    content:
+      fontSize: 20
+      color: "$secondary"
+      fontFamily: "MiSans"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p><strong>For Investors</strong></p>
+  - elementId: for-investors-body
+    elementType: text
+    bounds: [670, 385, 530, 100]
+    content:
+      fontSize: 16
+      color: "$text"
+      fontFamily: "MiSans"
+      lineHeight: 1.6
+      align: [left, top]
+      text: |
+        <p>The $93B CapEx bill is hefty, but right now, it looks like it's buying an <strong style="color:#34A853;">insurmountable moat</strong>. Margins prove capital efficiency.</p>
+  - elementId: final-quote-bg
+    elementType: shape
+    shapeName: roundRect
+    adjustments: [8000]
+    bounds: [60, 530, 1160, 100]
+    fill:
+      type: solid
+      color: "#141B2D"
+    border:
+      style: solid
+      width: 1
+      color: "$border"
+  - elementId: final-quote
+    elementType: text
+    bounds: [90, 545, 1100, 70]
+    content:
+      fontSize: 20
+      color: "$text"
+      fontFamily: "MiSans"
+      lineHeight: 1.5
+      align: [center, middle]
+      text: |
+        <p><em>"The Google 'death spiral' narrative is officially dead."</em></p>
+  - elementId: source
+    elementType: text
+    bounds: [60, 650, 600, 20]
+    content:
+      style: "$caption"
+      align: [left, middle]
+      wrap: false
+      text: |
+        <p>Source: Alphabet Q3 2025 Earnings  ·  <a href="https://www.vizplainer.com/">Vizplainer Analysis</a></p>

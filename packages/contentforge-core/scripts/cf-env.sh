@@ -10,6 +10,6 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
 export PATH="/opt/homebrew/bin:${PATH}"
 export PATH="${REPO_ROOT}/.venv-cf/bin:${PATH}"
-export PYTHONPATH="${REPO_ROOT}/contentforge/core/python:${PYTHONPATH}"
+export PYTHONPATH="${REPO_ROOT}/packages/contentforge-core/python:${PYTHONPATH}"
 export CF_HOME="${REPO_ROOT}"
 export CONTENTFORGE_VENV="${REPO_ROOT}/.venv-cf"

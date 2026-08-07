@@ -4,9 +4,15 @@
 
 ### Download Modes
 
-- **Single Video** - Download any YouTube video by URL
+- **Single Video** - Download from any yt-dlp-supported URL (YouTube, Bilibili, TikTok, …)
 - **Playlist/Collection** - Download all videos in a playlist with one command
 - **Time-Range Clipping** - Download specific segments using `--start` and `--end`
+
+### Platforms
+
+- No domain whitelist — site coverage follows your installed yt-dlp (1800+ extractors)
+- Cookie auth (`--cookies` / `--cookies-from-browser`), proxy, retries, extractor-args
+- See [supported platforms](../suggestions/supported-platforms.md)
 
 ### Format & Quality
 

@@ -132,6 +132,51 @@ func TestNormalizeURLUnescapesShellEscapes(t *testing.T) {
 	}
 }
 
+func TestPlaylistEntryURLPrefersWebpageAndKeepsYouTubeFallback(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name  string
+		entry playlistEntry
+		want  string
+	}{
+		{
+			name:  "webpage_url wins",
+			entry: playlistEntry{ID: "x", WebpageURL: "https://www.bilibili.com/video/BV1xx", IeKey: "BiliBili"},
+			want:  "https://www.bilibili.com/video/BV1xx",
+		},
+		{
+			name:  "absolute url wins",
+			entry: playlistEntry{URL: "https://www.tiktok.com/@u/video/1", IeKey: "TikTok"},
+			want:  "https://www.tiktok.com/@u/video/1",
+		},
+		{
+			name:  "youtube id fallback",
+			entry: playlistEntry{ID: "dQw4w9WgXcQ", IeKey: "Youtube"},
+			want:  "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+		},
+		{
+			name:  "empty ie_key still youtube fallback for legacy flat entries",
+			entry: playlistEntry{ID: "abc123xyz01"},
+			want:  "https://www.youtube.com/watch?v=abc123xyz01",
+		},
+		{
+			name:  "non-youtube without url returns empty",
+			entry: playlistEntry{ID: "BV1xx", IeKey: "BiliBili"},
+			want:  "",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := playlistEntryURL(tc.entry)
+			if got != tc.want {
+				t.Fatalf("playlistEntryURL() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestDownloadPlaylistResumesFromFailedEntries(t *testing.T) {
 	tempDir := t.TempDir()
 	fakeBin := filepath.Join(tempDir, "yt-dlp")

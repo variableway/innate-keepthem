@@ -47,6 +47,7 @@ type playlistEntry struct {
 	Title      string `json:"title"`
 	URL        string `json:"url"`
 	WebpageURL string `json:"webpage_url"`
+	IeKey      string `json:"ie_key"`
 }
 
 type playlistMetadata struct {
@@ -526,12 +527,25 @@ func playlistEntryURL(entry playlistEntry) string {
 		return entry.WebpageURL
 	case strings.HasPrefix(entry.URL, "http://"), strings.HasPrefix(entry.URL, "https://"):
 		return entry.URL
-	case entry.ID != "":
+	case isYouTubePlaylistEntry(entry) && entry.ID != "":
+		// Flat YouTube playlist entries often only expose an id; reconstruct the watch URL.
 		return "https://www.youtube.com/watch?v=" + entry.ID
-	case entry.URL != "":
+	case isYouTubePlaylistEntry(entry) && entry.URL != "":
 		return "https://www.youtube.com/watch?v=" + entry.URL
 	default:
+		// Non-YouTube extractors should provide webpage_url or an absolute url.
+		// Avoid inventing a YouTube URL for other platforms.
 		return ""
+	}
+}
+
+func isYouTubePlaylistEntry(entry playlistEntry) bool {
+	key := strings.ToLower(strings.TrimSpace(entry.IeKey))
+	switch key {
+	case "", "youtube", "youtube:tab", "youtube:playlist", "youtube:tabplaylist":
+		return true
+	default:
+		return strings.HasPrefix(key, "youtube")
 	}
 }
 

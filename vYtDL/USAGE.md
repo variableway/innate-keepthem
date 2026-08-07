@@ -33,6 +33,31 @@ VYTDL_CONFIG=/absolute/path/to/config.json ./vYtDL download --no-tui "VIDEO_URL"
 
 Before any download starts, the CLI now validates that the configured yt-dlp binary is resolvable and prints install hints when missing.
 
+## Supported platforms
+
+The CLI does **not** whitelist domains. Any URL yt-dlp can extract works, including YouTube, Bilibili, TikTok, X/Twitter, Instagram, Vimeo, Twitch, 小红书, and 1800+ other sites.
+
+Examples:
+
+```bash
+# Bilibili
+./vYtDL download --no-tui "https://www.bilibili.com/video/BVxxxxxx"
+
+# TikTok (cookies often help)
+./vYtDL download --no-tui --cookies-from-browser chrome "https://www.tiktok.com/@user/video/123"
+
+# X / Twitter
+./vYtDL download --no-tui --cookies-from-browser chrome "https://x.com/user/status/123"
+```
+
+List extractors on your machine:
+
+```bash
+yt-dlp --list-extractors
+```
+
+See also: `docs/suggestions/supported-platforms.md`.
+
 ## Single Video
 
 Download one video into the current directory:

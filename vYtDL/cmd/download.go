@@ -102,7 +102,7 @@ func init() {
 var downloadCmd = &cobra.Command{
 	Use:     "download [flags] <url> [url…]",
 	Aliases: []string{"dl", "get"},
-	Short:   "Download video(s) from YouTube",
+	Short:   "Download video(s) from any yt-dlp-supported site",
 	Args:    cobra.MinimumNArgs(1),
 	RunE:    runDownload,
 }

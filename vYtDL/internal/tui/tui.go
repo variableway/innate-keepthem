@@ -143,7 +143,7 @@ func (m *Model) View() string {
 	defer m.mu.Unlock()
 
 	var sb strings.Builder
-	sb.WriteString(titleStyle.Render("yt-dl — YouTube Downloader") + "\n")
+	sb.WriteString(titleStyle.Render("yt-dl — Video Downloader") + "\n")
 	sb.WriteString(dimStyle.Render("Press q / Ctrl+C to cancel\n\n"))
 
 	for _, key := range m.order {

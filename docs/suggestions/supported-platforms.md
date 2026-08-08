@@ -32,9 +32,11 @@ go build -o vYtDL .
 
 | 问题 | 答案 |
 |------|------|
-| CLI 是否单独成项目？ | **是独立 Go module**（`vYtDL/go.mod`，module `github.com/innate/yt-dl`） |
-| 是否单独 git 仓库？ | **否**，仍在 monorepo `innate-keepthem` 内（`vYtDL/` 下无独立 `.git`） |
-| 能否直接 build？ | **能**：`cd vYtDL && go build -o vYtDL .`；需本机已装 Go 1.24+ 与 PATH 中的 `yt-dlp` |
+| CLI 是否单独成项目？ | **是** — 独立仓库 `/Users/patrick/innate/projects/vYtDL`（Go module `github.com/innate/yt-dl`） |
+| 是否单独 git 仓库？ | **是**（已 `git init`，skill：`.agents/skills/vytdl-cli`） |
+| 能否直接 build？ | **能**：`cd …/vYtDL && go build -o vYtDL .`；Go 1.24+ |
+| yt-dlp 是否打进包？ | **支持**：PATH → `-tags embed_ytdlp` 内嵌 → 缓存自动下载（`--install-yt-dlp`） |
+| monorepo 内 `vYtDL/`？ | 工作副本；见 `vYtDL/MOVED.md` / `vYtDL/README.md` |
 
 ---
 

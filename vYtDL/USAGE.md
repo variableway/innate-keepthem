@@ -31,23 +31,93 @@ You can also load config from a custom file path:
 VYTDL_CONFIG=/absolute/path/to/config.json ./vYtDL download --no-tui "VIDEO_URL"
 ```
 
-Before any download starts, the CLI now validates that the configured yt-dlp binary is resolvable and prints install hints when missing.
+Before any download starts, the CLI resolves yt-dlp automatically (see **Bundled yt-dlp** below).
+
+## Bundled yt-dlp
+
+yt-dlp is still a separate executable (cannot be statically linked into Go). vYtDL provisions it in this order:
+
+1. `--yt-dlp-bin` / `config.json` / `YT_DL_BIN`
+2. `yt-dlp` / `youtube-dl` on `PATH`
+3. **Embedded** binary (only if built with `-tags embed_ytdlp`)
+4. Cache under `~/Library/Caches/vYtDL` (macOS) or `~/.cache/vYtDL`
+5. **Auto-download** from GitHub Releases into that cache
+
+```bash
+# Force download/update into cache
+./vYtDL download --install-yt-dlp
+
+# Normal download — uses PATH or auto-downloads if missing
+./vYtDL download --no-tui -o ./downloads "URL"
+
+# Mirror (slow GitHub): full asset URL or prefix ending with /
+export VYTDL_YTDLP_MIRROR="https://ghproxy.net/https://github.com/yt-dlp/yt-dlp/releases/latest/download/"
+```
+
+### Single-file release (embed)
+
+```bash
+./scripts/fetch-ytdlp.sh --embed          # writes internal/ytdlpbin/binaries/yt-dlp.bin
+go build -tags embed_ytdlp -o vYtDL .
+
+# Cross-compile all platforms with embed:
+EMBED=1 ./scripts/build.sh
+```
+
+Embedded builds extract to the cache on first run (no write to the app binary itself).
 
 ## Supported platforms
 
-The CLI does **not** whitelist domains. Any URL yt-dlp can extract works, including YouTube, Bilibili, TikTok, X/Twitter, Instagram, Vimeo, Twitch, 小红书, and 1800+ other sites.
+The CLI does **not** whitelist domains. Any URL yt-dlp can extract works (1800+ sites).
 
-Examples:
+### Multi-platform examples
 
 ```bash
-# Bilibili
-./vYtDL download --no-tui "https://www.bilibili.com/video/BVxxxxxx"
+# YouTube — 1080p + EN/ZH 字幕（默认开字幕）
+./vYtDL download --no-tui -o ./downloads -q 1080 \
+  "https://www.youtube.com/watch?v=VIDEO_ID"
 
-# TikTok (cookies often help)
-./vYtDL download --no-tui --cookies-from-browser chrome "https://www.tiktok.com/@user/video/123"
+# Bilibili — 合集/多 P 用 --playlist
+./vYtDL download --no-tui -o ./downloads -q 1080 --playlist \
+  "https://www.bilibili.com/video/BVxxxxxx"
+
+# TikTok — 多数情况需要 Cookie
+./vYtDL download --no-tui -o ./downloads \
+  --cookies-from-browser chrome \
+  "https://www.tiktok.com/@user/video/123"
 
 # X / Twitter
-./vYtDL download --no-tui --cookies-from-browser chrome "https://x.com/user/status/123"
+./vYtDL download --no-tui -o ./downloads \
+  --cookies-from-browser chrome \
+  "https://x.com/user/status/123"
+
+# 小红书
+./vYtDL download --no-tui -o ./downloads \
+  --cookies-from-browser chrome \
+  "https://www.xiaohongshu.com/explore/xxxxxx"
+
+# Instagram Reels / 帖子
+./vYtDL download --no-tui -o ./downloads \
+  --cookies-from-browser chrome \
+  "https://www.instagram.com/reel/xxxxxx/"
+
+# Vimeo
+./vYtDL download --no-tui -o ./downloads -q 1080 \
+  "https://vimeo.com/123456789"
+
+# Twitch VOD（直播回放）
+./vYtDL download --no-tui -o ./downloads \
+  "https://www.twitch.tv/videos/123456789"
+
+# 只下某一时间段（任意支持分段的站点，需 FFmpeg）
+./vYtDL download --no-tui -o ./downloads \
+  --start 00:01:00 --end 00:02:30 \
+  "https://www.youtube.com/watch?v=VIDEO_ID"
+
+# 国内网络：加代理
+./vYtDL download --no-tui -o ./downloads \
+  --proxy "http://127.0.0.1:7890" \
+  "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
 List extractors on your machine:
@@ -57,6 +127,43 @@ yt-dlp --list-extractors
 ```
 
 See also: `docs/suggestions/supported-platforms.md`.
+
+## vYtDL vs 原始 yt-dlp：主要差别与简化
+
+vYtDL **不是**另一套下载引擎，而是对 `yt-dlp` 的薄封装：最终仍 spawn yt-dlp。差别在「默认值、参数简化、工作流」。
+
+| 维度 | 原始 yt-dlp | vYtDL CLI |
+|------|-------------|-----------|
+| 画质 | `-f "bestvideo[height<=1080]+bestaudio/..."` 自己写 | `-q 1080` |
+| 容器 | `--merge-output-format mp4` | `-f mp4`（默认 mp4） |
+| 字幕 | 多条 `--write-subs --write-auto-subs --sub-langs ...` | 默认开 EN+ZH；`--no-subs` 关掉 |
+| 输出路径 | `-o "dir/%(title)s.%(ext)s"` | `-o ./dir`（自动套模板） |
+| 时间片段 | `--download-sections "*1:00-2:30" --force-keyframes-at-cuts` | `--start` / `--end` |
+| 播放列表 | 自己管目录与失败重试 | `--playlist`：按标题建子目录 + **断点续传** |
+| 进度 | 文本滚动 | 默认 **TUI**；`--no-tui` 为纯文本 |
+| 记录 | 自己记日志 | 自动写 `download_record` + `subtitle_mapping`（json/csv） |
+| Cookie/代理 | 原样传 | 同名透传：`--cookies`、`--cookies-from-browser`、`--proxy` |
+| 并发 | 自己脚本循环 | `-j N` 多 URL 并发 |
+| 能力上限 | 全部 yt-dlp 旗标 | **常用子集**；冷门旗标用原生 yt-dlp |
+
+### 等价对照（同一意图）
+
+```bash
+# 原生 yt-dlp
+yt-dlp -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]" \
+  --merge-output-format mp4 \
+  --write-subs --write-auto-subs --sub-langs en,zh \
+  -o "./downloads/%(title)s.%(ext)s" \
+  --cookies-from-browser chrome \
+  "https://www.bilibili.com/video/BVxxxxxx"
+
+# vYtDL（同一件事）
+./vYtDL download --no-tui -o ./downloads -q 1080 \
+  --cookies-from-browser chrome \
+  "https://www.bilibili.com/video/BVxxxxxx"
+```
+
+**一句话**：站点覆盖 ≈ yt-dlp；省事的是预设（画质/字幕/输出/列表续传/TUI/下载记录），不是多出一个下载器。
 
 ## Single Video
 

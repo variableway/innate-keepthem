@@ -20,7 +20,7 @@ vYtDL is a multi-component video downloader suite:
 
 | Component | Tech Stack | Location |
 |-----------|-----------|----------|
-| CLI | Go 1.24+, Cobra, Bubble Tea TUI | `vYtDL/` |
+| CLI | Go 1.24+, Cobra, Bubble Tea TUI | **Standalone repo** `/Users/patrick/innate/projects/vYtDL` (skill: `vytdl-cli`). Monorepo `vYtDL/` is a working copy — see `vYtDL/MOVED.md` |
 | Desktop | Tauri v2 (Rust), Next.js 15, React 19, TypeScript, Tailwind | `vYtDL-desktop/apps/desktop/` |
 | Web Server | Node.js, Express, WebSocket, better-sqlite3 | `vYtDL-desktop/web-server/` |
 | Chrome Extension | Manifest V3, vanilla HTML/JS/CSS | `url-extractor/` |
@@ -67,6 +67,7 @@ See `references/components.md` for per-component development patterns.
 
 | Task | Skill |
 |------|-------|
+| CLI-only build / flags / multi-site download | `vytdl-cli` (standalone repo `.agents/skills/vytdl-cli`) |
 | VTT subtitle AI analysis | `vtt-analyze` |
 | ContentForge ingest/process/publish | `contentforge` |
 | ContentForge pipeline presets | `contentforge-pipeline` |

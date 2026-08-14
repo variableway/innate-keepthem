@@ -1,0 +1,21 @@
+{
+  "name": "innate-keepthem",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "format": "prettier --write .",
+    "check": "turbo lint typecheck",
+    "clean": "turbo clean",
+    "vytdl:dev": "pnpm --filter @vytdl/desktop tauri:dev",
+    "vytdl:build": "pnpm --filter @vytdl/desktop tauri:build"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.0",
+    "turbo": "^2.3.0",
+    "typescript": "^5.6.0"
+  }
+}

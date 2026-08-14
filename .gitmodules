@@ -1,0 +1,36 @@
+[submodule "WorkBuddyGuide"]
+	path = WorkBuddyGuide
+	url = https://github.com/AlephAITech/WorkBuddyGuide.git
+[submodule "last30days-skill"]
+	path = last30days-skill
+	url = https://github.com/mvanhorn/last30days-skill.git
+[submodule "yt-dlp-gui"]
+	path = yt-dlp-gui
+	url = https://github.com/imsyy/yt-dlp-gui.git
+[submodule "yt-dlp-gui-v2"]
+	path = yt-dlp-gui-v2
+	url = https://github.com/kannagi0303/yt-dlp-gui-v2.git
+[submodule "contentforge/external-repos/OpenMontage"]
+	path = contentforge/external-repos/OpenMontage
+	url = https://github.com/calesthio/OpenMontage.git
+[submodule "contentforge/external-repos/Video-Note-Extractor"]
+	path = contentforge/external-repos/Video-Note-Extractor
+	url = https://github.com/patel-akshara/Video-Note-Extractor.git
+[submodule "contentforge/external-repos/capsummarize"]
+	path = contentforge/external-repos/capsummarize
+	url = https://github.com/samuxbuilds/capsummarize.git
+[submodule "contentforge/external-repos/frameflow"]
+	path = contentforge/external-repos/frameflow
+	url = https://github.com/navidshad/frameflow.git
+[submodule "contentforge/external-repos/skill-studio"]
+	path = contentforge/external-repos/skill-studio
+	url = https://github.com/liu673/skill-studio.git
+[submodule "contentforge/external-repos/skill-zoo"]
+	path = contentforge/external-repos/skill-zoo
+	url = https://github.com/luochang212/skill-zoo.git
+[submodule "contentforge/external-repos/youtube-rag-system"]
+	path = contentforge/external-repos/youtube-rag-system
+	url = https://github.com/XynaxDev/youtube-rag-system.git
+[submodule "services/agent-reach"]
+	path = services/agent-reach
+	url = https://github.com/Panniantong/agent-reach.git

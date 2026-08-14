@@ -12,28 +12,28 @@ vYtDL is a YouTube downloader suite with four components:
 
 ## Technology Stack
 
-### CLI (vYtDL/)
+### CLI (tools/vytdl-cli/)
 - **Language**: Go 1.24+
 - **CLI Framework**: spf13/cobra
 - **TUI Framework**: charmbracelet/bubbletea + lipgloss
 - **External Dependency**: yt-dlp (called as subprocess)
 
-### Desktop (vYtDL-desktop/)
+### Desktop (apps/vytdl-desktop/)
 - **Frontend**: Next.js + React 19 + TypeScript + Tailwind CSS
 - **Desktop Shell**: Tauri v2 (Rust backend)
-- **Build**: pnpm monorepo (apps/desktop, packages/ui, packages/utils)
+- **Build**: pnpm monorepo (apps/vytdl-desktop, packages/ui, packages/utils)
 - **State**: Zustand stores (downloadStore, settingsStore)
 - **Storage**: Tauri storage adapter + SQLite database
 - **i18n**: Custom React context with JSON locale files (`src/i18n/`)
 - **API Abstraction**: `api-client.ts` supports both Tauri IPC and HTTP API modes
 
-### Web Server (vYtDL-desktop/web-server/)
+### Web Server (apps/vytdl-web/)
 - **Backend**: Node.js + Express + WebSocket (`ws`)
 - **Database**: better-sqlite3 (same schema as desktop)
 - **Queue**: In-memory queue manager with configurable concurrency
 - **yt-dlp**: Spawned as child process
 
-### URL Extractor (url-extractor/)
+### URL Extractor (extensions/url-extractor/)
 - **Chrome Extension**: Manifest V3
 - **Frontend**: Vanilla HTML/CSS/JS
 - **Batch Script**: Python 3.6+
@@ -87,7 +87,7 @@ SQLite Database
 
 ## Key Modules
 
-### CLI (vYtDL/)
+### CLI (tools/vytdl-cli/)
 
 - `cmd/root.go` - Cobra root command
 - `cmd/download.go` - CLI flags, download orchestration, concurrent dispatch, TUI coordination
@@ -99,16 +99,16 @@ SQLite Database
 - `internal/tui/` - bubbletea-based terminal UI
 - `internal/vtt/` - WebVTT parser (handles YouTube auto-generated and manual captions)
 
-### Desktop (vYtDL-desktop/)
+### Desktop (apps/vytdl-desktop/)
 
-- `apps/desktop/src/app/` - Next.js pages (home, settings, library, player)
-- `apps/desktop/src/components/` - React components
+- `src/app/` - Next.js pages (home, settings, library, player)
+- `src/components/` - React components
   - `download-form.tsx` - Single/Batch/Smart download form with textarea + file import
   - `download-list.tsx` - Download list with progress, logs, queue position, retry
-- `apps/desktop/src/i18n/` - Internationalization (provider, hook, locale JSON files)
-- `apps/desktop/src/store/` - Zustand stores
-- `apps/desktop/src/lib/api-client.ts` - API abstraction (Tauri IPC / HTTP fetch)
-- `apps/desktop/src-tauri/src/` - Rust backend
+- `src/i18n/` - Internationalization (provider, hook, locale JSON files)
+- `src/store/` - Zustand stores
+- `src/lib/api-client.ts` - API abstraction (Tauri IPC / HTTP fetch)
+- `src-tauri/src/` - Rust backend
   - `commands.rs` - Tauri IPC commands (start_download, cancel, get_downloads, etc.)
   - `downloader.rs` - yt-dlp subprocess wrapper
   - `database.rs` - SQLite database layer (downloads + settings tables)
@@ -117,9 +117,9 @@ SQLite Database
 - `packages/ui/` - Shared UI components
 - `packages/utils/` - Shared utilities
 - `scripts/` - Startup scripts
-- `web-server/` - Docker web API server (Node.js + Express)
+- `apps/vytdl-web/` - Docker web API server (Node.js + Express)
 
-### URL Extractor (url-extractor/)
+### URL Extractor (extensions/url-extractor/)
 
 - `manifest.json` - Chrome extension config (Manifest V3)
 - `popup.html/js/css` - Extension popup UI
@@ -159,7 +159,7 @@ The desktop and web backends both implement a download queue:
 - Saved `options` JSON is deserialized back to `DownloadOptions`
 - Each resumed download is re-enqueued via `QueueManager::enqueue()`
 
-### Web Server Queue (`web-server/src/queue.ts`)
+### Web Server Queue (`apps/vytdl-web/src/queue.ts`)
 - `QueueManager` with `Map` of active downloads and array of pending
 - Configurable `maxConcurrent` (default: 3)
 - WebSocket broadcast for real-time progress updates
@@ -167,7 +167,7 @@ The desktop and web backends both implement a download queue:
 
 ## API Client Abstraction
 
-`apps/desktop/src/lib/api-client.ts` provides a unified interface:
+`apps/vytdl-desktop/src/lib/api-client.ts` provides a unified interface:
 
 - `apiInvoke(command, args)` - Calls Tauri `invoke()` in desktop mode, `POST /api/{command}` in web mode
 - `apiListen(event, handler)` - Binds to Tauri events in desktop mode, WebSocket in web mode
@@ -230,11 +230,11 @@ This allows the same Next.js frontend to run in both Tauri desktop and Docker we
 
 - CLI: Edit `internal/downloader/downloader.go`
 - Desktop: Edit `src-tauri/src/downloader.rs`
-- Web: Edit `vYtDL-desktop/web-server/src/downloader.ts`
+- Web: Edit `apps/vytdl-web/src/downloader.ts`
 
 ### Adding a Web API Endpoint
 
-1. Add route in `vYtDL-desktop/web-server/src/index.ts`
+1. Add route in `apps/vytdl-web/src/index.ts`
 2. Implement logic using `database.ts` and `downloader.ts`
 3. Ensure the desktop frontend uses `apiInvoke()` (same command name as Tauri)
 
@@ -248,13 +248,13 @@ This allows the same Next.js frontend to run in both Tauri desktop and Docker we
 
 ## Shell Scripts
 
-Located in `vYtDL/scripts/`:
+Located in `tools/vytdl-cli/scripts/`:
 - `download_video.sh` - Single video wrapper
 - `download_collection.sh` - Playlist wrapper
 - `build.sh` - Cross-build helper for macOS/Linux/Windows targets
 - `build.ps1` - Cross-build helper for macOS/Linux/Windows targets on PowerShell
 
-Located in `vYtDL-desktop/scripts/`:
+Located in `scripts/`:
 - `start-desktop.sh` - Mac/Linux desktop startup
 - `start-desktop.ps1` - Windows desktop startup
 - `start-desktop.py` - Cross-platform desktop launcher

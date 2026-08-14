@@ -5,16 +5,16 @@ WORKDIR /app
 RUN npm install -g pnpm
 
 COPY package.json pnpm-workspace.yaml ./
-COPY apps/desktop/package.json ./apps/desktop/
+COPY apps/vytdl-desktop/package.json ./apps/vytdl-desktop/
 COPY packages/ui/package.json ./packages/ui/
 COPY packages/utils/package.json ./packages/utils/
 
 RUN pnpm install
 
-COPY apps/desktop/ ./apps/desktop/
+COPY apps/vytdl-desktop/ ./apps/vytdl-desktop/
 COPY packages/ ./packages/
 
-RUN cd apps/desktop && pnpm build
+RUN cd apps/vytdl-desktop && pnpm build
 
 # ── Stage 2: Build web server ──
 FROM node:20-slim AS server-builder
@@ -22,10 +22,10 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
-COPY web-server/package.json ./
+COPY apps/vytdl-web/package.json ./
 RUN npm install
 
-COPY web-server/ ./
+COPY apps/vytdl-web/ ./
 RUN npm run build
 
 # ── Stage 3: Build Go CLI ──
@@ -34,8 +34,8 @@ WORKDIR /app
 
 RUN apk add --no-cache git
 
-COPY vYtDL/ /app/vYtDL/
-WORKDIR /app/vYtDL
+COPY tools/vytdl-cli/ /app/tools/vytdl-cli/
+WORKDIR /app/tools/vytdl-cli
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=$(go env GOARCH) go build -ldflags="-s -w" -o vYtDL .
 
 # ── Stage 4: Production ──
@@ -51,12 +51,12 @@ RUN pip3 install --break-system-packages yt-dlp
 
 WORKDIR /app
 
-COPY --from=frontend-builder /app/apps/desktop/out ./out
+COPY --from=frontend-builder /app/apps/vytdl-desktop/out ./out
 
 COPY --from=server-builder /app/dist ./server
 COPY --from=server-builder /app/node_modules ./server/node_modules
 
-COPY --from=cli-builder /app/vYtDL/vYtDL ./cli/vYtDL
+COPY --from=cli-builder /app/tools/vytdl-cli/vYtDL ./cli/vYtDL
 
 RUN mkdir -p /app/data /app/downloads
 

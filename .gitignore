@@ -1,26 +1,49 @@
+# ── OS ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Secrets ───────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Build artifacts ───────────────────────────────────────
+tools/vytdl-cli/vYtDL
+tools/contentforge-cli/contentforge
 *.exe
 *.mp4
 *.vtt
-dist/
-*/for_V/*
-for_V/for_V/*
-vYtDL-desktop-*.exe
+*.log
 node_modules/
 out/
+dist/
+.next/
+.turbo/
+*.tsbuildinfo
 
-# Tauri / Rust
+# ── Tauri / Rust ──────────────────────────────────────────
 **/src-tauri/target/
 
-# Bundled yt-dlp binaries (large, downloaded at build time)
-vYtDL-desktop/**/resources/yt-dlp/
-vYtDL/bin/*.zip
+# ── Bundled yt-dlp binaries (large, downloaded at build time)
+apps/**/resources/yt-dlp/
 
-# Python
+# ── Python ────────────────────────────────────────────────
 __pycache__/
+*.pyc
 
-# TypeScript build info
-*.tsbuildinfo
-*/test_download/*
-.next/
-vYtDL-desktop/apps/desktop/.next
+# ── Database (local dev) ──────────────────────────────────
+*.db
+*.sqlite
+
+# ── Download output ───────────────────────────────────────
+downloads/
 downloadeds/*
+
+# ── Workflow state ────────────────────────────────────────
+.git-workflow.state.json
+
+# ── Misc ──────────────────────────────────────────────────
+*/for_V/*
+for_V/for_V/*
+*/test_download/*
+vYtDL-desktop/apps/desktop/.next

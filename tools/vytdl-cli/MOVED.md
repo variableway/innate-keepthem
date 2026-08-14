@@ -1,9 +1,6 @@
 # vYtDL CLI — moved
 
-Canonical standalone repository:
-
-- Local: `/Users/patrick/innate/projects/vYtDL`
-- GitHub: https://github.com/qdriven/innate-vytdl
+Canonical standalone repository: https://github.com/qdriven/innate-vytdl
 
 ```bash
 git clone https://github.com/qdriven/innate-vytdl.git

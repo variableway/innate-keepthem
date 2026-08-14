@@ -84,7 +84,7 @@ cli/cmd/ (Go)
     └── pipeline.go ──► python_bridge.go ──► pipeline/
 
 python_bridge.go
-    └── 调用 Python: PYTHONPATH=<repo>/contentforge/core/python
+    └── 调用 Python: PYTHONPATH=<repo>/packages/contentforge-core/python
     └── python -m contentforge.cli.bridge <command>
 
 contentforge.cli.bridge

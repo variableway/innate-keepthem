@@ -1,7 +1,7 @@
 ## frameflow 仓库分析
 
 > 分析日期：2025-07-25  
-> 仓库路径：`/Users/patrick/innate/projects/innate-keepthem/contentforge/external-repos/frameflow/`  
+> 仓库路径：`contentforge/external-repos/frameflow/`  
 > 版本：v1.1.16  
 > 来源：https://github.com/navidshad/frameflow
 

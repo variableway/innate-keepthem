@@ -618,7 +618,7 @@ wsClient.onMessage((event: StreamEvent) => {
 
 2. **验证模块导入**
    ```bash
-   cd contentforge/core/python
+   cd packages/contentforge-core/python
    python -c "from contentforge.ai import ChatEngine, AgentRegistry, SkillLoader; print('OK')"
    ```
 

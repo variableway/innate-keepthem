@@ -15,7 +15,7 @@
 - `internal/tui/` - Bubble Tea terminal UI
 - `internal/record/` - Download tracking files
 
-## Desktop App (vYtDL-desktop/apps/desktop/)
+## Desktop App (apps/vytdl-desktop/)
 
 ### Frontend Structure
 
@@ -61,7 +61,7 @@ src/
 | `lib.rs` | App setup, auto-resume on startup |
 | `audio_extractor.rs` | FFmpeg audio extraction |
 
-## Web Server (vYtDL-desktop/web-server/)
+## Web Server (apps/vytdl-web/)
 
 ### Adding an Endpoint
 

@@ -162,11 +162,11 @@ Library / Player
 
 | 路径 | 说明 |
 |------|------|
-| `vYtDL-desktop/apps/desktop/src/components/download-form.tsx` | 下载表单 |
-| `vYtDL-desktop/apps/desktop/src/components/download-list.tsx` | 下载列表 |
-| `vYtDL-desktop/apps/desktop/src/app/settings/page.tsx` | 设置页 |
-| `vYtDL-desktop/apps/desktop/src-tauri/src/downloader.rs` | yt-dlp 参数组装 |
-| `vYtDL-desktop/apps/desktop/src-tauri/src/queue.rs` | 队列管理 |
+| `apps/vytdl-desktop/src/components/download-form.tsx` | 下载表单 |
+| `apps/vytdl-desktop/src/components/download-list.tsx` | 下载列表 |
+| `apps/vytdl-desktop/src/app/settings/page.tsx` | 设置页 |
+| `apps/vytdl-desktop/src-tauri/src/downloader.rs` | yt-dlp 参数组装 |
+| `apps/vytdl-desktop/src-tauri/src/queue.rs` | 队列管理 |
 | `yt-dlp-gui-v2/src/app/download_resilience.rs` | 错误分类与恢复决策参考 |
 | `yt-dlp-gui-v2/src/app/download_worker.rs` | 下载工作线程参考 |
 | `contentforge/docs/plan/ytdownload-refactor.md` | 早期调研与架构对比 |

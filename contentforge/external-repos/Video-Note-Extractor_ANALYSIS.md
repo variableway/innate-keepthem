@@ -2,7 +2,7 @@
 
 > 分析日期：2025-07-25
 > 分析师：技术分析师
-> 仓库路径：`/Users/patrick/innate/projects/innate-keepthem/contentforge/external-repos/Video-Note-Extractor/`
+> 仓库路径：`contentforge/external-repos/Video-Note-Extractor/`
 
 ---
 

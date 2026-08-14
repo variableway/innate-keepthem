@@ -172,7 +172,7 @@ examples:
 ├── translate_article.md                # 文章翻译 Skill
 └── ...
 
-contentforge/core/python/contentforge/skills/  # 内置 Skill
+packages/contentforge-core/python/contentforge/skills/  # 内置 Skill
 ├── xiaohongshu_publish.md
 ├── text_summarize.md
 ├── web_to_markdown.md

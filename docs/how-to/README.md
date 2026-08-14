@@ -213,10 +213,10 @@ ffmpeg -version
 
 ```bash
 # macOS / Linux
-curl -fsSL https://raw.githubusercontent.com/your-repo/vYtDL/main/docs/how-to/setup.sh | bash
+curl -fsSL https://raw.githubusercontent.com/variableway/innate-keepthem/main/docs/how-to/setup.sh | bash
 
 # Windows
-irm https://raw.githubusercontent.com/your-repo/vYtDL/main/docs/how-to/setup.ps1 | iex
+irm https://raw.githubusercontent.com/variableway/innate-keepthem/main/docs/how-to/setup.ps1 | iex
 ```
 
 ## 如何使用 SKILL 功能
@@ -262,7 +262,7 @@ go build -o vYtDL .
 
 #### 桌面应用测试
 
-1. 启动桌面应用：`cd vYtDL-desktop/apps/desktop && pnpm tauri dev`
+1. 启动桌面应用：`cd apps/vytdl-desktop && pnpm tauri dev`
 2. 在首页粘贴 Bilibili URL
 3. 选择画质和格式
 4. 点击下载，观察进度和日志

@@ -212,5 +212,5 @@ tasks:
         echo "    source packages/contentforge-core/scripts/cf-env.sh"
         echo ""
         echo "  Direct Python (still supported):"
-        echo "    cd vYtDL-desktop && python3 scripts/build-desktop.py dev"
+        echo "    python3 scripts/build-desktop.py dev"
         echo ""

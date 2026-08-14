@@ -541,7 +541,7 @@ await apiInvoke("start_download", {
 ### 5.1 模块边界划分
 
 ```
-contentforge/desktop/src-tauri/src/
+apps/contentforge-desktop/src-tauri/src/
 ├── main.rs                    # 应用入口
 ├── lib.rs                     # 模块导出
 ├── commands.rs                # Tauri IPC 命令（聚合）
@@ -745,7 +745,7 @@ Week 7-8: 前端集成与优化
 **关键代码参考**:
 - 进程控制: `yt-dlp-gui/src-tauri/src/process.rs`
 - 进度解析: `yt-dlp-gui/src-tauri/src/parser.rs`
-- yt-dlp 查找: `vYtDL-desktop/src-tauri/src/downloader.rs:555-632`
+- yt-dlp 查找: `apps/vytdl-desktop/src-tauri/src/downloader.rs:555-632`
 
 ### 7.3 第二阶段：核心下载功能（Week 3-4）
 
@@ -765,7 +765,7 @@ Week 7-8: 前端集成与优化
 **关键代码参考**:
 - Channel 使用: Tauri v2 官方文档
 - 工作线程: `yt-dlp-gui/src-tauri/src/commands/download.rs:140-222`
-- 视频信息: `vYtDL-desktop/src-tauri/src/downloader.rs:374-409`
+- 视频信息: `apps/vytdl-desktop/src-tauri/src/downloader.rs:374-409`
 
 ### 7.4 第三阶段：队列管理与错误恢复（Week 5-6）
 
@@ -864,11 +864,11 @@ windows-sys = { version = "0.52", features = ["Win32_System_Threading", "Win32_F
 | yt-dlp-gui 进程控制 | `yt-dlp-gui/src-tauri/src/process.rs` | 跨平台 suspend/resume/kill |
 | yt-dlp-gui 前端 Store | `yt-dlp-gui/src/stores/download.ts` | Pinia 队列管理 |
 | vYtDL 队列管理 | `vYtDL-desktop/src-tauri/src/queue.rs` | Rust QueueManager |
-| vYtDL 下载器 | `vYtDL-desktop/src-tauri/src/downloader.rs` | yt-dlp 包装器 |
+| vYtDL 下载器 | `apps/vytdl-desktop/src-tauri/src/downloader.rs` | yt-dlp 包装器 |
 | vYtDL 数据库 | `vYtDL-desktop/src-tauri/src/database.rs` | SQLite + sqlx |
 | vYtDL IPC 命令 | `vYtDL-desktop/src-tauri/src/commands.rs` | Tauri 命令定义 |
-| ContentForge API 客户端 | `contentforge/desktop/src/lib/api-client.ts` | IPC/HTTP 抽象 |
-| ContentForge Asset Store | `contentforge/desktop/src/store/assetStore.ts` | Zustand 资产管理 |
+| ContentForge API 客户端 | `apps/contentforge-desktop/src/lib/api-client.ts` | IPC/HTTP 抽象 |
+| ContentForge Asset Store | `apps/contentforge-desktop/src/store/assetStore.ts` | Zustand 资产管理 |
 | ContentForge 架构决策 | `contentforge/docs/architecture/decision.md` | 混合精简方案 |
 
 ---

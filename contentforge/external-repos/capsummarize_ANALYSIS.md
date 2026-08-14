@@ -1,7 +1,7 @@
 ## capsummarize 仓库分析
 
 **分析日期**: 2026-07-25  
-**仓库路径**: `/Users/patrick/innate/projects/innate-keepthem/contentforge/external-repos/capsummarize/`  
+**仓库路径**: `contentforge/external-repos/capsummarize/`  
 **版本**: 1.1.0  
 **许可证**: MIT
 

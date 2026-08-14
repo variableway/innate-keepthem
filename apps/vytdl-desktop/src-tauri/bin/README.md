@@ -36,4 +36,4 @@ src-tauri/resources/yt-dlp/
 Binaries are downloaded from:
 https://github.com/yt-dlp/yt-dlp/releases/latest
 
-The original zip files are stored in `../../../../vYtDL/bin/`.
+Extracted per-platform binaries are stored in `../resources/yt-dlp/` (gitignored; re-run `python scripts/download-yt-dlp-binaries.py` to provision).

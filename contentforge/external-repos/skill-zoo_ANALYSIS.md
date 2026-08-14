@@ -1,7 +1,7 @@
 ## skill-zoo 仓库分析
 
 > 分析日期：2026-07-25
-> 仓库路径：`/Users/patrick/innate/projects/innate-keepthem/contentforge/external-repos/skill-zoo/`
+> 仓库路径：`contentforge/external-repos/skill-zoo/`
 > 原始仓库：https://github.com/luochang212/skill-zoo
 
 ---

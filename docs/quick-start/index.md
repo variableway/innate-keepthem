@@ -23,7 +23,7 @@ go build -o vYtDL .
 
 ### Configure
 
-Edit `vYtDL/config.json` to set your yt-dlp binary path:
+Edit `tools/vytdl-cli/config.json` to set your yt-dlp binary path:
 
 ```json
 {

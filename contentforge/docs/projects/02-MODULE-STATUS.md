@@ -37,7 +37,7 @@
 
 ## 二、前端层（Frontend）
 
-**代码路径**: `contentforge/desktop/src/`  
+**代码路径**: `apps/contentforge-desktop/src/`  
 **技术栈**: Next.js 15 + React 19 + Tailwind CSS + Zustand  
 **总行数**: ~3,200 行
 
@@ -87,7 +87,7 @@
 
 ## 三、Rust 后端（Backend）
 
-**代码路径**: `contentforge/desktop/src-tauri/src/`  
+**代码路径**: `apps/contentforge-desktop/src-tauri/src/`  
 **技术栈**: Rust 1.77+ + Tauri v2.10 + tokio + sqlx  
 **总行数**: ~4,000 行
 
@@ -143,7 +143,7 @@
 
 ## 四、Python 核心引擎（Core Engine）
 
-**代码路径**: `contentforge/core/python/contentforge/`  
+**代码路径**: `packages/contentforge-core/python/contentforge/`  
 **技术栈**: Python 3.10+  
 **总行数**: ~9,500 行
 
@@ -280,7 +280,7 @@
 
 ## 六、Go CLI
 
-**代码路径**: `contentforge/cli/`（规划中）或复用 `vYtDL/`  
+**代码路径**: `tools/contentforge-cli/`（规划中）或复用 `vYtDL/`  
 **状态**: 📋 **规划中**
 
 | 功能 | 状态 | 说明 |

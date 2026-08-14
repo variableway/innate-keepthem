@@ -12,12 +12,12 @@ description: |
 
 | 文件 | 职责 |
 |------|------|
-| `contentforge/core/python/contentforge/pipeline/engine.py` | DAG 执行引擎、StepHandler |
-| `contentforge/core/python/contentforge/pipeline/presets.py` | 内置预设定义 |
-| `contentforge/core/python/contentforge/pipeline/runner.py` | 生命周期、状态追踪 |
-| `contentforge/core/scripts/presets/*.json` | JSON 预设配置 |
-| `contentforge/cli/cmd/pipeline.go` | CLI: list / run / create / validate |
-| `contentforge/core/python/contentforge/cli/pipeline.py` | Python bridge 入口 |
+| `packages/contentforge-core/python/contentforge/pipeline/engine.py` | DAG 执行引擎、StepHandler |
+| `packages/contentforge-core/python/contentforge/pipeline/presets.py` | 内置预设定义 |
+| `packages/contentforge-core/python/contentforge/pipeline/runner.py` | 生命周期、状态追踪 |
+| `packages/contentforge-core/scripts/presets/*.json` | JSON 预设配置 |
+| `tools/contentforge-cli/cmd/pipeline.go` | CLI: list / run / create / validate |
+| `packages/contentforge-core/python/tools/contentforge-cli/pipeline.py` | Python bridge 入口 |
 
 ## 步骤类型
 
@@ -33,7 +33,7 @@ description: |
 ## CLI 命令
 
 ```bash
-cd contentforge/cli && go build -o contentforge .
+cd tools/contentforge-cli && go build -o contentforge .
 
 ./contentforge pipeline list
 ./contentforge pipeline run twitter_to_xiaohongshu --url "https://twitter.com/..."
@@ -53,7 +53,7 @@ cd contentforge/cli && go build -o contentforge .
 ## 调试
 
 ```bash
-source contentforge/core/scripts/cf-env.sh
+source packages/contentforge-core/scripts/cf-env.sh
 python -m contentforge.cli.pipeline list
 ```
 

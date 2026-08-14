@@ -20,10 +20,10 @@ vYtDL is a multi-component video downloader suite:
 
 | Component | Tech Stack | Location |
 |-----------|-----------|----------|
-| CLI | Go 1.24+, Cobra, Bubble Tea TUI | **Standalone repo** `/Users/patrick/innate/projects/vYtDL` (skill: `vytdl-cli`). Monorepo `vYtDL/` is a working copy — see `vYtDL/MOVED.md` |
-| Desktop | Tauri v2 (Rust), Next.js 15, React 19, TypeScript, Tailwind | `vYtDL-desktop/apps/desktop/` |
-| Web Server | Node.js, Express, WebSocket, better-sqlite3 | `vYtDL-desktop/web-server/` |
-| Chrome Extension | Manifest V3, vanilla HTML/JS/CSS | `url-extractor/` |
+| CLI | Go 1.24+, Cobra, Bubble Tea TUI | **Standalone repo** `https://github.com/qdriven/innate-vytdl` (skill: `vytdl-cli`). Monorepo `vYtDL/` is a working copy — see `tools/vytdl-cli/MOVED.md` |
+| Desktop | Tauri v2 (Rust), Next.js 15, React 19, TypeScript, Tailwind | `apps/vytdl-desktop/` |
+| Web Server | Node.js, Express, WebSocket, better-sqlite3 | `apps/vytdl-web/` |
+| Chrome Extension | Manifest V3, vanilla HTML/JS/CSS | `extensions/url-extractor/` |
 
 External dependency: **yt-dlp** (called as subprocess). FFmpeg is optional (for audio extraction).
 
@@ -46,9 +46,9 @@ External dependency: **yt-dlp** (called as subprocess). FFmpeg is optional (for 
 
 ### Modifying Download Behavior
 
-- **CLI**: `vYtDL/internal/downloader/downloader.go`
-- **Desktop Rust**: `vYtDL-desktop/apps/desktop/src-tauri/src/downloader.rs`
-- **Web Server**: `vYtDL-desktop/web-server/src/downloader.ts`
+- **CLI**: `tools/vytdl-cli/internal/downloader/downloader.go`
+- **Desktop Rust**: `apps/vytdl-desktop/src-tauri/src/downloader.rs`
+- **Web Server**: `apps/vytdl-web/src/downloader.ts`
 
 ### Database Schema
 
@@ -86,7 +86,7 @@ task desktop:dev
 task desktop:build
 
 # Desktop (Python script — equivalent)
-cd vYtDL-desktop && python3 scripts/build-desktop.py dev
+python3 scripts/build-desktop.py dev
 
 # Web (Docker)
 docker-compose up -d

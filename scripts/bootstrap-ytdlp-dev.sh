@@ -4,7 +4,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RES_DIR="${SCRIPT_DIR}/../apps/desktop/src-tauri/resources/yt-dlp"
+RES_DIR="${SCRIPT_DIR}/../apps/vytdl-desktop/src-tauri/resources/yt-dlp"
 MACOS_DIR="${RES_DIR}/macos"
 MARKER="${MACOS_DIR}/.downloaded"
 

@@ -11,7 +11,7 @@ cd vYtDL
 go build -o vYtDL .
 ```
 
-The default `yt-dlp` binary path is configured in `vYtDL/config.json`:
+The default `yt-dlp` binary path is configured in `tools/vytdl-cli/config.json`:
 
 ```json
 {
@@ -165,8 +165,7 @@ Both `download_video.sh` and `download_collection.sh` also check for `yt-dlp`/`y
 Cross-platform (recommended):
 
 ```bash
-cd vYtDL-desktop
-python scripts/start-desktop.py
+python3 scripts/start-desktop.py
 ```
 
 Platform-specific:
@@ -179,7 +178,7 @@ Platform-specific:
 ### Build for Production
 
 ```bash
-cd vYtDL-desktop
+cd apps/vytdl-desktop
 pnpm tauri:build
 ```
 

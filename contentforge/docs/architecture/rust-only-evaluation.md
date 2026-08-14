@@ -652,7 +652,7 @@ ContentForge 的核心负载是 **I/O 密集型**（HTTP API 调用、SQLite 查
 ### 10.3 文件结构建议
 
 ```
-contentforge/desktop/src-tauri/src/
+apps/contentforge-desktop/src-tauri/src/
 ├── main.rs                 # Tauri 入口
 ├── lib.rs                  # 库导出
 ├── commands.rs             # Tauri IPC 命令路由

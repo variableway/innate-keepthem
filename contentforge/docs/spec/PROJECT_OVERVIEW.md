@@ -373,7 +373,7 @@ contentforge/
 bash setup-macos.sh
 
 # 2. 加载环境变量
-source contentforge/core/scripts/cf-env.sh
+source packages/contentforge-core/scripts/cf-env.sh
 
 # 3. 验证 CLI
 contentforge --help

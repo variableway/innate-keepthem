@@ -125,4 +125,4 @@ ingestion:
 | 小红书采集失败 | 未登录 | 在 Chrome 中登录小红书，或使用 xiaohongshu-mcp 扫码 |
 | yt-dlp 未找到 | 未安装 | `pip install yt-dlp` |
 | Jina Reader 超时 | 网络问题 | 检查网络连接，或使用代理 |
-| agent-reach 不可用 | venv 未激活 | `source contentforge/core/scripts/cf-env.sh` |
+| agent-reach 不可用 | venv 未激活 | `source packages/contentforge-core/scripts/cf-env.sh` |

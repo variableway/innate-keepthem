@@ -126,7 +126,7 @@ contentforge/
 bash setup-macos.sh
 
 # 2. 加载环境变量
-source contentforge/core/scripts/cf-env.sh
+source packages/contentforge-core/scripts/cf-env.sh
 
 # 3. 验证
 contentforge --help
@@ -135,14 +135,14 @@ contentforge --help
 ### 虚拟环境
 
 - Python venv: `<repo>/.venv-cf`（由 `setup-macos.sh` 创建）
-- 加载环境: `source contentforge/core/scripts/cf-env.sh`
+- 加载环境: `source packages/contentforge-core/scripts/cf-env.sh`
 - agent-reach / yt-dlp: 安装在 venv 中
 
 ## 构建命令
 
 ```bash
 # Go CLI
-cd contentforge/cli && go build -o contentforge .
+cd tools/contentforge-cli && go build -o contentforge .
 
 # 验证
 ./contentforge --help
@@ -204,7 +204,7 @@ publishing:
 - **yt-dlp 未找到**: 检查 venv 中是否安装，`pip install yt-dlp`
 - **FFmpeg 未找到**: `brew install ffmpeg`
 - **AI API 调用失败**: 检查 `~/.config/contentforge/config.yaml` 中的 API Key
-- **Python 导入错误**: 确保 `PYTHONPATH` 包含 `contentforge/core/python`
+- **Python 导入错误**: 确保 `PYTHONPATH` 包含 `packages/contentforge-core/python`
 
 ## 参考文档
 

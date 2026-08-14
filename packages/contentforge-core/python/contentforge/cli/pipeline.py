@@ -2,6 +2,7 @@
 
 import json
 import logging
+from pathlib import Path
 from typing import Any, Dict
 
 from contentforge.models import ContentUnit, PipelineStatus
@@ -92,7 +93,8 @@ def handle_pipeline(payload: Dict[str, Any]) -> Dict[str, Any]:
             else:
                 pipeline_def = pipeline_json
             # Save to presets dir
-            presets_dir = "/Users/patrick/innate/projects/innate-keepthem/contentforge/core/scripts/presets"
+            # repo layout: <root>/packages/contentforge-core/{python,scripts}
+            presets_dir = str(Path(__file__).resolve().parents[3] / "scripts" / "presets")
             presets = PipelinePresets(presets_dir)
             # Re-save to persist
             name = pipeline_def.get("id", "custom")

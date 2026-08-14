@@ -1,9 +1,6 @@
 # vYtDL CLI (monorepo working copy)
 
-Prefer the standalone repo:
-
-- Local: `/Users/patrick/innate/projects/vYtDL`
-- GitHub: https://github.com/qdriven/innate-vytdl
+Prefer the standalone repo: https://github.com/qdriven/innate-vytdl
 
 ```bash
 git clone https://github.com/qdriven/innate-vytdl.git

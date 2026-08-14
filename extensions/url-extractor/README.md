@@ -144,7 +144,7 @@ https://www.youtube.com/watch?v=VIDEO_ID_4
 
 1. 确保 vYtDL 已正确构建
 2. 确保 yt-dlp 已安装并在 PATH 中
-3. 检查 vYtDL/config.json 中的 yt-dlp 路径配置
+3. 检查 tools/vytdl-cli/config.json 中的 yt-dlp 路径配置
 
 ### Q: 如何下载播放列表？
 

@@ -6,6 +6,10 @@ Usage:
     python scripts/download-yt-dlp-binaries.py
 
 Downloads platform-specific zip bundles and extracts them into src-tauri/resources/yt-dlp/.
+
+Slow GitHub downloads? Use a mirror (same env var as the vYtDL CLI):
+    export VYTDL_YTDLP_MIRROR="https://ghproxy.net/https://github.com/yt-dlp/yt-dlp/releases/latest/download/"
+    python scripts/download-yt-dlp-binaries.py
 """
 
 import os
@@ -21,7 +25,8 @@ PLATFORMS = {
     "windows-arm64": "yt-dlp_win_arm64.zip",
 }
 
-RELEASE_URL = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/"
+DEFAULT_RELEASE_URL = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/"
+RELEASE_URL = os.environ.get("VYTDL_YTDLP_MIRROR", DEFAULT_RELEASE_URL).rstrip("/") + "/"
 
 
 def get_project_root() -> Path:
@@ -30,7 +35,7 @@ def get_project_root() -> Path:
 
 def get_resources_dir() -> Path:
     return (
-        get_project_root() / "apps" / "desktop" / "src-tauri" / "resources" / "yt-dlp"
+        get_project_root() / "apps" / "vytdl-desktop" / "src-tauri" / "resources" / "yt-dlp"
     )
 
 
@@ -69,6 +74,7 @@ def main() -> int:
 
     for platform, zip_name in PLATFORMS.items():
         platform_dir = resources_dir / platform
+        resources_dir.mkdir(parents=True, exist_ok=True)
 
         # Check if already extracted
         marker = platform_dir / ".downloaded"

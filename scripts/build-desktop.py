@@ -69,7 +69,7 @@ def get_project_root() -> Path:
 
 
 def get_tauri_src_dir(project_dir: Path) -> Path:
-    return project_dir / "apps" / "desktop" / "src-tauri"
+    return project_dir / "apps" / "vytdl-desktop" / "src-tauri"
 
 
 # ───────────────────────────── Dependency Checks ─────────────────────────────
@@ -212,7 +212,7 @@ def install_deps(project_dir: Path, verbose: bool = False) -> bool:
 
 def download_yt_dlp_binaries(project_dir: Path, verbose: bool = False) -> bool:
     """Download yt-dlp binaries for bundling."""
-    resources_dir = project_dir / "apps" / "desktop" / "src-tauri" / "resources" / "yt-dlp"
+    resources_dir = project_dir / "apps" / "vytdl-desktop" / "src-tauri" / "resources" / "yt-dlp"
 
     # Check if already extracted
     marker = resources_dir / ".downloaded"

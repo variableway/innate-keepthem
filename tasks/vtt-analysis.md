@@ -63,5 +63,5 @@
 ## 参考资料
 
 - Spec: `tasks/vtt-analysis-spec.md`
-- VTT 样例：`vYtDL/downloads_case/downloads_case/AI的正确打开方式：不学概念，学动作.zh.vtt` (类型 A)
-- VTT 样例：`vYtDL/downloads_case/downloads_case/Game Theory #25：  Trump Visits China.en.vtt` (类型 B)
+- VTT 样例：`tools/vytdl-cli/downloads_case/downloads_case/AI的正确打开方式：不学概念，学动作.zh.vtt` (类型 A)
+- VTT 样例：`tools/vytdl-cli/downloads_case/downloads_case/Game Theory #25：  Trump Visits China.en.vtt` (类型 B)

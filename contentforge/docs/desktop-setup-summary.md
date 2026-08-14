@@ -122,28 +122,28 @@
 ### 1. 安装前端依赖
 
 ```bash
-cd contentforge/desktop
+cd apps/contentforge-desktop
 npm install
 ```
 
 ### 2. 安装 Rust 依赖并编译
 
 ```bash
-cd contentforge/desktop/src-tauri
+cd apps/contentforge-desktop/src-tauri
 cargo check
 ```
 
 ### 3. 启动开发服务器
 
 ```bash
-cd contentforge/desktop
+cd apps/contentforge-desktop
 npm run dev
 ```
 
 ### 4. 启动 Tauri 桌面端
 
 ```bash
-cd contentforge/desktop
+cd apps/contentforge-desktop
 npx tauri dev
 ```
 
@@ -187,7 +187,7 @@ npx tauri dev
 ## 📁 文件索引
 
 ```
-contentforge/desktop/
+apps/contentforge-desktop/
 ├── package.json
 ├── next.config.ts
 ├── tsconfig.json

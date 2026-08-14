@@ -1,7 +1,7 @@
 ## youtube-rag-system 仓库分析
 
 > **分析日期**: 2025-07-25
-> **仓库路径**: `/Users/patrick/innate/projects/innate-keepthem/contentforge/external-repos/youtube-rag-system/`
+> **仓库路径**: `contentforge/external-repos/youtube-rag-system/`
 > **原始仓库**: https://github.com/XynaxDev/youtube-rag-system
 
 ---

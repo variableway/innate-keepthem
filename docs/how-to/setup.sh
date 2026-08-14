@@ -236,7 +236,7 @@ print_next_steps() {
     echo "   cd vYtDL && go build -o vYtDL ."
     echo ""
     echo "2. Run the desktop app in dev mode:"
-    echo "   cd vYtDL-desktop/apps/desktop && pnpm install && pnpm tauri dev"
+    echo "   cd apps/vytdl-desktop && pnpm install && pnpm tauri dev"
     echo ""
     echo "3. Deploy the web UI:"
     echo "   docker-compose up -d"

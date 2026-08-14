@@ -46,4 +46,6 @@ downloadeds/*
 */for_V/*
 for_V/for_V/*
 */test_download/*
-vYtDL-desktop/apps/desktop/.next
+
+# Nested canonical repo for tools/vytdl-cli (kept untracked on purpose)
+vYtDL-standalone/

@@ -72,25 +72,25 @@ Runtime TypeError
 undefined is not an object (evaluating 'path.split')
 
 
-    at getNestedValue (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/_0.sz61a._.js:12491:22)
-    at I18nProvider.useCallback[t] (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/_0.sz61a._.js:12528:41)
-    at StatusBadge (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/_0g4znt_._.js:1189:20)
-    at react_stack_bottom_frame (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:15037:33)
-    at renderWithHooks (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:4620:42)
-    at updateFunctionComponent (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:6081:36)
-    at runWithFiberInDEV (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:965:139)
-    at performUnitOfWork (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:9555:114)
-    at workLoopSync (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:9449:57)
-    at renderRootSync (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:9433:25)
-    at performWorkOnRoot (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:9098:61)
-    at performSyncWorkOnRoot (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:10263:26)
-    at flushSyncWorkAcrossRoots_impl (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:10179:337)
-    at processRootScheduleInMicrotask (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:10200:135)
-    at <unknown> (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:10274:188)
-    at DownloadItem (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/_0g4znt_._.js:1263:362)
+    at getNestedValue (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/_0.sz61a._.js:12491:22)
+    at I18nProvider.useCallback[t] (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/_0.sz61a._.js:12528:41)
+    at StatusBadge (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/_0g4znt_._.js:1189:20)
+    at react_stack_bottom_frame (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:15037:33)
+    at renderWithHooks (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:4620:42)
+    at updateFunctionComponent (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:6081:36)
+    at runWithFiberInDEV (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:965:139)
+    at performUnitOfWork (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:9555:114)
+    at workLoopSync (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:9449:57)
+    at renderRootSync (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:9433:25)
+    at performWorkOnRoot (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:9098:61)
+    at performSyncWorkOnRoot (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:10263:26)
+    at flushSyncWorkAcrossRoots_impl (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:10179:337)
+    at processRootScheduleInMicrotask (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:10200:135)
+    at <unknown> (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/0whz_next_dist_compiled_react-dom_06fppy-._.js:10274:188)
+    at DownloadItem (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/_0g4znt_._.js:1263:362)
     at map ([native code]:null:null)
-    at DownloadList (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/_0g4znt_._.js:1610:52)
-    at HomePage (file:///Users/patrick/innate/innate-keepthem/vYtDL-desktop/apps/desktop/out/dev/static/chunks/_0g4znt_._.js:1952:342)
+    at DownloadList (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/_0g4znt_._.js:1610:52)
+    at HomePage (file:///Users/patrick/innate/innate-keepthem/apps/vytdl-desktop/out/dev/static/chunks/_0g4znt_._.js:1952:342)
 
 Next.js version: 16.2.2 (Turbopack)
 
@@ -98,7 +98,7 @@ Next.js version: 16.2.2 (Turbopack)
 
 ## Task 9: Simple Include the bin file
 
-1. different runable files for different platform is download in [bin](../../vYtDL/bin)
+1. different runable files for different platform is download in [bin](../../tools/vytdl-cli/internal/ytdlpbin/binaries)
 2. please include these for different platform
 
 

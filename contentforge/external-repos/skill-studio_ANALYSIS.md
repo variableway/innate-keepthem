@@ -1,7 +1,7 @@
 ## skill-studio 仓库分析
 
 > 分析时间：2026-06-07
-> 仓库路径：`/Users/patrick/innate/projects/innate-keepthem/contentforge/external-repos/skill-studio/`
+> 仓库路径：`contentforge/external-repos/skill-studio/`
 > 分析师：技术分析师（Orchestrator Agent）
 
 ---

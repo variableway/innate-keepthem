@@ -1406,7 +1406,7 @@ class StepHandler(ABC):
 
 ### 9.1 主入口
 
-**文件**: `contentforge/cli/__init__.py`
+**文件**: `tools/contentforge-cli/__init__.py`
 
 Python CLI 作为 Go 后端的子进程被调用：
 
@@ -1430,7 +1430,7 @@ python -m contentforge.cli <subcommand> [args]
 
 ### 9.2 Bridge 模块
 
-**文件**: `contentforge/cli/bridge.py`
+**文件**: `tools/contentforge-cli/bridge.py`
 
 提供 argparse 风格的 CLI 接口，支持以下命令：
 
@@ -1446,7 +1446,7 @@ python -m contentforge.cli <subcommand> [args]
 
 ### 9.3 各子命令处理器
 
-**文件**: `contentforge/cli/scrape.py`, `process.py`, `publish.py`, `pipeline.py`
+**文件**: `tools/contentforge-cli/scrape.py`, `process.py`, `publish.py`, `pipeline.py`
 
 **统一输入格式**：
 ```json

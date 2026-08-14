@@ -70,7 +70,7 @@ go build -o vYtDL .
 ### Desktop App
 
 ```bash
-cd vYtDL-desktop
+cd apps/vytdl-desktop
 pnpm install
 ```
 
@@ -116,7 +116,6 @@ task desktop:bundle   # build + installer
 **Direct Python scripts (still supported):**
 
 ```bash
-cd vYtDL-desktop
 python3 scripts/build-desktop.py check
 python3 scripts/build-desktop.py dev
 python3 scripts/build-desktop.py build
@@ -143,16 +142,23 @@ See [USAGE.md](USAGE.md) for detailed CLI usage and [docs/](docs/) for full proj
 ## Project Structure
 
 ```
-├── vYtDL/                    # Go CLI application
-├── vYtDL-desktop/            # Desktop app (Tauri + Next.js monorepo)
-│   ├── apps/desktop/         # Desktop application
-│   ├── packages/ui/          # Shared UI components
-│   ├── packages/utils/       # Shared utilities
-│   ├── scripts/              # Startup scripts
-│   └── web-server/           # Docker web API server
-├── contentforge/             # Content pipeline CLI (Go + Python)
-├── url-extractor/            # Chrome extension
+├── apps/
+│   ├── vytdl-desktop/        # Desktop app (Tauri + Next.js)
+│   ├── vytdl-web/            # Web API server (Node.js, Docker)
+│   └── contentforge-desktop/ # ContentForge desktop app (Tauri + Next.js)
+├── packages/
+│   ├── contentforge-core/    # ContentForge core (Go + Python)
+│   ├── ui/                   # Shared UI components
+│   └── utils/                # Shared utilities
+├── services/
+│   └── agent-reach/          # Agent Reach service (submodule)
+├── tools/
+│   ├── vytdl-cli/            # Go CLI application (mirror of qdriven/innate-vytdl)
+│   └── contentforge-cli/     # ContentForge pipeline CLI (Go)
+├── extensions/
+│   └── url-extractor/        # Chrome extension
 ├── .agents/skills/           # AI Agent Skills
+├── scripts/                  # Build/startup scripts
 ├── docker-compose.yml        # Docker Compose for web UI
 ├── docs/                     # Documentation
 └── tasks/                    # Task definitions (PRDs)

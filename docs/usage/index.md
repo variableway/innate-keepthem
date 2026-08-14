@@ -76,7 +76,7 @@ Each run generates:
 
 ### Configuration
 
-Edit `vYtDL/config.json`:
+Edit `tools/vytdl-cli/config.json`:
 
 ```json
 {

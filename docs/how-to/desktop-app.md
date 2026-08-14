@@ -95,7 +95,7 @@ task stop
 **适用场景**：只需要修改页面布局、样式、组件逻辑，不需要后端功能。这是最轻量的开发方式，启动快、热更新即时。
 
 ```bash
-cd vYtDL-desktop/apps/desktop
+cd apps/vytdl-desktop
 pnpm dev
 # Next.js 开发服务器运行在 http://localhost:3002
 ```
@@ -129,7 +129,7 @@ cd vYtDL-desktop/web-server
 pnpm dev
 
 # 终端 2：启动前端开发服务器
-cd vYtDL-desktop/apps/desktop
+cd apps/vytdl-desktop
 pnpm dev
 ```
 
@@ -205,7 +205,7 @@ task bundle
 检查 Next.js 是否正常启动：
 
 ```bash
-cd vYtDL-desktop/apps/desktop
+cd apps/vytdl-desktop
 pnpm dev
 # 访问 http://localhost:3002 确认页面正常
 ```

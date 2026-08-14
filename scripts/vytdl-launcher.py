@@ -54,7 +54,7 @@ def get_project_root() -> Path:
 
 def get_desktop_dir() -> Path:
     """Get the desktop app directory."""
-    return get_project_root() / "apps" / "desktop"
+    return get_project_root() / "apps" / "vytdl-desktop"
 
 
 def run_command(cmd: List[str], cwd: Optional[Path] = None, env: Optional[dict] = None) -> int:

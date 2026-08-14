@@ -1,7 +1,7 @@
 ## OpenMontage 仓库分析
 
 > 分析时间：2026-07-25  
-> 仓库路径：`/Users/patrick/innate/projects/innate-keepthem/contentforge/external-repos/OpenMontage/`  
+> 仓库路径：`contentforge/external-repos/OpenMontage/`  
 > 分析师：AI 技术分析师  
 
 ---

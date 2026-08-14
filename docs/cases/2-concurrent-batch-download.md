@@ -158,7 +158,7 @@ Completed: 0 succeeded, 2 failed.
 ## 输出文件结构
 
 ```
-vYtDL/downloads_case/
+tools/vytdl-cli/downloads_case/
 ├── download_record.json
 ├── subtitle_mapping.json
 └── downloads_case/

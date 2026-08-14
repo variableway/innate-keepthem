@@ -32,17 +32,17 @@ go build -o vYtDL .
 
 | 问题 | 答案 |
 |------|------|
-| CLI 是否单独成项目？ | **是** — 独立仓库 `/Users/patrick/innate/projects/vYtDL`（Go module `github.com/innate/yt-dl`） |
+| CLI 是否单独成项目？ | **是** — 独立仓库 `https://github.com/qdriven/innate-vytdl`（Go module `github.com/innate/yt-dl`） |
 | 是否单独 git 仓库？ | **是**（已 `git init`，skill：`.agents/skills/vytdl-cli`） |
 | 能否直接 build？ | **能**：`cd …/vYtDL && go build -o vYtDL .`；Go 1.24+ |
 | yt-dlp 是否打进包？ | **支持**：PATH → `-tags embed_ytdlp` 内嵌 → 缓存自动下载（`--install-yt-dlp`） |
-| monorepo 内 `vYtDL/`？ | 工作副本；见 `vYtDL/MOVED.md` / `vYtDL/README.md` |
+| monorepo 内 `tools/vytdl-cli/`？ | 工作副本；见 `tools/vytdl-cli/MOVED.md` / `tools/vytdl-cli/README.md` |
 
 ---
 
 ## 2. 当前 UI 已放行（可直接粘贴下载）
 
-来源：`vYtDL-desktop/apps/desktop/src/components/download-form.tsx`
+来源：`apps/vytdl-desktop/src/components/download-form.tsx`
 
 | 平台 | 匹配域名 |
 |------|----------|

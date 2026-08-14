@@ -387,7 +387,7 @@ func getStr(m map[string]interface{}, key string) string
 | 函数 | 说明 |
 |------|------|
 | `findProjectRoot()` | 向上查找包含 `contentforge/` 的目录 |
-| `contentforgePythonPath()` | 返回 `contentforge/core/python` 绝对路径 |
+| `contentforgePythonPath()` | 返回 `packages/contentforge-core/python` 绝对路径 |
 | `DefaultVenvPath()` | 返回默认虚拟环境路径（环境变量 → 项目内 `.venv-cf`） |
 
 ---

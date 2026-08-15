@@ -118,8 +118,20 @@ async function httpRequest<T>(command: string, args?: unknown): Promise<T> {
  */
 export function apiListen(event: string, handler: (payload: unknown) => void): () => void {
   if (isTauri()) {
-    // Tauri Event 模式
-    return listenTauriEvent(event, handler);
+    // Tauri Event 模式（unlisten 异步获取，包装为同步退订句柄）
+    let disposed = false;
+    let unlisten: (() => void) | null = null;
+    listenTauriEvent(event, handler).then((fn) => {
+      if (disposed) {
+        fn();
+      } else {
+        unlisten = fn;
+      }
+    });
+    return () => {
+      disposed = true;
+      unlisten?.();
+    };
   } else {
     // WebSocket 模式
     return wsClient.subscribe(event, handler);
@@ -284,14 +296,15 @@ export { wsClient };
 import { setChatApiClient } from "../store/chatStore";
 import { setAgentApiClient } from "../store/agentStore";
 import { setAssetApiClient } from "../store/assetStore";
-import { setDownloadApiClient } from "../store/downloadStore";
+// WIP: downloadStore 尚未创建（下载工作台重建中，见 docs/STATUS.md）
+// import { setDownloadApiClient } from "../store/downloadStore";
 
 /** 初始化所有 Store 的 API 客户端 */
 export function initApiClients(): void {
   setChatApiClient(apiInvoke, apiListen);
   setAgentApiClient(apiInvoke);
   setAssetApiClient(apiInvoke);
-  setDownloadApiClient(apiInvoke, apiListen);
+  // setDownloadApiClient(apiInvoke, apiListen); // WIP: 见上
 }
 
 // 自动初始化（在应用启动时调用）

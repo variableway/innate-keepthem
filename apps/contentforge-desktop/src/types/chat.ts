@@ -109,6 +109,10 @@ export interface SendMessageOptions {
 // ─────────────────────────── WebSocket 事件 ───────────────────────────
 
 export type WSEventType =
+  | "chat.send"
+  | "session.bind"
+  | "stream.cancel"
+  | "ping"
   | "message.delta"
   | "message.completed"
   | "message.failed"
@@ -116,6 +120,7 @@ export type WSEventType =
   | "tool.call.progress"
   | "tool.call.completed"
   | "tool.call.failed"
+  | "tool.confirm"
   | "agent.switched"
   | "session.updated"
   | "error";

@@ -207,17 +207,43 @@ fn extract_video_id(url: &str) -> Option<String> {
 }
 
 async fn find_vytdl_cli() -> Result<String, String> {
+    // 1. Bundled sidecar next to the app binary (externalBin install location)
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(dir) = exe.parent() {
+            let candidate = dir.join("vYtDL");
+            if tokio::fs::metadata(&candidate).await.is_ok() {
+                return Ok(candidate.to_string_lossy().to_string());
+            }
+        }
+    }
+
+    // 2. Explicit override
     if let Ok(path) = std::env::var("VYTDL_CLI_PATH") {
         if tokio::fs::metadata(&path).await.is_ok() {
             return Ok(path);
         }
     }
 
+    // 3. Monorepo checkout: tools/vytdl-cli/vYtDL, or the staged sidecar in
+    //    apps/vytdl-desktop/src-tauri/bin/ (walking up from the working dir)
     if let Ok(mut cwd) = std::env::current_dir() {
         for _ in 0..6 {
-            let candidate = cwd.join("vYtDL").join("vYtDL");
+            let candidate = cwd.join("tools").join("vytdl-cli").join("vYtDL");
             if tokio::fs::metadata(&candidate).await.is_ok() {
                 return Ok(candidate.to_string_lossy().to_string());
+            }
+            let staged = cwd
+                .join("apps")
+                .join("vytdl-desktop")
+                .join("src-tauri")
+                .join("bin");
+            if let Ok(mut entries) = tokio::fs::read_dir(&staged).await {
+                while let Ok(Some(entry)) = entries.next_entry().await {
+                    let name = entry.file_name().to_string_lossy().to_string();
+                    if name.starts_with("vYtDL-") {
+                        return Ok(entry.path().to_string_lossy().to_string());
+                    }
+                }
             }
             if !cwd.pop() {
                 break;
@@ -225,6 +251,7 @@ async fn find_vytdl_cli() -> Result<String, String> {
         }
     }
 
+    // 4. PATH
     let lookup_cmd = if std::env::consts::OS == "windows" {
         "where"
     } else {
@@ -245,7 +272,7 @@ async fn find_vytdl_cli() -> Result<String, String> {
         }
     }
 
-    Err("vYtDL CLI not found. Set VYTDL_CLI_PATH or ensure vYtDL is in PATH.".to_string())
+    Err("vYtDL CLI not found. Set VYTDL_CLI_PATH, run `python3 scripts/build-desktop.py cli`, or ensure vYtDL is in PATH.".to_string())
 }
 
 fn default_output_dir() -> String {

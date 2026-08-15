@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Go: CLI tools ─────────────────────────────────────────────
+  go:
+    name: Go (CLI tools)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+
+      - name: Build & test vytdl-cli
+        working-directory: tools/vytdl-cli
+        run: |
+          go build ./...
+          go test ./...
+
+      - name: Build contentforge-cli
+        working-directory: tools/contentforge-cli
+        run: go build ./...
+
+  # ── Rust: Tauri desktop apps ──────────────────────────────────
+  rust:
+    name: Rust (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [vytdl-desktop, contentforge-desktop]
+    steps:
+      - uses: actions/checkout@v4
+
+      # vytdl-desktop needs the CLI sidecar and yt-dlp resources staged
+      # before `cargo check` (tauri build script validates both).
+      - name: Stage vYtDL CLI sidecar + yt-dlp resources
+        if: matrix.app == 'vytdl-desktop'
+        run: |
+          python3 scripts/build-desktop.py cli
+          python3 scripts/download-yt-dlp-binaries.py
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Install Tauri system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: cargo check
+        run: cargo check --manifest-path apps/${{ matrix.app }}/src-tauri/Cargo.toml
+
+  # ── Node: web server + packages + desktop frontends ───────────
+  web:
+    name: Node (workspace build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build (turbo)
+        run: pnpm run build
+
+  # ── Python: contentforge-core ─────────────────────────────────
+  python:
+    name: Python (contentforge-core)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Syntax check all Python sources
+        run: |
+          python -m compileall -q packages/contentforge-core/python scripts
+          echo "OK"

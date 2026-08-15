@@ -49,3 +49,6 @@ for_V/for_V/*
 
 # Nested canonical repo for tools/vytdl-cli (kept untracked on purpose)
 vYtDL-standalone/
+
+# Desktop CLI sidecar (built from tools/vytdl-cli, staged by scripts/build-desktop.py)
+apps/vytdl-desktop/src-tauri/bin/vYtDL-*

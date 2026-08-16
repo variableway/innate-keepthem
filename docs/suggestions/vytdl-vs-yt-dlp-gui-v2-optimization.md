@@ -1,5 +1,7 @@
 # vYtDL Desktop 优化建议：对齐 yt-dlp-gui-v2 用户能力
 
+> 2026-08-16 更新：P0-P3 框架经代码复核全部成立；两处技术细节已勘误（见 P2-5、P2-7）。两仓库合并版统一借鉴清单见 **[borrow-from-yt-dlp-guis.md](./borrow-from-yt-dlp-guis.md)**。
+
 > **日期**: 2026-08-04  
 > **对比对象**: [yt-dlp-gui-v2](https://github.com/kannagi0303/yt-dlp-gui-v2)（Rust + egui） vs 当前 `vYtDL-desktop`（Tauri + Next.js）  
 > **目标**: 按优先级列出需优化内容，并标明对应 UI 改动
@@ -98,9 +100,9 @@
 | 2 | **高风险列表警告 + 批量上限** | 防止误下几百集 | Settings：批量上限；超过时确认 Dialog |
 | 3 | **剪贴板监听 / 自动添加** | v2 clipboard monitor | Settings 开关；可选提示「检测到链接」 |
 | 4 | **队列项内编辑文件名** | 下载前改名 | 列表 pending 行可内联编辑文件名 |
-| 5 | **暂停 / 恢复下载** | 真 pause（SIGSTOP）或「延后」 | 列表：暂停/继续；状态徽章 `paused` |
+| 5 | **暂停 / 恢复下载** | ⚠️ 勘误（2026-08-16）：暂停并非 v2 功能（v2 只有取消）；真实参照是 **yt-dlp-gui（v1）** 的 `process.rs`（Unix SIGSTOP/SIGCONT，Windows 线程挂起） | 列表：暂停/继续；状态徽章 `paused` |
 | 6 | **Library Play 接线** | Play 按钮无 handler | 点 Play 跳转 `/player/[id]`；无本地文件时禁用并提示 |
-| 7 | **进度解析改 `--progress-template` JSON** | 更稳的速度/ETA | UI 不变，进度条数据更准；日志可折叠显示原始模板 |
+| 7 | **进度解析改 `--progress-template`** | 更稳的速度/ETA | ⚠️ 勘误（2026-08-16 代码核实）：v2 实际用 **CSV 模板（首字段 format_id）** 而非 JSON，正是 format_id 让进度可按 video/audio 分槽路由；照抄 JSON 会丢掉这套逻辑。详见 [borrow-from-yt-dlp-guis.md](./borrow-from-yt-dlp-guis.md) |
 
 ### P3 — 完善与差异化（后置）
 

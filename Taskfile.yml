@@ -80,6 +80,12 @@ tasks:
     cmds:
       - "{{.PYTHON}} scripts/download-yt-dlp-binaries.py"
 
+  desktop:cli:
+    desc: Build tools/vytdl-cli and stage it as the desktop sidecar binary (bin/vYtDL-<triple>)
+    dir: "{{.DESKTOP_DIR}}"
+    cmds:
+      - "{{.PYTHON}} scripts/build-desktop.py cli"
+
   desktop:bootstrap-ytdlp:
     desc: Bootstrap yt-dlp dev resources from system PATH (fallback)
     dir: "{{.DESKTOP_DIR}}"

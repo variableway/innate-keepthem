@@ -1,39 +1,42 @@
-# Bundled yt-dlp Binaries
+# bin/ - vYtDL CLI sidecar
 
-This directory is no longer the primary location for bundled yt-dlp binaries.
+This directory holds the **vYtDL CLI sidecar binary** bundled with the desktop
+app via Tauri `externalBin` (`tauri.conf.json` -> `bundle.externalBin`).
 
-## Current Approach
+## One CLI, one source
 
-yt-dlp binaries are now bundled as **Tauri resources** in:
+The sidecar is **not** a separate binary. It is built from the single monorepo
+CLI source at `tools/vytdl-cli/` (mirror of
+https://github.com/qdriven/innate-vytdl). The desktop app and the standalone
+CLI therefore always run the same code.
 
+## Staging
+
+Binaries are named `vYtDL-<target-triple>[.exe]` (e.g.
+`vYtDL-aarch64-apple-darwin`) as Tauri requires, are **gitignored**, and are
+staged automatically by the build script:
+
+```bash
+# stage only (build CLI for host platform into bin/)
+python3 scripts/build-desktop.py cli
+
+# dev / build stage the sidecar automatically first
+python3 scripts/build-desktop.py dev
+python3 scripts/build-desktop.py build
 ```
-src-tauri/resources/yt-dlp/
-  macos/           — Apple Silicon (yt-dlp_macos + _internal/)
-  windows-x86/     — Windows x86 (yt-dlp_x86.exe + _internal/)
-  windows-arm64/   — Windows ARM64 (yt-dlp_arm64.exe + _internal/)
-```
 
-## How It Works
+Cross-compile: `python3 scripts/build-desktop.py build --target x86_64-pc-windows-msvc`
+(GOOS/GOARCH are mapped from the Rust triple automatically).
 
-1. **Build-time**: `tauri.conf.json` bundles `resources/yt-dlp/` into the app
-2. **Runtime**: On app startup, `lib.rs` extracts the platform-specific binary from resources to:
-   - macOS: `~/Library/Application Support/com.vytdl.desktop/yt-dlp/yt-dlp`
-   - Windows: `%APPDATA%/com.vytdl.desktop/yt-dlp/yt-dlp.exe`
-   - Linux: `~/.local/share/com.vytdl.desktop/yt-dlp/yt-dlp`
-3. **Execution**: `downloader.rs` checks `VYTLD_BUNDLED_YT_DLP` env var (set during extraction)
+## Runtime resolution
 
-## yt-dlp Discovery Priority
+The app resolves the CLI in this order (see `find_vytdl_cli()` in
+`src/vtt_analysis.rs`):
 
-1. User-configured path (Settings → yt-dlp path)
-2. `YT_DLP_BIN` environment variable
-3. **Bundled yt-dlp** (extracted from resources on first run)
-4. System PATH (`which` / `where`)
-5. Common installation paths (Homebrew, WinGet, etc.)
-6. Error with OS-specific install hints
+1. Bundled sidecar next to the app binary
+2. `VYTDL_CLI_PATH` env var
+3. Monorepo checkout: `tools/vytdl-cli/vYtDL` or staged `src-tauri/bin/vYtDL-*`
+4. `vYtDL` on `PATH`
 
-## Download Sources
-
-Binaries are downloaded from:
-https://github.com/yt-dlp/yt-dlp/releases/latest
-
-Extracted per-platform binaries are stored in `../resources/yt-dlp/` (gitignored; re-run `python scripts/download-yt-dlp-binaries.py` to provision).
+Note: the yt-dlp engine binaries are bundled separately under
+`resources/yt-dlp/` (see `scripts/download-yt-dlp-binaries.py`).

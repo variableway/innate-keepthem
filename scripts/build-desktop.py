@@ -72,6 +72,75 @@ def get_tauri_src_dir(project_dir: Path) -> Path:
     return project_dir / "apps" / "vytdl-desktop" / "src-tauri"
 
 
+# ───────────────────── CLI sidecar (unified vYtDL binary) ─────────────────────
+# The desktop app bundles the vYtDL CLI as a Tauri sidecar (externalBin).
+# There is exactly ONE CLI source in the monorepo: tools/vytdl-cli
+# (mirror of https://github.com/qdriven/innate-vytdl). This script builds it
+# for the target platform and stages it as src-tauri/bin/vYtDL-<triple>,
+# which tauri.conf.json's externalBin expects.
+
+TRIPLE_TO_GO = {
+    "x86_64-apple-darwin": ("darwin", "amd64"),
+    "aarch64-apple-darwin": ("darwin", "arm64"),
+    "x86_64-pc-windows-msvc": ("windows", "amd64"),
+    "x86_64-pc-windows-gnu": ("windows", "amd64"),
+    "aarch64-pc-windows-msvc": ("windows", "arm64"),
+    "x86_64-unknown-linux-gnu": ("linux", "amd64"),
+    "aarch64-unknown-linux-gnu": ("linux", "arm64"),
+}
+
+
+def get_host_triple() -> str | None:
+    """Get the host Rust target triple via rustc."""
+    rc, out, _ = run_silently(["rustc", "-vV"])
+    if rc == 0:
+        for line in out.splitlines():
+            if line.startswith("host:"):
+                return line.split(":", 1)[1].strip()
+    return None
+
+
+def stage_cli_sidecar(project_dir: Path, target: str | None, verbose: bool = False) -> bool:
+    """Build tools/vytdl-cli and stage it as the desktop sidecar binary."""
+    triple = target or get_host_triple()
+    if not triple:
+        error("Cannot determine Rust target triple (is rustc installed?)")
+        return False
+
+    go_target = TRIPLE_TO_GO.get(triple)
+    if not go_target:
+        warn(f"Unknown target triple {triple}; building CLI for host platform")
+        go_target = None
+
+    cli_dir = project_dir / "tools" / "vytdl-cli"
+    bin_dir = get_tauri_src_dir(project_dir) / "bin"
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    exe_name = "vYtDL.exe" if triple.startswith(("x86_64-pc-windows", "aarch64-pc-windows")) else "vYtDL"
+    sidecar = bin_dir / f"vYtDL-{triple}{'.exe' if exe_name.endswith('.exe') else ''}"
+
+    step(f"Building vYtDL CLI sidecar ({triple})")
+
+    if which("go") is None:
+        error("Go not found. Install Go 1.24+ to build the CLI sidecar.")
+        return False
+
+    env = os.environ.copy()
+    if go_target:
+        env["GOOS"], env["CGO_ENABLED"] = go_target[0], "0"
+        env["GOARCH"] = go_target[1]
+        env.pop("GO111MODULE", None)
+
+    cmd = ["go", "build", "-o", str(sidecar), "."]
+    info(f"Running: GOOS={env.get('GOOS', '')} GOARCH={env.get('GOARCH', '')} {' '.join(cmd)}")
+    rc = subprocess.run(cmd, cwd=cli_dir, env=env, capture_output=True, text=True).returncode
+    if rc != 0:
+        error(f"CLI sidecar build failed (exit {rc})")
+        return False
+
+    ok(f"CLI sidecar staged: {sidecar.relative_to(project_dir)}")
+    return True
+
+
 # ───────────────────────────── Dependency Checks ─────────────────────────────
 def which(cmd: str) -> str | None:
     """Find command in PATH."""
@@ -234,6 +303,9 @@ def run_dev(project_dir: Path, target: str | None, verbose: bool = False) -> int
     step("Starting vYtDL Desktop in development mode")
     info("Press Ctrl+C to stop")
 
+    if not stage_cli_sidecar(project_dir, target, verbose):
+        return 1
+
     pnpm = which("pnpm")
     assert pnpm is not None
 
@@ -247,6 +319,9 @@ def run_dev(project_dir: Path, target: str | None, verbose: bool = False) -> int
 def run_build(project_dir: Path, target: str | None, verbose: bool = False) -> int:
     """Build the desktop app for production."""
     step("Building vYtDL Desktop for production")
+
+    if not stage_cli_sidecar(project_dir, target, verbose):
+        return 1
 
     pnpm = which("pnpm")
     assert pnpm is not None
@@ -332,7 +407,7 @@ def main() -> int:
     )
     parser.add_argument(
         "command",
-        choices=["dev", "build", "bundle", "check"],
+        choices=["dev", "build", "bundle", "check", "cli"],
         help="Action to perform",
     )
     parser.add_argument(
@@ -356,6 +431,10 @@ def main() -> int:
     project_dir = get_project_root()
     info(f"Project directory: {project_dir}")
     info(f"Platform: {platform.system()} ({platform.machine()})")
+
+    # ── CLI sidecar only: stage and exit ──
+    if args.command == "cli":
+        return 0 if stage_cli_sidecar(project_dir, args.target, args.verbose) else 1
 
     # ── Check dependencies ──
     step("Checking dependencies")

@@ -221,10 +221,10 @@ This allows the same Next.js frontend to run in both Tauri desktop and Docker we
 
 ### Adding a New Language
 
-1. Create a new JSON file in `apps/desktop/src/i18n/locales/` (copy from `en.json`)
+1. Create a new JSON file in `apps/vytdl-desktop/src/i18n/locales/` (copy from `en.json`)
 2. Translate all values
-3. Import and register in `apps/desktop/src/i18n/index.tsx`
-4. Add option in `apps/desktop/src/app/settings/page.tsx`
+3. Import and register in `apps/vytdl-desktop/src/i18n/index.tsx`
+4. Add option in `apps/vytdl-desktop/src/app/settings/page.tsx`
 
 ### Modifying Download Behavior
 

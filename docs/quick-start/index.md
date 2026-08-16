@@ -17,7 +17,7 @@
 ### Build
 
 ```bash
-cd vYtDL
+cd tools/vytdl-cli
 go build -o vYtDL .
 ```
 
@@ -54,7 +54,7 @@ Common paths:
 ### Install Dependencies
 
 ```bash
-cd vYtDL-desktop
+cd tools/vytdl-cli-desktop
 pnpm install
 ```
 
@@ -62,7 +62,7 @@ pnpm install
 
 **Cross-platform (all OS):**
 ```bash
-cd vYtDL-desktop
+cd tools/vytdl-cli-desktop
 python scripts/start-desktop.py
 ```
 
@@ -78,14 +78,14 @@ python scripts/start-desktop.py
 
 **Or manually:**
 ```bash
-cd vYtDL-desktop
+cd tools/vytdl-cli-desktop
 pnpm tauri:dev
 ```
 
 ### Build for Production
 
 ```bash
-cd vYtDL-desktop
+cd tools/vytdl-cli-desktop
 pnpm tauri:build
 ```
 

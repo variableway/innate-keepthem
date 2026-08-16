@@ -1,5 +1,5 @@
 {
-  "id": "preset-twitter-to-xiaohongshu",
+  "id": "twitter_to_xiaohongshu",
   "name": "Twitter → 小红书文案",
   "description": "抓取 Twitter 内容，翻译并转换为小红书风格文案",
   "steps": [

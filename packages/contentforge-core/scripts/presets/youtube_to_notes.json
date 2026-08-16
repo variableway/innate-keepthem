@@ -1,5 +1,5 @@
 {
-  "id": "preset-youtube-to-notes",
+  "id": "youtube_to_notes",
   "name": "YouTube → 笔记",
   "description": "下载 YouTube 视频，提取字幕，生成结构化笔记",
   "steps": [

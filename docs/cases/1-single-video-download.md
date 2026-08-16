@@ -34,7 +34,7 @@ which yt-dlp && yt-dlp --version
 ### 1. 构建 CLI 二进制
 
 ```bash
-cd vYtDL
+cd tools/vytdl-cli
 
 # 如果模块缓存有权限问题，使用临时缓存目录：
 GOMODCACHE=/tmp/gomodcache GOCACHE=/tmp/gobuildcache \
@@ -65,7 +65,7 @@ ls -lh vYtDL
 ### 3. 执行下载
 
 ```bash
-cd vYtDL
+cd tools/vytdl-cli
 
 ./vYtDL download --no-tui \
   --output ./downloads_case \

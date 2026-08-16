@@ -169,7 +169,7 @@ Library / Player
 | `apps/vytdl-desktop/src-tauri/src/queue.rs` | 队列管理 |
 | `yt-dlp-gui-v2/src/app/download_resilience.rs` | 错误分类与恢复决策参考 |
 | `yt-dlp-gui-v2/src/app/download_worker.rs` | 下载工作线程参考 |
-| `contentforge/docs/plan/ytdownload-refactor.md` | 早期调研与架构对比 |
+| `docs/archive/contentforge/plan/ytdownload-refactor.md` | 早期调研与架构对比 |
 
 ---
 

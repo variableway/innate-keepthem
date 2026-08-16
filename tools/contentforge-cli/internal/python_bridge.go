@@ -274,13 +274,14 @@ func (b *PythonBridge) CallIngestion(platform, url string) (map[string]interface
 	return result, nil
 }
 
-// contentforgePythonPath 返回 contentforge/core/python 绝对路径。
+// contentforgePythonPath 返回 packages/contentforge-core/python 绝对路径
+//（monorepo 重构后 Python 源码所在处；旧 contentforge/core/python 已清空）。
 func contentforgePythonPath() string {
 	root := findProjectRoot()
 	if root == "" {
 		return ""
 	}
-	return filepath.Join(root, "contentforge", "core", "python")
+	return filepath.Join(root, "packages", "contentforge-core", "python")
 }
 
 // findPythonPath 返回 Python 模块根目录，供内联脚本使用。

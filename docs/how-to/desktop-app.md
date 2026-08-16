@@ -31,7 +31,7 @@
 验证所有依赖：
 
 ```bash
-cd vYtDL-desktop
+cd tools/vytdl-cli-desktop
 task check
 ```
 
@@ -43,7 +43,7 @@ task check
 
 ```bash
 # 进入桌面应用目录
-cd vYtDL-desktop
+cd tools/vytdl-cli-desktop
 
 # 方式 A：使用 Task（推荐）
 task dev
@@ -70,7 +70,7 @@ pnpm tauri:dev
 **适用场景**：开发涉及 Rust 后端的功能（下载、文件系统操作、数据库），或需要测试完整的桌面集成。
 
 ```bash
-cd vYtDL-desktop
+cd tools/vytdl-cli-desktop
 pnpm tauri:dev
 # 或
 task dev
@@ -125,7 +125,7 @@ pnpm dev
 
 ```bash
 # 终端 1：启动 Web API 服务器
-cd vYtDL-desktop/web-server
+cd tools/vytdl-cli-desktop/web-server
 pnpm dev
 
 # 终端 2：启动前端开发服务器
@@ -181,7 +181,7 @@ vYtDL-desktop/
 ## 构建生产版本
 
 ```bash
-cd vYtDL-desktop
+cd tools/vytdl-cli-desktop
 
 # 构建桌面应用安装包
 task build
@@ -215,7 +215,7 @@ pnpm dev
 需要将 yt-dlp 二进制放入 Tauri 资源目录：
 
 ```bash
-cd vYtDL-desktop
+cd tools/vytdl-cli-desktop
 python3 scripts/download-yt-dlp-binaries.py
 # 或手动复制：
 cp $(which yt-dlp) apps/desktop/src-tauri/resources/yt-dlp/macos/yt-dlp

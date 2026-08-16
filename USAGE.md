@@ -7,7 +7,7 @@
 Build the binary:
 
 ```bash
-cd vYtDL
+cd tools/vytdl-cli
 go build -o vYtDL .
 ```
 

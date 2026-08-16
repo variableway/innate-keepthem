@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any, Dict
 
 from contentforge.models import ContentUnit, PipelineStatus
-from contentforge.pipeline.engine import PipelineEngine, register_step
-from contentforge.pipeline.presets import PipelinePresets
+from contentforge.pipeline.engine import PipelineEngine, get_default_engine, register_step
+from contentforge.pipeline.presets import get_preset, list_presets
 from contentforge.pipeline.runner import PipelineRunner
 from contentforge.processing.ai_engine import AIEngine
 from contentforge.processing.summarizer import Summarizer
@@ -58,8 +58,7 @@ def handle_pipeline(payload: Dict[str, Any]) -> Dict[str, Any]:
         _register_all_handlers()
 
         if action == "list":
-            presets = PipelinePresets()
-            return {"success": True, "data": presets.list_presets()}
+            return {"success": True, "data": [{"id": name} for name in list_presets()]}
 
         elif action == "run":
             preset_name = payload.get("preset", "")
@@ -67,9 +66,6 @@ def handle_pipeline(payload: Dict[str, Any]) -> Dict[str, Any]:
 
             if not preset_name:
                 return {"success": False, "error": "Missing 'preset' in payload"}
-
-            presets = PipelinePresets()
-            pipeline = presets.get(preset_name)
 
             # Parse input units
             if isinstance(input_data, str):
@@ -81,9 +77,12 @@ def handle_pipeline(payload: Dict[str, Any]) -> Dict[str, Any]:
             else:
                 return {"success": False, "error": f"Invalid input_data type: {type(input_data)}"}
 
-            runner = PipelineRunner()
+            # 使用默认引擎（register_step 注册的函数式处理器在此生效）
+            preset = get_preset(preset_name)
+            pipeline = preset.to_pipeline()
+            runner = PipelineRunner(engine=get_default_engine())
             import asyncio
-            run = asyncio.run(runner.run_preset(preset_name, units))
+            run = asyncio.run(runner.run(pipeline, inputs=units))
             return {"success": True, "data": run.to_dict()}
 
         elif action == "create":

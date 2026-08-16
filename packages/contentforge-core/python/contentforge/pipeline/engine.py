@@ -70,35 +70,6 @@ class IngestionHandler(StepHandler):
             unit = ingestor.fetch(source_url)
         
         return [unit]
-    """采集步骤处理器。"""
-
-    @property
-    def step_type(self) -> str:
-        return "ingest"
-
-    def execute(self, step: PipelineStep, inputs: List[ContentUnit], context: Dict) -> List[ContentUnit]:
-        from contentforge.ingestion.agent_reach import AgentReachCollector
-        
-        source_url = step.config.get("url", "")
-        platform = step.config.get("platform", "auto")
-        
-        collector = AgentReachCollector(
-            proxy=context.get("proxy"),
-        )
-        
-        if platform == "twitter":
-            unit = collector.fetch_twitter(source_url)
-        elif platform == "youtube":
-            unit = collector.fetch_youtube(source_url)
-        elif platform == "rss":
-            units = collector.fetch_rss(source_url, limit=step.config.get("limit", 5))
-            return units
-        elif platform == "web":
-            unit = collector.fetch_webpage(source_url)
-        else:
-            unit = collector.fetch_auto(source_url)
-        
-        return [unit]
 
 
 class SummarizeHandler(StepHandler):
@@ -336,6 +307,33 @@ class PipelineEngine:
         """注册自定义步骤处理器。"""
         self.handlers[handler.step_type] = handler
         logger.info(f"[PipelineEngine] Registered handler: {handler.step_type}")
+
+
+# ── 函数式注册（默认引擎单例）─────────────────────────────────────
+# 供 cli/pipeline.py 等以 register_step("summarize", fn) 风格注册步骤：
+#     fn(unit, config) -> unit
+_default_engine: "Optional[PipelineEngine]" = None
+
+
+def get_default_engine() -> "PipelineEngine":
+    global _default_engine
+    if _default_engine is None:
+        _default_engine = PipelineEngine()
+    return _default_engine
+
+
+def register_step(step_type: str, handler_fn) -> None:
+    """按函数风格注册步骤处理器到默认引擎（覆盖同名内置处理器）。"""
+
+    class _FunctionHandler(StepHandler):
+        @property
+        def step_type(self) -> str:
+            return step_type
+
+        def execute(self, step, inputs, context):
+            return [handler_fn(u, step.config) for u in inputs]
+
+    get_default_engine().register_handler(_FunctionHandler())
 
     def run(
         self,

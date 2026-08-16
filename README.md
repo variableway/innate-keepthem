@@ -137,7 +137,7 @@ docker-compose down
 
 ## Usage
 
-See [USAGE.md](USAGE.md) for detailed CLI usage and [docs/](docs/) for full project documentation.
+See [USAGE.md](USAGE.md) for detailed CLI usage. Full documentation lives in [docs/](docs/) - start at [docs/README.md](docs/README.md): [PURPOSE](docs/PURPOSE.md), [modules](docs/modules/), [specs](docs/specs/), [BUILD](docs/BUILD.md), [CI](docs/CI.md), [STATUS](docs/STATUS.md).
 
 ## Project Structure
 

@@ -95,18 +95,18 @@ VYTDL_CONFIG=/path/to/config.json ./vYtDL download --no-tui "VIDEO_URL"
 
 **Cross-platform (recommended):**
 ```bash
-cd vYtDL-desktop
+cd tools/vytdl-cli-desktop
 python scripts/start-desktop.py
 ```
 
 **Mac/Linux:**
 ```bash
-cd vYtDL-desktop && ./scripts/start-desktop.sh
+cd tools/vytdl-cli-desktop && ./scripts/start-desktop.sh
 ```
 
 **Windows:**
 ```bash
-cd vYtDL-desktop && .\scripts\start-desktop.ps1
+cd tools/vytdl-cli-desktop && .\scripts\start-desktop.ps1
 ```
 
 ### Batch Download
@@ -132,7 +132,7 @@ Switch to the **Smart** tab for batch download with automatic playlist detection
 ### Building
 
 ```bash
-cd vYtDL-desktop
+cd tools/vytdl-cli-desktop
 pnpm tauri:build
 ```
 

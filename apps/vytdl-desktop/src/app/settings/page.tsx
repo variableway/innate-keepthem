@@ -38,6 +38,10 @@ const AI_PROVIDERS = [
 export default function SettingsPage() {
   const { settings, fetchSettings, updateSettings, isLoading } = useSettingsStore();
   const [localSettings, setLocalSettings] = useState<Settings | null>(null);
+  const [cookieMode, setCookieMode] = useState<"none" | "text" | "file" | "browser">("none");
+  const [cookieText, setCookieText] = useState("");
+  const [cookieFile, setCookieFile] = useState("");
+  const [cookieBrowser, setCookieBrowser] = useState("chrome");
   const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
   const { t, locale, setLocale } = useTranslation();
 
@@ -57,6 +61,13 @@ export default function SettingsPage() {
   useEffect(() => {
     if (settings) {
       setLocalSettings(settings);
+      const c = settings.cookie;
+      if (c && c.mode !== "none") {
+        setCookieMode(c.mode);
+        if (c.mode === "text") setCookieText(c.content);
+        if (c.mode === "file") setCookieFile(c.path);
+        if (c.mode === "browser") setCookieBrowser(c.browser);
+      }
     }
   }, [settings]);
 
@@ -72,9 +83,16 @@ export default function SettingsPage() {
   const handleSave = async () => {
     if (!localSettings) return;
     setSaveStatus("idle");
+    // 组装 Cookie 配置
+    const cookie =
+      cookieMode === "none" ? null :
+      cookieMode === "text" ? { mode: "text", content: cookieText } :
+      cookieMode === "file" ? { mode: "file", path: cookieFile } :
+      { mode: "browser", browser: cookieBrowser };
+    const merged = { ...localSettings, cookie };
     // Ensure locale is synced before saving
     setLocale(localSettings.language as Locale);
-    await updateSettings(localSettings);
+    await updateSettings(merged);
     if (useSettingsStore.getState().error) {
       setSaveStatus("error");
     } else {
@@ -292,6 +310,144 @@ export default function SettingsPage() {
             </AlertDescription>
           </Alert>
         )}
+
+        {/* ── 网络与高级（借鉴清单 #3/#6/#9）── */}
+        <Card id="section-network">
+          <CardHeader>
+            <CardTitle>网络与高级 / Network &amp; Advanced</CardTitle>
+            <CardDescription>Cookie、代理、下载引擎与后处理（借鉴 yt-dlp-gui / v2）</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label>Cookie 模式</Label>
+                <select
+                  className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
+                  value={cookieMode}
+                  onChange={(e) => setCookieMode(e.target.value as typeof cookieMode)}
+                >
+                  <option value="none">不使用</option>
+                  <option value="text">粘贴 Cookie 文本</option>
+                  <option value="file">cookies.txt 文件</option>
+                  <option value="browser">从浏览器读取</option>
+                </select>
+              </div>
+              {cookieMode === "browser" && (
+                <div className="space-y-1">
+                  <Label>浏览器</Label>
+                  <select
+                    className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
+                    value={cookieBrowser}
+                    onChange={(e) => setCookieBrowser(e.target.value)}
+                  >
+                    {["chrome", "firefox", "edge", "brave", "chromium", "opera", "safari", "vivaldi"].map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {cookieMode === "file" && (
+                <div className="space-y-1">
+                  <Label>cookies.txt 路径</Label>
+                  <input
+                    className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
+                    value={cookieFile}
+                    onChange={(e) => setCookieFile(e.target.value)}
+                    placeholder="/path/to/cookies.txt"
+                  />
+                </div>
+              )}
+              <div className="space-y-1">
+                <Label>代理（如 http://127.0.0.1:7890，留空不使用）</Label>
+                <input
+                  className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
+                  value={localSettings?.proxy ?? ""}
+                  onChange={(e) => localSettings && setLocalSettings({ ...localSettings, proxy: e.target.value || null })}
+                  placeholder="http://127.0.0.1:7890"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>限速（如 2M）</Label>
+                <input
+                  className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
+                  value={localSettings?.rate_limit ?? ""}
+                  onChange={(e) => localSettings && setLocalSettings({ ...localSettings, rate_limit: e.target.value || null })}
+                  placeholder="2M"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>并发分片（1-16）</Label>
+                <input
+                  type="number" min={1} max={16}
+                  className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
+                  value={localSettings?.concurrent_fragments ?? ""}
+                  onChange={(e) => localSettings && setLocalSettings({ ...localSettings, concurrent_fragments: e.target.value ? Number(e.target.value) : null })}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>文件名模板（留空用默认）</Label>
+                <input
+                  className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
+                  value={localSettings?.filename_template ?? ""}
+                  onChange={(e) => localSettings && setLocalSettings({ ...localSettings, filename_template: e.target.value || null })}
+                  placeholder="%(title).200s [%(id)s].%(ext)s"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>YouTube PO Token（可选）</Label>
+                <input
+                  className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
+                  value={localSettings?.po_token ?? ""}
+                  onChange={(e) => localSettings && setLocalSettings({ ...localSettings, po_token: e.target.value || null })}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>extractor-args（可选，如 youtube:visitor_data=xxx）</Label>
+                <input
+                  className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
+                  value={localSettings?.extractor_args ?? ""}
+                  onChange={(e) => localSettings && setLocalSettings({ ...localSettings, extractor_args: e.target.value || null })}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>yt-dlp 配置文件（可选；不填则强制 --ignore-config）</Label>
+                <input
+                  className="w-full rounded-md border bg-transparent px-3 py-2 text-sm"
+                  value={localSettings?.config_location ?? ""}
+                  onChange={(e) => localSettings && setLocalSettings({ ...localSettings, config_location: e.target.value || null })}
+                />
+              </div>
+            </div>
+            {cookieMode === "text" && (
+              <div className="space-y-1">
+                <Label>Netscape Cookie 文本（明文保存在应用数据目录）</Label>
+                <textarea
+                  className="w-full h-20 rounded-md border bg-transparent px-3 py-2 text-xs font-mono"
+                  value={cookieText}
+                  onChange={(e) => setCookieText(e.target.value)}
+                  placeholder="# Netscape HTTP Cookie File ..."
+                />
+              </div>
+            )}
+            <div className="flex flex-wrap gap-4">
+              {([
+                ["embed_thumbnail", "下载后嵌入缩略图"],
+                ["embed_metadata", "嵌入元数据"],
+                ["embed_chapters", "嵌入章节"],
+                ["sponsorblock_remove", "SponsorBlock 跳过广告段"],
+              ] as const).map(([key, label]) => (
+                <label key={key} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={(localSettings?.[key] as boolean) ?? false}
+                    onChange={(e) => localSettings && setLocalSettings({ ...localSettings, [key]: e.target.checked })}
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="flex justify-end">
           <Button onClick={handleSave} disabled={isLoading} className="min-w-[120px]">

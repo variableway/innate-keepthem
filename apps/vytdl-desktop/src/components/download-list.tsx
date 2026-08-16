@@ -14,6 +14,7 @@ import {
   ChevronUp,
   RotateCcw,
   Music,
+  Pause,
 } from "lucide-react";
 import { apiInvoke, apiConfirm } from "@/lib/api-client";
 import { Button } from "@vytdl/ui";
@@ -193,9 +194,26 @@ function DownloadItem({ download, queuePosition }: { download: DownloadItemType;
           )}
 
           {download.status === "failed" && download.error && (
-            <div className="mt-2 text-sm text-destructive flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" />
-              {download.error}
+            <div className="mt-2 space-y-1">
+              <div className="text-sm text-destructive flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                {download.error}
+              </div>
+              {/* 韧性引擎错误分类徽章（错误消息格式 [kind] label | hint） */}
+              {(() => {
+                const m = download.error.match(/^\["([a-z_]+)"\]\s*(.+?)\s*\|\s*(.+)$/);
+                if (!m) return null;
+                const [, kind, label, hint] = m;
+                return (
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className="rounded-full bg-destructive/10 text-destructive px-2 py-0.5 font-medium">
+                      {label}
+                    </span>
+                    {hint && <span className="text-muted-foreground">{hint}</span>}
+                    <span className="text-muted-foreground/50">({kind})</span>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
@@ -255,6 +273,39 @@ function DownloadItem({ download, queuePosition }: { download: DownloadItemType;
             >
               {isExtracting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Music className="h-4 w-4" />}
             </Button>
+          )}
+
+          {download.status === "downloading" && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={async () => {
+                  try {
+                    await apiInvoke("pause_download", { downloadId: download.id });
+                  } catch (e) {
+                    console.error("pause failed:", e);
+                  }
+                }}
+                title="暂停（挂起进程，不丢数据；Windows 暂不支持）"
+              >
+                <Pause className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={async () => {
+                  try {
+                    await apiInvoke("resume_download", { downloadId: download.id });
+                  } catch (e) {
+                    console.error("resume failed:", e);
+                  }
+                }}
+                title="恢复"
+              >
+                <Play className="h-4 w-4" />
+              </Button>
+            </>
           )}
 
           {(download.status === "failed" || download.status === "cancelled") && (

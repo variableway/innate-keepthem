@@ -2,9 +2,12 @@ mod agent_cli;
 mod agent_runner;
 mod audio_extractor;
 mod commands;
+mod cookie;
 mod database;
 mod downloader;
+mod process_control;
 mod queue;
+mod resilience;
 mod vtt_analysis;
 
 use tauri::Manager;
@@ -219,6 +222,8 @@ pub fn run() {
                     write_auto_subs: req.write_auto_subs.unwrap_or(true),
                     start_time: req.start_time,
                     end_time: req.end_time,
+                ..Default::default()
+
                 }).unwrap_or_else(|| crate::downloader::DownloadOptions {
                     url: record.url.clone(),
                     is_playlist: false,
@@ -239,6 +244,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::start_download,
             commands::cancel_download,
+            process_control::pause_download,
+            process_control::resume_download,
             commands::get_downloads,
             commands::get_download_by_id,
             commands::delete_download,

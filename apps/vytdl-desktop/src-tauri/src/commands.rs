@@ -102,6 +102,20 @@ pub struct StartDownloadRequest {
     pub write_auto_subs: Option<bool>,
     pub start_time: Option<String>,
     pub end_time: Option<String>,
+    // ── 参数包扩展（借鉴清单 #3/#5/#6/#9）──
+    pub format_id: Option<String>,
+    pub cookie: Option<crate::cookie::CookieConfig>,
+    pub proxy: Option<String>,
+    pub rate_limit: Option<String>,
+    pub concurrent_fragments: Option<u32>,
+    pub embed_thumbnail: Option<bool>,
+    pub embed_metadata: Option<bool>,
+    pub embed_chapters: Option<bool>,
+    pub sponsorblock_remove: Option<bool>,
+    pub filename_template: Option<String>,
+    pub po_token: Option<String>,
+    pub extractor_args: Option<String>,
+    pub config_location: Option<String>,
 }
 
 #[tauri::command]
@@ -157,6 +171,20 @@ pub async fn start_download(
         write_auto_subs: request.write_auto_subs.unwrap_or(true),
         start_time: request.start_time,
         end_time: request.end_time,
+        format_id: request.format_id,
+        cookie: request.cookie,
+        proxy: request.proxy,
+        rate_limit: request.rate_limit,
+        concurrent_fragments: request.concurrent_fragments,
+        embed_thumbnail: request.embed_thumbnail.unwrap_or(false),
+        embed_metadata: request.embed_metadata.unwrap_or(false),
+        embed_chapters: request.embed_chapters.unwrap_or(false),
+        sponsorblock_remove: request.sponsorblock_remove.unwrap_or(false),
+        filename_template: request.filename_template,
+        po_token: request.po_token,
+        extractor_args: request.extractor_args,
+        config_location: request.config_location,
+        ..Default::default()
     };
 
     queue.enqueue(download_id.clone(), options, yt_dlp_path, app).await;
@@ -273,6 +301,8 @@ pub async fn retry_download(
         write_auto_subs: true,
         start_time: None,
         end_time: None,
+                ..Default::default()
+
     };
 
     queue.enqueue(download_id.clone(), options, yt_dlp_path, app).await;
@@ -295,6 +325,31 @@ pub struct Settings {
     pub ai_model: Option<String>,
     pub agent_cli_kimi_bin: Option<String>,
     pub agent_cli_other_bin: Option<String>,
+    // ── 网络与高级（借鉴清单 #3/#6/#9）──
+    #[serde(default)]
+    pub proxy: Option<String>,
+    #[serde(default)]
+    pub cookie: Option<crate::cookie::CookieConfig>,
+    #[serde(default)]
+    pub rate_limit: Option<String>,
+    #[serde(default)]
+    pub concurrent_fragments: Option<u32>,
+    #[serde(default)]
+    pub embed_thumbnail: bool,
+    #[serde(default)]
+    pub embed_metadata: bool,
+    #[serde(default)]
+    pub embed_chapters: bool,
+    #[serde(default)]
+    pub sponsorblock_remove: bool,
+    #[serde(default)]
+    pub filename_template: Option<String>,
+    #[serde(default)]
+    pub po_token: Option<String>,
+    #[serde(default)]
+    pub extractor_args: Option<String>,
+    #[serde(default)]
+    pub config_location: Option<String>,
 }
 
 #[tauri::command]
@@ -323,6 +378,28 @@ pub async fn get_settings(
     let ai_model = db.get_setting("ai_model").await.unwrap_or(None);
     let agent_cli_kimi_bin = db.get_setting("agent_cli_kimi_bin").await.unwrap_or(None);
     let agent_cli_other_bin = db.get_setting("agent_cli_other_bin").await.unwrap_or(None);
+    let proxy = db.get_setting("proxy").await.unwrap_or(None);
+    let cookie = db
+        .get_setting("cookie")
+        .await
+        .unwrap_or(None)
+        .and_then(|s| serde_json::from_str(&s).ok());
+    let rate_limit = db.get_setting("rate_limit").await.unwrap_or(None);
+    let concurrent_fragments = db
+        .get_setting("concurrent_fragments")
+        .await
+        .unwrap_or(None)
+        .and_then(|s| s.parse::<u32>().ok());
+    let get_bool = |k: &str| -> Option<bool> { None }; // 占位，下方统一
+    let embed_thumbnail = db.get_setting("embed_thumbnail").await.unwrap_or(None).map(|s| s == "1").unwrap_or(false);
+    let embed_metadata = db.get_setting("embed_metadata").await.unwrap_or(None).map(|s| s == "1").unwrap_or(false);
+    let embed_chapters = db.get_setting("embed_chapters").await.unwrap_or(None).map(|s| s == "1").unwrap_or(false);
+    let sponsorblock_remove = db.get_setting("sponsorblock_remove").await.unwrap_or(None).map(|s| s == "1").unwrap_or(false);
+    let filename_template = db.get_setting("filename_template").await.unwrap_or(None);
+    let po_token = db.get_setting("po_token").await.unwrap_or(None);
+    let extractor_args = db.get_setting("extractor_args").await.unwrap_or(None);
+    let config_location = db.get_setting("config_location").await.unwrap_or(None);
+    let _ = get_bool;
 
     let settings = Settings {
         yt_dlp_path,
@@ -337,6 +414,18 @@ pub async fn get_settings(
         ai_model,
         agent_cli_kimi_bin,
         agent_cli_other_bin,
+        proxy,
+        cookie,
+        rate_limit,
+        concurrent_fragments,
+        embed_thumbnail,
+        embed_metadata,
+        embed_chapters,
+        sponsorblock_remove,
+        filename_template,
+        po_token,
+        extractor_args,
+        config_location,
     };
     Ok(ApiResponse::ok(settings))
 }
@@ -403,6 +492,24 @@ pub async fn update_settings(
         let queue = app.state::<crate::queue::QueueManager>();
         queue.set_max_concurrent(n as usize).await;
     }
+    // ── 网络与高级设置 ──
+    let _ = db.set_setting("proxy", settings.proxy.as_deref().unwrap_or("")).await;
+    let cookie_json = settings.cookie.as_ref().map(|c| serde_json::to_string(c).unwrap_or_default());
+    let _ = db.set_setting("cookie", cookie_json.as_deref().unwrap_or("")).await;
+    let _ = db.set_setting("rate_limit", settings.rate_limit.as_deref().unwrap_or("")).await;
+    let _ = db.set_setting(
+        "concurrent_fragments",
+        &settings.concurrent_fragments.map(|v| v.to_string()).unwrap_or_default(),
+    ).await;
+    let _ = db.set_setting("embed_thumbnail", if settings.embed_thumbnail { "1" } else { "0" }).await;
+    let _ = db.set_setting("embed_metadata", if settings.embed_metadata { "1" } else { "0" }).await;
+    let _ = db.set_setting("embed_chapters", if settings.embed_chapters { "1" } else { "0" }).await;
+    let _ = db.set_setting("sponsorblock_remove", if settings.sponsorblock_remove { "1" } else { "0" }).await;
+    let _ = db.set_setting("filename_template", settings.filename_template.as_deref().unwrap_or("")).await;
+    let _ = db.set_setting("po_token", settings.po_token.as_deref().unwrap_or("")).await;
+    let _ = db.set_setting("extractor_args", settings.extractor_args.as_deref().unwrap_or("")).await;
+    let _ = db.set_setting("config_location", settings.config_location.as_deref().unwrap_or("")).await;
+
     Ok(ApiResponse::ok(()))
 }
 

@@ -31,6 +31,9 @@ export interface DownloadProgress {
   eta: string | null;
   status: string;
   error: string | null;
+  /** 视频/音频双进度槽（CSV format_id 路由） */
+  video_percent?: number;
+  audio_percent?: number;
 }
 
 export interface DownloadLog {
@@ -54,10 +57,18 @@ export interface VideoFormat {
   filesize: number | null;
 }
 
+export type CookieConfig =
+  | { mode: "none" }
+  | { mode: "text"; content: string }
+  | { mode: "file"; path: string }
+  | { mode: "browser"; browser: string };
+
 export interface DownloadOptions {
   url: string;
   is_playlist: boolean;
   quality?: string;
+  /** 精确 format_id（Format Picker） */
+  format_id?: string;
   format?: string;
   output_dir?: string;
   sub_langs?: string[];
@@ -65,6 +76,18 @@ export interface DownloadOptions {
   write_auto_subs?: boolean;
   start_time?: string;
   end_time?: string;
+  cookie?: CookieConfig;
+  proxy?: string;
+  rate_limit?: string;
+  concurrent_fragments?: number;
+  embed_thumbnail?: boolean;
+  embed_metadata?: boolean;
+  embed_chapters?: boolean;
+  sponsorblock_remove?: boolean;
+  filename_template?: string;
+  po_token?: string;
+  extractor_args?: string;
+  config_location?: string;
 }
 
 export interface Settings {
@@ -80,6 +103,19 @@ export interface Settings {
   ai_model: string | null;
   agent_cli_kimi_bin: string | null;
   agent_cli_other_bin: string | null;
+  /** 网络与高级（借鉴清单 #3/#6/#9） */
+  proxy?: string | null;
+  cookie?: CookieConfig | null;
+  rate_limit?: string | null;
+  concurrent_fragments?: number | null;
+  embed_thumbnail?: boolean;
+  embed_metadata?: boolean;
+  embed_chapters?: boolean;
+  sponsorblock_remove?: boolean;
+  filename_template?: string | null;
+  po_token?: string | null;
+  extractor_args?: string | null;
+  config_location?: string | null;
 }
 
 export interface AgentCliDetection {

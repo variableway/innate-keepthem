@@ -218,7 +218,14 @@ async fn run_download_task(
     app: AppHandle,
     mut cancel_rx: mpsc::Receiver<()>,
 ) {
-    let downloader = Downloader::new(options.clone(), id.clone()).with_yt_dlp_path(yt_dlp_path);
+    let yt_dlp_path_for_retry = yt_dlp_path.clone();
+    let mut downloader = Downloader::new(options.clone(), id.clone())
+        .with_yt_dlp_path(yt_dlp_path)
+        .with_app_data_dir(app.path().app_data_dir().ok());
+
+    let emit = |event: &str, payload: &serde_json::Value| {
+        let _ = app.emit(&format!("{}:{}", event, id), payload);
+    };
 
     let result = downloader
         .download(
@@ -231,6 +238,50 @@ async fn run_download_task(
             &mut cancel_rx,
         )
         .await;
+
+    // ── 韧性引擎：失败后分类决策，最多自动重试一次（v2 decide_recovery 语义）──
+    let mut result = result;
+    if let Err(err) = &result {
+        if err != "Download cancelled" {
+            // 错误消息格式 "["kind"] label | hint"
+            let kind = err
+                .strip_prefix('[')
+                .and_then(|r| r.split(']').next())
+                .and_then(|k| serde_json::from_str::<crate::resilience::DownloadErrorKind>(&format!("\"{}\"", k)).ok())
+                .unwrap_or(crate::resilience::DownloadErrorKind::Fatal);
+            match crate::resilience::decide_recovery(kind, false) {
+                crate::resilience::RecoveryAction::RetryWithFallback { reason, format_selector } => {
+                    let _ = app.emit(
+                        &format!("download:log:{}", id),
+                        DownloadLog { level: "warn".into(), message: format!("[韧性重试] {reason}") },
+                    );
+                    let mut retry_options = options.clone();
+                    if let Some(sel) = format_selector {
+                        retry_options.format_id = Some(sel);
+                    }
+                    if kind == crate::resilience::DownloadErrorKind::ThumbnailPostProcess {
+                        retry_options.disable_thumbnail_embed = true;
+                    }
+                    downloader = Downloader::new(retry_options, id.clone())
+                        .with_yt_dlp_path(yt_dlp_path_for_retry.clone())
+                        .with_app_data_dir(app.path().app_data_dir().ok());
+                    result = downloader
+                        .download(
+                            |progress: DownloadProgress| {
+                                let _ = app.emit(&format!("download:progress:{}", id), progress);
+                            },
+                            |log: DownloadLog| {
+                                let _ = app.emit(&format!("download:log:{}", id), log);
+                            },
+                            &mut cancel_rx,
+                        )
+                        .await;
+                }
+                _ => {}
+            }
+        }
+    }
+    let _ = emit; // 保留便捷发射器供后续使用
 
     match result {
         Ok(output) => {

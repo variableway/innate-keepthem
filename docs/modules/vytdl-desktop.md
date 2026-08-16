@@ -26,6 +26,9 @@ apps/vytdl-desktop/
     │   └── queue.rs          # 下载队列与并发
     ├── bin/                  # CLI sidecar（vYtDL-<triple>，gitignored，构建时预置）
     ├── resources/yt-dlp/     # 平台 yt-dlp 二进制（gitignored，脚本下载）
+    ├── resilience.rs         # 韧性引擎：11 类错误分类 + 恢复决策 + 回退选择器（含单测）
+    ├── process_control.rs    # 子进程控制：pid 注册表、暂停/恢复(SIGSTOP)、进程树取消
+    ├── cookie.rs             # Cookie 四模式 -> yt-dlp 参数
     └── tauri.conf.json       # externalBin=bin/vYtDL、resources、beforeBuild
 ```
 
@@ -35,10 +38,15 @@ apps/vytdl-desktop/
 
 `tauri.conf.json` 声明 `bundle.externalBin: ["bin/vYtDL"]`。构建时 `scripts/build-desktop.py` 从 `tools/vytdl-cli` 构建并按 Rust triple 预置为 `bin/vYtDL-<triple>`（交叉编译自动映射 GOOS/GOARCH）。运行时 `find_vytdl_cli()` 按序解析：应用旁 sidecar -> `VYTDL_CLI_PATH` -> monorepo 路径 -> PATH。
 
-### yt-dlp 引擎
+### yt-dlp 引擎（2026-08 下载引擎升级，借鉴 yt-dlp-gui / v2，详见 docs/suggestions/borrow-from-yt-dlp-guis.md 实施记录）
 
 - 路径解析（`commands.rs`）：`VYTDL_CONFIG` 指向的 config -> `tools/vytdl-cli/config.json`（向上回溯）-> 可执行文件旁 -> bundled `resources/yt-dlp/<platform>` -> PATH。
-- 下载执行（`downloader.rs`）：`tokio::task::spawn_blocking` 包装，避免 Tauri v2 下的 tokio 死锁；spawn 前清理 `*_proxy` 环境变量（npm 代理污染问题）。
+- 参数构建（`downloader.rs`）：完整参数包（Cookie/代理/限速/并发分片/PO Token/嵌入后处理/SponsorBlock/时间裁剪+no-direct-merge/文件名模板/config-location + 默认 --ignore-config）。
+- 进度协议：`--progress-template` CSV（首列 format_id）槽路由出 video/audio 双进度；正则兜底。
+- 输出路径：`--print-to-file after_move:filepath` 精确捕获（后处理改名后仍准）。
+- 韧性（`resilience.rs`）：失败自动分类（11 类）+ 降级重试一次（缩略图失败关缩略图、格式失败回退选择器；429/鉴权不自动重试）。
+- 进程治理（`process_control.rs`）：pid 注册表、暂停/恢复（Unix SIGSTOP/SIGCONT；Windows 不支持）、取消杀进程树 + 清 `.part`。
+- 下载执行：spawn 前清理 `*_proxy` 环境变量；强制 `PYTHONUTF8=1`；Windows `CREATE_NO_WINDOW`。
 
 ### 前后端通信
 

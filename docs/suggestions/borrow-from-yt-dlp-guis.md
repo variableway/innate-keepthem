@@ -75,3 +75,48 @@
 - v1：`yt-dlp-gui/src-tauri/src/commands/{download,video,tools,setup}.rs`、`parser.rs`、`process.rs`、`browser-extension/`
 - v2：`yt-dlp-gui-v2/src/app/{download_resilience,download_worker,queue_worker_actions,queue_input_actions}.rs`、`src/tools.rs`、`src/config.rs`、`src/domain/`
 - vYtDL 落点：`apps/vytdl-desktop/src-tauri/src/{downloader,queue,commands}.rs`、`src/components/{download-form,download-list}.tsx`、`src/app/settings/`
+
+---
+
+## 六、实施记录与 Trade-off（2026-08-16，分支 feat/download-engine-upgrade）
+
+> 本节记录统一 TOP 10 的实际落地情况与**每一项的权衡决策**。代码：`apps/vytdl-desktop/src-tauri/src/{resilience,process_control,cookie,downloader,queue,commands}.rs` + 前端 `download-form/download-list/settings`。
+
+### 6.1 落地状态
+
+| # | 功能 | 状态 | 说明 |
+|---|---|---|---|
+| 1 | 错误分类 + 恢复决策引擎 | ✅ | `resilience.rs`：11 类分类 + 5 种决策（纯函数 + 7 个单测）；queue.rs 失败后自动降级重试**一次** |
+| 2 | 精确输出路径捕获 | ✅ | `--print-to-file after_move:filepath`，读后删临时文件；回退 title 拼接 |
+| 3 | Cookie 全家桶 | ✅ 四模式 | settings"网络与高级"配置；**按站点自动（sites.yaml）与 CDP 登录救援未做**（见 6.3） |
+| 4 | CSV 进度协议 | ✅ | `VYTDL_PROG` 模板 + format_id 槽路由（video_percent/audio_percent 双槽）；保留 `[download] x%` 正则兜底 |
+| 5 | Format Picker | ✅ 基础版 | 复用既有 get_video_info；表单内"高级格式选择"折叠区，视频/音频分轨 + 大小显示；选中传 `format_id` |
+| 6 | 网络与专业参数包 | ✅ | 代理(+跳证书)/限速/并发分片/PO Token/extractor-args/config-location；默认强制 `--ignore-config` |
+| 7 | 暂停/恢复 | ✅ Unix | `process_control.rs` SIGSTOP/SIGCONT；Windows 显式不支持（见 6.3） |
+| 8 | 浏览器扩展 + 深链接 | ❌ 未做 | 见 6.3 #8 |
+| 9 | 后处理全家桶 | ✅ | embed thumbnail/metadata/chapters + SponsorBlock；webm 冲突自动禁用缩略图 |
+| 10 | 韧性细节包 | ✅ 主体 | 进程树取消（pkill/taskkill /T）+ `.part/.ytdl` 清理 + PYTHONUTF8 + CREATE_NO_WINDOW；任务重启恢复未加（SQLite 已持久化状态） |
+| 坑知识 1-9 | | ✅ 全部落码 | no-direct-merge/section 选择器、webm、sleep-subtitles、CSV 列解析、退出码判定、ignore-config、UTF-8 环境、403+Sign in 分类 |
+
+### 6.2 关键 Trade-off（设计决策记录）
+
+| 决策 | 选择 | 备选与放弃理由 |
+|---|---|---|
+| 进度模板格式 | **CSV + format_id**（v2 方案） | JSON（`%(progress)j`）解析更重；CSV 的 format_id 首列是分槽路由的关键 |
+| 韧性自动重试上限 | **最多一次**，且 429/鉴权类**永不自动重试** | 无限重试放大限流、拖垮站点友好性；一次覆盖 90% 瞬态失败 |
+| 缩略图失败策略 | 重试时整体关闭 `--embed-thumbnail` | yt-dlp 无单任务局部参数；主文件价值 > 缩略图 |
+| Cookie 文本模式 | 明文落盘 `app_data/cookies-vytdl.txt` | yt-dlp 只吃文件；加密缓存（keychain）复杂度与收益不匹配，UI 已标注风险并推荐 file/browser 模式 |
+| Windows 暂停 | **不做**，命令返回友好错误 | v1 的 Toolhelp32 全进程树线程挂起涉及 win32 API 深水区；风险/收益差。UI title 已注明 |
+| `--ignore-config` 默认开 | 用户未显式选 config 即强制 | v2"配置所有权"完整检测（解析 config 内容判断重复参数）留作后续；当前简化为二选一 |
+| 新 UI 文案 | **中英双语文面量**（未进 i18n key） | 3 个 locale 文件 x 30+ key 的维护成本；后续稳定后再提取 key |
+| Format Picker 展示列 | 分辨率/format_id/大小 三列 | v2 的 codec 归一化/HDR/动态范围等富解析未移植（数据源 VideoFormat 仅 4 字段）；够用先行 |
+| CSV 槽路由判定 | format_id 以 `v` 开头 = 视频轨 | YouTube 惯例；其他站点的纯数字 id 统一走"取活跃流"退化路径，可接受 |
+| 双进度合并显示 | 两流都活跃时取平均 | 精确加权需总字节数（CSV 已带但估计值不稳）；平均足够直观 |
+
+### 6.3 明确未做项（转入 STATUS 跟踪）
+
+1. **#8 浏览器扩展 + 深链接**：需 tauri-plugin-deep-link + single-instance 两个新依赖与 MV3 扩展分发，独立交付物；短期替代是表单的解析历史。
+2. **按站点自动 Cookie（sites.yaml）**：多站点重度用户出现前不引入索引复杂度。
+3. **CDP 登录救援**（v2 youtube_login_rescue，1606 行）：价值高但自包含工作量大，二期。
+4. **aria2 外挂**：参数位已留（rate_limit/fragments 已覆盖大部分诉求），二进制检测与安装引导未做。
+5. **任务栏进度条/系统通知、剪贴板监听、流式批量导入、转码流水线、依赖自更新**：次优先清单项，未到排期。

@@ -49,10 +49,18 @@
 
 ## apps/vytdl-desktop
 
+> 2026-08-16 下载引擎升级（借鉴清单 TOP 10 中 9 项落地，详见 docs/suggestions/borrow-from-yt-dlp-guis.md §6 实施记录与 trade-off）。
+
 | # | 未完成项 | 证据 | 建议 |
 |---|---|---|---|
-| 1 | 视频格式列表解析未实现（UI 格式选择依赖） | `src-tauri/src/downloader.rs:407` `formats: vec![] // TODO` | 解析 `yt-dlp -J` formats |
+| 1 | ~~视频格式列表解析未实现~~ | - | ✅ 已落地：Format Picker（分轨选择 + format_id 精确下载） |
 | 2 | database 层部分方法未接线（`init_db`、`update_download_progress` 等） | cargo check 警告 | 接线或清理 |
+| 3 | 浏览器扩展 + 深链接唤起（借鉴 #8）未做 | borrow 文档 §6.3 | tauri-plugin-deep-link + MV3 扩展，独立交付物 |
+| 4 | 按站点自动 Cookie（sites.yaml）与 CDP 登录救援未做 | borrow 文档 §6.3 | 二期 |
+| 5 | Windows 暂停/恢复不支持（Unix 已支持） | `process_control.rs` | 需 Toolhelp32 线程挂起，权衡后暂缓 |
+| 6 | aria2 外挂下载器未接 | 参数位已留 | 补二进制检测与安装引导 |
+| 7 | 新增 UI 文案为双语文面量，未提取 i18n key | `download-form.tsx`、settings 页 | 稳定后提取 zh/en/ja key |
+| 8 | 任务栏进度条/系统通知/剪贴板监听/流式批量导入未做 | borrow 文档 §二 次优先 | 按需排期 |
 
 ## apps/vytdl-web
 

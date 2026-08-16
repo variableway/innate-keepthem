@@ -7,6 +7,7 @@ import { Input } from "@vytdl/ui";
 import { Label } from "@vytdl/ui";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@vytdl/ui";
 import { Badge } from "@vytdl/ui";
+import { useSettingsStore } from "@/store/settingsStore";
 import { useDownloadStore } from "@/store/downloadStore";
 import { formatDuration } from "@vytdl/utils";
 import { useTranslation } from "@/i18n";
@@ -61,6 +62,16 @@ export function DownloadForm({ mode }: DownloadFormProps) {
   const [subLangs, setSubLangs] = useState(["en", "zh"]);
   const [writeSubs, setWriteSubs] = useState(true);
   const [writeAutoSubs, setWriteAutoSubs] = useState(true);
+  // ── Format Picker 与高级选项（借鉴清单 #5/#9）──
+  const [formatId, setFormatId] = useState<string>("");
+  const [showFormats, setShowFormats] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [embedThumbnail, setEmbedThumbnail] = useState(false);
+  const [embedMetadata, setEmbedMetadata] = useState(false);
+  const [embedChapters, setEmbedChapters] = useState(false);
+  const [sponsorblock, setSponsorblock] = useState(false);
+  const [rateLimit, setRateLimit] = useState("");
+  const settings = useSettingsStore((s) => s.settings);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [batchProgress, setBatchProgress] = useState({ submitted: 0, total: 0, failed: 0 });
 
@@ -255,6 +266,17 @@ export function DownloadForm({ mode }: DownloadFormProps) {
           sub_langs: subLangs,
           write_subs: writeSubs,
           write_auto_subs: writeAutoSubs,
+          format_id: formatId || undefined,
+          embed_thumbnail: embedThumbnail || undefined,
+          embed_metadata: embedMetadata || undefined,
+          embed_chapters: embedChapters || undefined,
+          sponsorblock_remove: sponsorblock || undefined,
+          rate_limit: rateLimit || undefined,
+          cookie: settings?.cookie ?? undefined,
+          proxy: settings?.proxy ?? undefined,
+          concurrent_fragments: settings?.concurrent_fragments ?? undefined,
+          po_token: settings?.po_token ?? undefined,
+          extractor_args: settings?.extractor_args ?? undefined,
         };
         const downloadId = await startDownload(options);
         if (!downloadId) failed++;
@@ -277,6 +299,17 @@ export function DownloadForm({ mode }: DownloadFormProps) {
       sub_langs: subLangs,
       write_subs: writeSubs,
       write_auto_subs: writeAutoSubs,
+      format_id: formatId || undefined,
+      embed_thumbnail: embedThumbnail || undefined,
+      embed_metadata: embedMetadata || undefined,
+      embed_chapters: embedChapters || undefined,
+      sponsorblock_remove: sponsorblock || undefined,
+      rate_limit: rateLimit || undefined,
+      cookie: settings?.cookie ?? undefined,
+      proxy: settings?.proxy ?? undefined,
+      concurrent_fragments: settings?.concurrent_fragments ?? undefined,
+      po_token: settings?.po_token ?? undefined,
+      extractor_args: settings?.extractor_args ?? undefined,
     };
 
     const downloadId = await startDownload(options);
@@ -475,6 +508,79 @@ export function DownloadForm({ mode }: DownloadFormProps) {
                   </div>
                 </div>
               )}
+
+              {/* ── Format Picker：视频/音频分轨精确选择（借鉴 #5）── */}
+              {videoInfo && videoInfo.formats && videoInfo.formats.length > 0 && (
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowFormats((v) => !v)}
+                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                  >
+                    {showFormats ? "▼" : "▶"} 高级格式选择 (Format Picker)
+                    {formatId && <span className="text-primary">已选: {formatId}</span>}
+                  </button>
+                  {showFormats && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <FormatGroup
+                        title="视频轨"
+                        formats={videoInfo.formats.filter((f) => f.resolution)}
+                        selected={formatId}
+                        onSelect={setFormatId}
+                      />
+                      <FormatGroup
+                        title="音频轨"
+                        formats={videoInfo.formats.filter((f) => !f.resolution)}
+                        selected={formatId}
+                        onSelect={setFormatId}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── 高级选项折叠区（借鉴 #9 后处理 + #6 限速）── */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowAdvanced((v) => !v)}
+                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                >
+                  {showAdvanced ? "▼" : "▶"} 高级选项 (Advanced)
+                </button>
+                {showAdvanced && (
+                  <div className="grid grid-cols-2 gap-3 pt-2">
+                    <label className="flex items-center gap-2 text-xs">
+                      <input type="checkbox" checked={embedThumbnail} onChange={(e) => setEmbedThumbnail(e.target.checked)} />
+                      嵌入缩略图
+                    </label>
+                    <label className="flex items-center gap-2 text-xs">
+                      <input type="checkbox" checked={embedMetadata} onChange={(e) => setEmbedMetadata(e.target.checked)} />
+                      嵌入元数据
+                    </label>
+                    <label className="flex items-center gap-2 text-xs">
+                      <input type="checkbox" checked={embedChapters} onChange={(e) => setEmbedChapters(e.target.checked)} />
+                      嵌入章节
+                    </label>
+                    <label className="flex items-center gap-2 text-xs">
+                      <input type="checkbox" checked={sponsorblock} onChange={(e) => setSponsorblock(e.target.checked)} />
+                      SponsorBlock 跳过广告段
+                    </label>
+                    <label className="col-span-2 text-xs">
+                      限速（如 2M，留空不限）
+                      <input
+                        className="ml-2 w-24 rounded border bg-transparent px-2 py-1"
+                        placeholder="2M"
+                        value={rateLimit}
+                        onChange={(e) => setRateLimit(e.target.value)}
+                      />
+                    </label>
+                    <p className="col-span-2 text-[11px] text-muted-foreground">
+                      Cookie / 代理 / 并发分片等全局项在 设置 → 网络与高级 中配置
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -615,5 +721,43 @@ export function DownloadForm({ mode }: DownloadFormProps) {
         </form>
       </CardContent>
     </Card>
+  );
+}
+
+// ── Format Picker 小组件：按 v1 的纯视频/纯音频分离展示（借鉴 #5）──
+function FormatGroup({
+  title,
+  formats,
+  selected,
+  onSelect,
+}: {
+  title: string;
+  formats: { format_id: string; quality?: string; resolution?: string | null; filesize?: number | null }[];
+  selected: string;
+  onSelect: (id: string) => void;
+}) {
+  if (formats.length === 0) return null;
+  const humanSize = (b?: number | null) =>
+    b ? (b >= 1024 ** 3 ? `${(b / 1024 ** 3).toFixed(1)}G` : `${(b / 1024 ** 2).toFixed(0)}M`) : "";
+  return (
+    <div className="rounded-md border p-2 max-h-44 overflow-auto">
+      <p className="text-[11px] font-medium text-muted-foreground mb-1">{title}</p>
+      {formats.map((f) => (
+        <button
+          key={f.format_id}
+          type="button"
+          onClick={() => onSelect(f.format_id)}
+          className={`flex w-full items-center justify-between rounded px-2 py-1 text-xs hover:bg-accent ${
+            selected === f.format_id ? "bg-accent text-accent-foreground" : ""
+          }`}
+        >
+          <span className="truncate">
+            {f.resolution || f.quality || f.format_id}
+            <span className="ml-1 text-muted-foreground">{f.format_id}</span>
+          </span>
+          <span className="text-muted-foreground">{humanSize(f.filesize)}</span>
+        </button>
+      ))}
+    </div>
   );
 }

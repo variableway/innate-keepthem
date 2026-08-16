@@ -58,12 +58,14 @@ async fn run_yt_dlp_blocking(
 }
 
 
-#[derive(Debug, Clone, Serialize)]
-#[derive(Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct DownloadOptions {
     pub url: String,
     pub is_playlist: bool,
     pub quality: Option<String>,
+    /// 精确 format_id（v1/v2 的 Format Picker 路线）；优先于 quality
+    pub format_id: Option<String>,
     pub format: Option<String>,
     pub output_dir: Option<String>,
     pub sub_langs: Option<Vec<String>>,
@@ -71,9 +73,28 @@ pub struct DownloadOptions {
     pub write_auto_subs: bool,
     pub start_time: Option<String>,
     pub end_time: Option<String>,
+    // ── 参数包（借鉴 yt-dlp-gui / v2，见 docs/suggestions/borrow-from-yt-dlp-guis.md）──
+    pub cookie: Option<crate::cookie::CookieConfig>,
+    pub proxy: Option<String>,
+    pub rate_limit: Option<String>,
+    pub concurrent_fragments: Option<u32>,
+    /// 嵌入类后处理：缩略图/元数据/章节
+    pub embed_thumbnail: bool,
+    pub embed_metadata: bool,
+    pub embed_chapters: bool,
+    pub sponsorblock_remove: bool,
+    /// 输出文件名模板（如 "%(title).200s [%(id)s].%(ext)s"）
+    pub filename_template: Option<String>,
+    /// PO Token / 自由 extractor-args（YouTube 403/429 场景）
+    pub po_token: Option<String>,
+    pub extractor_args: Option<String>,
+    /// 用户自带 yt-dlp 配置文件；None 时强制 --ignore-config（v2 坑知识 #6）
+    pub config_location: Option<String>,
+    /// 韧性引擎降级重试时由调用方置位（关闭缩略图嵌入）
+    pub disable_thumbnail_embed: bool,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct DownloadProgress {
     pub video_id: Option<String>,
     pub title: Option<String>,
@@ -82,6 +103,11 @@ pub struct DownloadProgress {
     pub eta: Option<String>,
     pub status: String,
     pub error: Option<String>,
+    /// 视频/音频双进度槽（CSV format_id 路由；None 表示单流）
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub video_percent: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub audio_percent: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -115,6 +141,7 @@ pub struct Downloader {
     options: DownloadOptions,
     _download_id: String,
     yt_dlp_path: Option<String>,
+    app_data_dir: Option<std::path::PathBuf>,
 }
 
 impl Downloader {
@@ -123,25 +150,26 @@ impl Downloader {
             options,
             _download_id: download_id,
             yt_dlp_path: None,
+            app_data_dir: None,
         }
+    }
+
+    pub fn with_app_data_dir(mut self, dir: Option<std::path::PathBuf>) -> Self {
+        self.app_data_dir = dir;
+        self
     }
 
     pub fn new_default() -> Self {
         Self {
             options: DownloadOptions {
                 url: String::new(),
-                is_playlist: false,
-                quality: None,
-                format: None,
-                output_dir: None,
-                sub_langs: None,
                 write_subs: true,
                 write_auto_subs: true,
-                start_time: None,
-                end_time: None,
+                ..Default::default()
             },
             _download_id: String::new(),
             yt_dlp_path: None,
+            app_data_dir: None,
         }
     }
 
@@ -174,8 +202,50 @@ impl Downloader {
 
         let mut args = vec![];
 
-        // Format selection
-        if let Some(quality) = &self.options.quality {
+        // ── 公共参数（v2 apply_common_yt_dlp_args 思路）──
+        // 坑知识 #6：未显式选 config 时强制 --ignore-config，防用户家目录配置干扰
+        if let Some(loc) = &self.options.config_location {
+            args.push("--config-locations".to_string());
+            args.push(loc.clone());
+        } else {
+            args.push("--ignore-config".to_string());
+        }
+        args.push("--windows-filenames".to_string()); // 跨平台安全文件名
+        if let Some(proxy) = &self.options.proxy {
+            args.push("--proxy".to_string());
+            args.push(proxy.clone());
+            args.push("--no-check-certificates".to_string()); // 自架代理常见自签证书
+        }
+        if let Some(cookie_cfg) = &self.options.cookie {
+            let cookie_args = cookie_cfg.to_args(self.app_data_dir.as_deref())?;
+            args.extend(cookie_args);
+        }
+        if let Some(rate) = &self.options.rate_limit {
+            args.push("-r".to_string());
+            args.push(rate.clone());
+        }
+        if let Some(frag) = self.options.concurrent_fragments {
+            args.push("--concurrent-fragments".to_string());
+            args.push(frag.to_string());
+        }
+        if let Some(po) = &self.options.po_token {
+            let mut ea = format!("youtube:po_token={po}");
+            if let Some(extra) = &self.options.extractor_args {
+                ea.push_str(&format!(";{extra}"));
+            }
+            args.push("--extractor-args".to_string());
+            args.push(ea);
+        } else if let Some(extra) = &self.options.extractor_args {
+            args.push("--extractor-args".to_string());
+            args.push(format!("youtube:{extra}"));
+        }
+
+        // ── 格式选择：format_id（Format Picker）优先，其次 quality 预设 ──
+        let has_sections = self.options.start_time.is_some() || self.options.end_time.is_some();
+        if let Some(fid) = &self.options.format_id {
+            args.push("-f".to_string());
+            args.push(fid.clone());
+        } else if let Some(quality) = &self.options.quality {
             if quality != "best" {
                 args.push("-f".to_string());
                 args.push(format!("bestvideo[height<={}]+bestaudio/best[height<={}]", quality, quality));
@@ -192,17 +262,29 @@ impl Downloader {
         if let Some(format) = &self.options.format {
             args.push("--merge-output-format".to_string());
             args.push(format.clone());
+            // 坑知识 #2：webm 容器不支持封面内嵌
+            if format == "webm" && self.options.embed_thumbnail {
+                args.push("--no-embed-thumbnail".to_string());
+            }
         }
 
-        // Output template
+        // Output template（支持自定义模板，默认防超长截断，v1 经验）
         args.push("-o".to_string());
-        args.push(format!("{}/%(title)s.%(ext)s", output_dir));
+        let tmpl = self
+            .options
+            .filename_template
+            .clone()
+            .unwrap_or_else(|| "%(title).200s [%(id)s].%(ext)s".to_string());
+        args.push(format!("{}/{}", output_dir, tmpl));
 
         // Subtitles
         if self.options.write_subs {
             args.push("--write-subs".to_string());
             if self.options.write_auto_subs {
                 args.push("--write-auto-subs".to_string());
+                // 坑知识 #3：自动/翻译字幕加间隔防限流
+                args.push("--sleep-subtitles".to_string());
+                args.push("1".to_string());
             }
             if let Some(langs) = &self.options.sub_langs {
                 args.push("--sub-langs".to_string());
@@ -210,8 +292,26 @@ impl Downloader {
             }
         }
 
+        // 嵌入类后处理（v2 三态简化为开关）
+        if self.options.embed_metadata {
+            args.push("--embed-metadata".to_string());
+        }
+        if self.options.embed_chapters {
+            args.push("--embed-chapters".to_string());
+        }
+        if self.options.embed_thumbnail && !self.options.disable_thumbnail_embed {
+            let webm_block = self.options.format.as_deref() == Some("webm");
+            if !webm_block {
+                args.push("--embed-thumbnail".to_string());
+            }
+        }
+        if self.options.sponsorblock_remove {
+            args.push("--sponsorblock-remove".to_string());
+            args.push("all".to_string());
+        }
+
         // Time range
-        if self.options.start_time.is_some() || self.options.end_time.is_some() {
+        if has_sections {
             let mut section = String::new();
             section.push('*');
             section.push_str(&self.options.start_time.clone().unwrap_or_else(|| "0".to_string()));
@@ -220,6 +320,15 @@ impl Downloader {
             args.push("--download-sections".to_string());
             args.push(section);
             args.push("--force-keyframes-at-cuts".to_string());
+            // 坑知识 #1：章节裁剪需禁用直下合并 + muxed 安全选择器，否则进度卡死
+            args.push("--compat-options".to_string());
+            args.push("no-direct-merge".to_string());
+            if self.options.format_id.is_none() {
+                // 只有非精确格式选择时才覆盖选择器
+                if let Some(pos) = args.iter().position(|a| a == "-f") {
+                    args[pos + 1] = crate::resilience::SECTION_SAFE_SELECTOR.to_string();
+                }
+            }
         }
 
         // Playlist handling
@@ -227,10 +336,21 @@ impl Downloader {
             args.push("--no-playlist".to_string());
         }
 
-        // Progress output
+        // ── 进度与输出捕获（v2 CSV 模板 + format_id 槽路由）──
         args.push("--newline".to_string());
         args.push("--progress".to_string());
+        args.push("--progress-template".to_string());
+        args.push("download:VYTDL_PROG,%(info.format_id)s,%(progress._percent_str)s,%(progress.downloaded_bytes)s,%(progress.total_bytes_estimate)s,%(progress.speed)s,%(progress.eta)s".to_string());
         args.push("--print-json".to_string());
+        // 精确输出路径捕获（v1/v2）：后处理改名后仍准确；Windows GBK 免疫
+        let path_tmp = self
+            .app_data_dir
+            .clone()
+            .unwrap_or_else(|| std::env::temp_dir())
+            .join(format!("vytdl-path-{}.txt", self._download_id));
+        args.push("--print-to-file".to_string());
+        args.push("after_move:filepath".to_string());
+        args.push(path_tmp.to_string_lossy().to_string());
 
         // URL
         args.push(self.options.url.clone());
@@ -249,11 +369,20 @@ impl Downloader {
             for key in proxy_vars_to_remove() {
                 cmd.env_remove(&key);
             }
+            // v1/v2 同款：强制 UTF-8 输出；Windows 不弹控制台窗
+            cmd.env("PYTHONUTF8", "1");
+            cmd.env("PYTHONIOENCODING", "utf-8");
+            #[cfg(windows)]
+            cmd.creation_flags(0x0800_0000); // CREATE_NO_WINDOW
             cmd.stdout(Stdio::piped())
                 .stderr(Stdio::piped())
                 .spawn()
                 .map_err(|e| format!("Failed to spawn yt-dlp: {}", e))?
         };
+        // 注册 pid（暂停/恢复/进程树取消用）
+        if let Some(pid) = child.id() {
+            crate::process_control::register_child(&self._download_id, pid);
+        }
 
         let stdout = child.stdout.take().ok_or("Failed to capture stdout")?;
         let stderr = child.stderr.take().ok_or("Failed to capture stderr")?;
@@ -262,19 +391,37 @@ impl Downloader {
         let mut stderr_reader = BufReader::new(stderr).lines();
 
         let mut last_info: Option<VideoInfoJson> = None;
-        let progress_re = regex::Regex::new(r"\[download\]\s+([\d.]+)%.*?at\s+(\S+)\s+ETA\s+(\S+)")
-            .map_err(|e| format!("Failed to compile regex: {}", e))?;
+        // CSV 槽路由状态：format_id -> 是否视频轨（视频/音频双进度）
+        // 坑知识 #4：数字 format_id 不能当百分比，必须按列解析
+        let mut video_percent: f64 = 0.0;
+        let mut audio_percent: f64 = 0.0;
+        let mut last_speed: Option<String> = None;
+        let mut last_eta: Option<String> = None;
+        let fallback_progress_re = regex::Regex::new(r"\[download\]\s+([\d.]+)%").ok();
+        let mut stderr_all: String = String::new();
+        let mut stdout_all: String = String::new();
 
         // Read stdout
         loop {
             tokio::select! {
                 biased;
                 _ = cancel_rx.recv() => {
+                    // 进程树取消（防孤儿 ffmpeg/aria2）+ .part 清理（v1 经验）
                     let _ = child.kill().await;
+                    crate::process_control::kill_tree(self._download_id.clone()).await;
                     on_log(DownloadLog {
                         level: "info".to_string(),
-                        message: "Download cancelled".to_string(),
+                        message: "Download cancelled, cleaning partial files".to_string(),
                     });
+                    let _ = tokio::fs::remove_file(&path_tmp).await;
+                    if let Ok(mut entries) = tokio::fs::read_dir(&output_dir).await {
+                        while let Ok(Some(e)) = entries.next_entry().await {
+                            let name = e.file_name().to_string_lossy().to_string();
+                            if name.ends_with(".part") || name.ends_with(".ytdl") || name.ends_with(".part-Frag") {
+                                let _ = tokio::fs::remove_file(e.path()).await;
+                            }
+                        }
+                    }
                     return Err("Download cancelled".to_string());
                 }
                 line = stdout_reader.next_line() => {
@@ -286,6 +433,8 @@ impl Downloader {
                                 message: line.clone(),
                             });
 
+                            stdout_all.push_str(&line);
+                            stdout_all.push('\n');
                             // Try to parse as JSON (video metadata)
                             if line.starts_with('{') {
                                 if let Ok(info) = serde_json::from_str::<VideoInfoJson>(&line) {
@@ -298,23 +447,62 @@ impl Downloader {
                                         eta: None,
                                         status: "downloading".to_string(),
                                         error: None,
+                                        ..Default::default()
                                     });
                                 }
-                            } else if let Some(caps) = progress_re.captures(&line) {
-                                // Parse progress line
-                                let percent: f64 = caps[1].parse().unwrap_or(0.0);
-                                let speed = caps[2].to_string();
-                                let eta = caps[3].to_string();
-
-                                on_progress(DownloadProgress {
-                                    video_id: last_info.as_ref().map(|i| i.id.clone()),
-                                    title: last_info.as_ref().map(|i| i.title.clone()),
-                                    percent,
-                                    speed: Some(speed),
-                                    eta: Some(eta),
-                                    status: "downloading".to_string(),
-                                    error: None,
-                                });
+                            } else if let Some(rest) = line.strip_prefix("VYTDL_PROG,") {
+                                // CSV: format_id, percent, downloaded, total_estimate, speed, eta
+                                let cols: Vec<&str> = rest.split(',').collect();
+                                if cols.len() >= 6 {
+                                    let fid = cols[0].trim();
+                                    let percent: f64 = cols[1]
+                                        .trim()
+                                        .trim_end_matches('%')
+                                        .parse()
+                                        .unwrap_or(0.0);
+                                    // 槽路由：以 v 开头的 format_id（如 v137）视为视频轨，
+                                    // 纯数字/a 开头视为音频轨；未知时按已见视频轨退化处理
+                                    let is_video = fid.starts_with('v');
+                                    if is_video {
+                                        video_percent = percent;
+                                    } else {
+                                        audio_percent = percent;
+                                    }
+                                    last_speed = crate::resilience::human_bytes_speed(cols[4]);
+                                    last_eta = Some(cols[5].trim().to_string()).filter(|s| !s.is_empty() && s != "NA");
+                                    // 综合进度：两条流都活跃时取平均，否则取活跃那条
+                                    let combined = if video_percent > 0.0 && audio_percent > 0.0 {
+                                        (video_percent + audio_percent) / 2.0
+                                    } else {
+                                        percent
+                                    };
+                                    on_progress(DownloadProgress {
+                                        video_id: last_info.as_ref().map(|i| i.id.clone()),
+                                        title: last_info.as_ref().map(|i| i.title.clone()),
+                                        percent: combined,
+                                        speed: last_speed.clone(),
+                                        eta: last_eta.clone(),
+                                        status: "downloading".to_string(),
+                                        error: None,
+                                        audio_percent: if audio_percent > 0.0 { Some(audio_percent) } else { None },
+                                        video_percent: if video_percent > 0.0 { Some(video_percent) } else { None },
+                                    });
+                                }
+                            } else if let Some(re) = &fallback_progress_re {
+                                // 兜底：默认 [download] x% 行
+                                if let Some(caps) = re.captures(&line) {
+                                    let percent: f64 = caps[1].parse().unwrap_or(0.0);
+                                    on_progress(DownloadProgress {
+                                        video_id: last_info.as_ref().map(|i| i.id.clone()),
+                                        title: last_info.as_ref().map(|i| i.title.clone()),
+                                        percent,
+                                        speed: None,
+                                        eta: None,
+                                        status: "downloading".to_string(),
+                                        error: None,
+                                        ..Default::default()
+                                    });
+                                }
                             }
                         }
                         Ok(None) => break,
@@ -323,6 +511,8 @@ impl Downloader {
                 }
                 line = stderr_reader.next_line() => {
                     if let Ok(Some(line)) = line {
+                        stderr_all.push_str(&line);
+                        stderr_all.push('\n');
                         on_log(DownloadLog {
                             level: "error".to_string(),
                             message: line,
@@ -339,13 +529,22 @@ impl Downloader {
             .wait()
             .await
             .map_err(|e| format!("Failed to wait for yt-dlp: {}", e))?;
+        crate::process_control::unregister_child(&self._download_id);
 
         if !status.success() {
             on_log(DownloadLog {
                 level: "error".to_string(),
                 message: format!("yt-dlp exited with status: {:?}", status.code()),
             });
-            return Err("yt-dlp process failed".to_string());
+            // 韧性引擎：分类失败原因，错误消息带类别与提示（前端徽章/按钮用）
+            let kind = crate::resilience::classify_download_error(&stdout_all, &stderr_all, false);
+            let _ = tokio::fs::remove_file(&path_tmp).await;
+            return Err(format!(
+                "[{}] {} | {}",
+                serde_json::to_string(&kind).unwrap_or_default(),
+                kind.label(),
+                kind.hint()
+            ));
         }
 
         on_log(DownloadLog {
@@ -353,11 +552,21 @@ impl Downloader {
             message: "Download completed successfully".to_string(),
         });
 
+        // 精确输出路径：--print-to-file 结果优先，回退 title 拼接（坑知识 #5 补充）
+        let exact_path: Option<String> = tokio::fs::read_to_string(&path_tmp)
+            .await
+            .ok()
+            .and_then(|s| s.lines().map(str::trim).filter(|l| !l.is_empty()).last().map(String::from));
+        let _ = tokio::fs::remove_file(&path_tmp).await;
+
         // Construct output
         if let Some(info) = last_info {
             let ext = self.options.format.clone().unwrap_or_else(|| "mp4".to_string());
-            let filename = format!("{}/{}.{}", output_dir, sanitize_filename(&info.title), ext);
-            
+            // 精确路径优先（含后处理改名/容器转换后的真实文件名）
+            let filename = exact_path.unwrap_or_else(|| {
+                format!("{}/{}.{}", output_dir, sanitize_filename(&info.title), ext)
+            });
+
             // Collect subtitle files
             let subtitles = self.find_subtitle_files(&output_dir, &info.title).await;
 

@@ -28,6 +28,18 @@ const defaultSettings: Settings = {
   ai_model: null,
   agent_cli_kimi_bin: null,
   agent_cli_other_bin: null,
+  proxy: null,
+  cookie: null,
+  rate_limit: null,
+  concurrent_fragments: null,
+  embed_thumbnail: false,
+  embed_metadata: false,
+  embed_chapters: false,
+  sponsorblock_remove: false,
+  filename_template: null,
+  po_token: null,
+  extractor_args: null,
+  config_location: null,
 };
 
 export const useSettingsStore = create<SettingsState>()(

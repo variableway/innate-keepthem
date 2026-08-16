@@ -31,7 +31,7 @@ python/contentforge/
 ```
 
 - 纯标准库 + requests/PyYAML；无 LangChain（刻意自研）；外部依赖 OpenAI/Claude/Ollama 兼容 API、agent-reach CLI、ffmpeg
-- 详细设计：`docs/specs/contentforge/`（projects 00-07 + 模块 SPEC）
+- 详细设计：`docs/specs/contentforge/`（projects 00-07 + 模块 SPEC）；**core 修改方案**：`docs/specs/contentforge/CORE-REWORK-PLAN.md`
 
 ## apps/contentforge-desktop
 

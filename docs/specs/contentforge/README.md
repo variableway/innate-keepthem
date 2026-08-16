@@ -23,7 +23,8 @@ ContentForge（采集 -> AI 处理 -> 发布）的成体系设计文档，随 20
 |---|---|
 | [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) | 项目总览 |
 | [CLI_SPEC.md](CLI_SPEC.md) | Go CLI（tools/contentforge-cli）命令与行为 |
-| [PYTHON_CORE_SPEC.md](PYTHON_CORE_SPEC.md) | Python 核心（packages/contentforge-core） |
+| [PYTHON_CORE_SPEC.md](PYTHON_CORE_SPEC.md) | Python 核心（packages/contentforge-core）-- **v2.0 基于代码事实重写** |
+| [CORE-REWORK-PLAN.md](CORE-REWORK-PLAN.md) | **core 修改分析**：P0-P2 分级问题清单 + 四阶段修改方案 |
 | [RUST_BACKEND_SPEC.md](RUST_BACKEND_SPEC.md) | 桌面端 Rust 后端（apps/contentforge-desktop） |
 | [FRONTEND_SPEC.md](FRONTEND_SPEC.md) | 桌面端前端 |
 | [EXTERNAL_REPO_INTEGRATION_PLAN.md](EXTERNAL_REPO_INTEGRATION_PLAN.md) | 外部仓库集成计划（`contentforge/external-repos/` 各参考项目） |

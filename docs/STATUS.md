@@ -22,16 +22,22 @@
 
 ## packages/contentforge-core（Python 核心）
 
+> 修改方案总纲：`docs/specs/contentforge/CORE-REWORK-PLAN.md`（P0-P2 分级 + 四阶段计划）；现状 spec：`docs/specs/contentforge/PYTHON_CORE_SPEC.md`。
+
 | # | 未完成项 | 证据 | 说明 |
 |---|---|---|---|
-| 1 | `pipeline/engine.py` IngestionHandler **重复定义两次**，且 import 不存在的 `AgentReachCollector`（实际类名 `AgentReachIngestor`）| engine.py（重复类定义处） | ingest 步骤运行时必然 ImportError |
-| 2 | `cli/scrape.py` import 同一错误类名，模块整体不可导入 | `cli/scrape.py:7` | 同上 |
-| 3 | 转录是 placeholder：只提取音频，无真实转录 | `ingestion/transcriber.py:158`（注释"需要外部 whisper 服务"） | 接 whisper 服务或 API |
-| 4 | pipeline 动态导入未实现 | `pipeline/engine.py:294` | - |
-| 5 | `ai/session.py` SessionManager 为内存简化实现（注释"实际应连接 SQLite"） | `ai/session.py` | - |
-| 6 | `publishing/` 整包空壳（1 行 docstring） | `publishing/__init__.py` | 与 Go 端 publish.go 两条发布路径待统一 |
-| 7 | 预设 ID 不一致：JSON 用 `preset-twitter-to-xiaohongshu`，presets.py 注册 `twitter_to_xiaohongshu` | `scripts/presets/*.json` vs `pipeline/presets.py` | pipeline create/run 对不上 |
-| 8 | 无 requirements.txt/pyproject.toml；`.venv-cf` 不存在 | 包根目录 | 依赖装靠 cf-env.sh + 手动 pip |
+| 1 | ~~engine.py IngestionHandler 重复定义 + 幽灵导入 AgentReachCollector~~ | - | ✅ 已修复（2026-08-16，坏副本已删） |
+| 2 | ~~cli/scrape.py 幽灵导入（AgentReachCollector/AgentReachError/WebScraperError）~~ | - | ✅ 已修复（同上，方法名对齐 fetch_*） |
+| 3 | **ai/ 子系统（7,045 行，占包 47%）包外零调用**：bridge 不暴露、桌面端走 Kimi CLI | `grep from contentforge.ai` 包外 0 命中 | P0：处置三选一，推荐接入桌面端 chat（REWORK PLAN Phase C） |
+| 4 | **create 的预设永远无法 run**：`PRESETS` 注册表不加载 JSON 文件，create 写的 `scripts/presets/*.json` 是死数据 | `pipeline/presets.py`（get_preset 只查内存 dict） | P1：注册表改为内置 + 文件双来源（REWORK PLAN Phase B.1） |
+| 5 | **配置未贯穿**：config.py 的 yaml 体系无消费方，AIEngine 用独立 AIConfig | `config.py` vs `processing/ai_engine.py:30` | P1：AIConfig.from_config（REWORK PLAN Phase D） |
+| 6 | 转录是 placeholder：只提取音频，无真实转录 | `ingestion/transcriber.py:158` | P0：接 whisper 后端（Groq/OpenAI/本地） |
+| 7 | `publishing/` 整包空壳；与 Go 端 publish.go 双轨 | `publishing/__init__.py`（1 行） | P0：定调（REWORK PLAN Phase B.4） |
+| 8 | 运行存储缺失：run_by_id/重试/输入留存均为简化实现 | `pipeline/runner.py:183,278,355,364` | P1：落 SQLite（REWORK PLAN Phase B.2） |
+| 9 | pipeline 动态导入未实现（自定义步骤静默跳过） | `pipeline/engine.py:261-265` | P1 |
+| 10 | `ai/session.py` SessionManager 为内存实现 | `ai/session.py` | P1：随 Phase C 落 SQLite |
+| 11 | ~~预设 JSON id 连字符 vs 注册名下划线~~ | - | ✅ 已修复（JSON id 统一为下划线） |
+| 12 | 无 pyproject.toml / requirements.txt / 测试 | 包根目录 | P0：Phase A 工程化基座 |
 
 ## tools/contentforge-cli
 

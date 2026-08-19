@@ -68,8 +68,12 @@ def get_project_root() -> Path:
     return Path(__file__).parent.parent.resolve()
 
 
+def get_tauri_app_dir(project_dir: Path) -> Path:
+    return project_dir / "apps" / "vytdl-desktop"
+
+
 def get_tauri_src_dir(project_dir: Path) -> Path:
-    return project_dir / "apps" / "vytdl-desktop" / "src-tauri"
+    return get_tauri_app_dir(project_dir) / "src-tauri"
 
 
 # ───────────────────── CLI sidecar (unified vYtDL binary) ─────────────────────
@@ -313,7 +317,10 @@ def run_dev(project_dir: Path, target: str | None, verbose: bool = False) -> int
     if target:
         cmd.extend(["--target", target])
 
-    return run_command(cmd, cwd=project_dir, verbose=verbose)
+    # The `tauri` binary lives in apps/vytdl-desktop (a @tauri-apps/cli dev
+    # dependency). Running from the repo root fails with
+    # `ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL Command "tauri" not found`.
+    return run_command(cmd, cwd=get_tauri_app_dir(project_dir), verbose=verbose)
 
 
 def run_build(project_dir: Path, target: str | None, verbose: bool = False) -> int:
@@ -332,7 +339,9 @@ def run_build(project_dir: Path, target: str | None, verbose: bool = False) -> i
     if verbose:
         cmd.append("--verbose")
 
-    return run_command(cmd, cwd=project_dir, verbose=verbose)
+    # See run_dev(): pnpm tauri must run inside apps/vytdl-desktop, where the
+    # @tauri-apps/cli binary is resolvable.
+    return run_command(cmd, cwd=get_tauri_app_dir(project_dir), verbose=verbose)
 
 
 def run_bundle(project_dir: Path, target: str | None, verbose: bool = False) -> int:

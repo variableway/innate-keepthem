@@ -233,7 +233,7 @@ print_next_steps() {
     echo -e "${BLUE}============================================${NC}"
     echo ""
     echo "1. Build the CLI:"
-    echo "   cd tools/vytdl-cli && go build -o vYtDL ."
+    echo "   cd vYtDL-standalone && go build -o vYtDL ."
     echo ""
     echo "2. Run the desktop app in dev mode:"
     echo "   cd apps/vytdl-desktop && pnpm install && pnpm tauri dev"

@@ -11,7 +11,7 @@
 8. 提供可以一份subtitle和视屏文件对应的csv文件，或者json文件
 9. 需要通过TUI/CLI同时，下载是否成功需要一份文件进行记录，可以是csv文件，也可以是json文件，但是需要标注是否下载成功，以及失败的原因
 10. 使用golang，yt-dl库来实现下载功能
-11. yt-dl 使用方式在[help](../tools/vytdl-cli/help.md)中，请参考实现
+11. yt-dl 使用方式在[help](../vYtDL-standalone/help.md)中，请参考实现
 12. 目前下载没有成功，请检查问题download_record.json文件，查看失败的原因
 13. 修复问题然后确认如何使用成功下载
 14. 生成一份可以下载的shell脚本库，主要包括两个shell脚本，一个用来下载单个视频，一个用来下载collection中的所有视频。

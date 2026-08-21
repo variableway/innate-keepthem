@@ -36,7 +36,7 @@ go build -o vYtDL .
 | 是否单独 git 仓库？ | **是**（已 `git init`，skill：`.agents/skills/vytdl-cli`） |
 | 能否直接 build？ | **能**：`cd …/vYtDL && go build -o vYtDL .`；Go 1.24+ |
 | yt-dlp 是否打进包？ | **支持**：PATH → `-tags embed_ytdlp` 内嵌 → 缓存自动下载（`--install-yt-dlp`） |
-| monorepo 内 `tools/vytdl-cli/`？ | 工作副本；见 `tools/vytdl-cli/MOVED.md` / `tools/vytdl-cli/README.md` |
+| monorepo 内 `vYtDL-standalone/`？ | 工作副本；见 `vYtDL-standalone/MOVED.md` / `vYtDL-standalone/README.md` |
 
 ---
 

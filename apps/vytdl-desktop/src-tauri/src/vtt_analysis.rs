@@ -224,13 +224,17 @@ async fn find_vytdl_cli() -> Result<String, String> {
         }
     }
 
-    // 3. Monorepo checkout: tools/vytdl-cli/vYtDL, or the staged sidecar in
+    // 3. Monorepo checkout: vYtDL-standalone/vYtDL, or the staged sidecar in
     //    apps/vytdl-desktop/src-tauri/bin/ (walking up from the working dir)
     if let Ok(mut cwd) = std::env::current_dir() {
         for _ in 0..6 {
-            let candidate = cwd.join("tools").join("vytdl-cli").join("vYtDL");
-            if tokio::fs::metadata(&candidate).await.is_ok() {
-                return Ok(candidate.to_string_lossy().to_string());
+            for rel in [
+                cwd.join("vYtDL-standalone").join("vYtDL"),
+                cwd.join("tools").join("vytdl-cli").join("vYtDL"), // legacy
+            ] {
+                if tokio::fs::metadata(&rel).await.is_ok() {
+                    return Ok(rel.to_string_lossy().to_string());
+                }
             }
             let staged = cwd
                 .join("apps")

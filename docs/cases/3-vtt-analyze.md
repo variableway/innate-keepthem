@@ -22,7 +22,7 @@
 ### 基本用法
 
 ```bash
-cd tools/vytdl-cli
+cd vYtDL-standalone
 
 ./vYtDL analyze --mode text \
   "downloads_case/downloads_case/AI的正确打开方式：不学概念，学动作.zh.vtt"

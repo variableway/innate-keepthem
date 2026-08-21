@@ -53,7 +53,7 @@ services/agent-reach  (submodule, Panniantong/agent-reach) —— agent 触达�
 
 | 模块 | 路径 | 形态 | 状态 | 文档 |
 |---|---|---|---|---|
-| vYtDL CLI | `tools/vytdl-cli` | Go CLI/TUI | ✅ 可用（规范仓库 qdriven/innate-vytdl） | [vytdl-cli.md](vytdl-cli.md) |
+| vYtDL CLI | `vYtDL-standalone` | Go CLI/TUI | ✅ 可用（规范仓库 qdriven/innate-vytdl） | [vytdl-cli.md](vytdl-cli.md) |
 | vYtDL Desktop | `apps/vytdl-desktop` | Tauri 桌面 | ✅ 可用 | [vytdl-desktop.md](vytdl-desktop.md) |
 | vYtDL Web | `apps/vytdl-web` | Node 服务 | ✅ 可用 | [vytdl-web.md](vytdl-web.md) |
 | URL Extractor | `extensions/url-extractor` | Chrome 扩展 | ✅ 可用 | [url-extractor.md](url-extractor.md) |
@@ -65,7 +65,7 @@ services/agent-reach  (submodule, Panniantong/agent-reach) —— agent 触达�
 
 ## 关键统一约定
 
-1. **单一 CLI 二进制**：桌面端 sidecar 与独立 CLI 同源于 `tools/vytdl-cli`（构建即统一，见 BUILD.md）。
+1. **单一 CLI 二进制**：桌面端 sidecar 与独立 CLI 同源于 `vYtDL-standalone`（构建即统一，见 BUILD.md）。
 2. **单一下载引擎**：所有形态最终调用 yt-dlp；桌面端捆绑平台二进制（`resources/yt-dlp`），CLI 端运行时解析（PATH->内嵌->缓存->下载）。
 3. **单一 workspace**：pnpm workspace 覆盖全部 apps/packages；Go workspace（go.work）覆盖两个 tools。
 4. **同一套 CI**：`.github/workflows/ci.yml` 四个 job 覆盖 Go/Rust/Node/Python（见 CI.md）。

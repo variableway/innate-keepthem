@@ -10,7 +10,7 @@
 
 直接使用 yt-dlp 需要记忆大量参数（清晰度、字幕、cookies、代理、播放列表续传……）。vYtDL 把这些固化为日常好用的产品形态：
 
-- **CLI**（`tools/vytdl-cli`）：`-q 1080`、默认中英字幕、TUI 进度、下载记录、播放列表断点续传，并能自动预置 yt-dlp（PATH -> 内嵌 -> 缓存 -> 自动下载）。
+- **CLI**（`vYtDL-standalone`）：`-q 1080`、默认中英字幕、TUI 进度、下载记录、播放列表断点续传，并能自动预置 yt-dlp（PATH -> 内嵌 -> 缓存 -> 自动下载）。
 - **桌面端**（`apps/vytdl-desktop`）：Tauri v2 + Next.js，图形化下载队列、并发控制、实时日志、多语言。
 - **Web 端**（`apps/vytdl-web`）：Docker 部署，面向 NAS / 树莓派场景的远程下载界面。
 - **浏览器扩展**（`extensions/url-extractor`）：在 YouTube 页面直接抓取视频地址发送给下载端。
@@ -28,7 +28,7 @@
 本项目历史上 CLI、桌面端、内容管线散落在多个目录/仓库，路径引用与构建方式各自为政。2026-08 的 monorepo 重构（PR #3/#4/#5）统一为：
 
 - 单一目录结构：`apps/`（应用）+ `packages/`（共享包）+ `services/`（服务）+ `tools/`（CLI 工具）+ `extensions/`（扩展）
-- 单一二进制来源：桌面端通过 Tauri sidecar 直接捆绑 `tools/vytdl-cli` 构建出的 CLI（见 `modules/vytdl-cli.md`）
+- 单一二进制来源：桌面端通过 Tauri sidecar 直接捆绑 `vYtDL-standalone` 构建出的 CLI（见 `modules/vytdl-cli.md`）
 - 统一构建入口（根 `Taskfile.yml` + `scripts/`）与统一 CI（`.github/workflows/ci.yml`）
 
 ## 为谁而做
@@ -53,4 +53,4 @@
 | `tools/` | vytdl-cli、contentforge-cli |
 | `extensions/` | url-extractor（Chrome 扩展） |
 
-CLI 的**规范源码仓库**为 [qdriven/innate-vytdl](https://github.com/qdriven/innate-vytdl)，`tools/vytdl-cli` 是其在 monorepo 内的镜像工作副本。
+CLI 的**规范源码仓库**为 [qdriven/innate-vytdl](https://github.com/qdriven/innate-vytdl)，`vYtDL-standalone` 是其在 monorepo 内的镜像工作副本。

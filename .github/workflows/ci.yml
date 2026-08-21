@@ -21,8 +21,16 @@ jobs:
         with:
           go-version: "1.24"
 
-      - name: Build & test vytdl-cli
-        working-directory: tools/vytdl-cli
+      - name: Checkout innate-vytdl (vYtDL CLI)
+        run: |
+          if [ ! -f vYtDL-standalone/go.mod ]; then
+            git clone --depth 1 https://github.com/qdriven/innate-vytdl.git vYtDL-standalone
+          fi
+
+      - name: Build & test vYtDL CLI
+        working-directory: vYtDL-standalone
+        env:
+          GOWORK: "off"
         run: |
           go build ./...
           go test ./...
@@ -44,6 +52,13 @@ jobs:
 
       # vytdl-desktop needs the CLI sidecar and yt-dlp resources staged
       # before `cargo check` (tauri build script validates both).
+      - name: Checkout innate-vytdl (vYtDL CLI)
+        if: matrix.app == 'vytdl-desktop'
+        run: |
+          if [ ! -f vYtDL-standalone/go.mod ]; then
+            git clone --depth 1 https://github.com/qdriven/innate-vytdl.git vYtDL-standalone
+          fi
+
       - name: Stage vYtDL CLI sidecar + yt-dlp resources
         if: matrix.app == 'vytdl-desktop'
         run: |

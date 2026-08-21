@@ -98,7 +98,7 @@ Next.js version: 16.2.2 (Turbopack)
 
 ## Task 9: Simple Include the bin file
 
-1. different runable files for different platform is download in [bin](../../tools/vytdl-cli/internal/ytdlpbin/binaries)
+1. different runable files for different platform is download in [bin](../../vYtDL-standalone/internal/ytdlpbin/binaries)
 2. please include these for different platform
 
 

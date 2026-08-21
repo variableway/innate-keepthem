@@ -66,7 +66,7 @@ URL 列表 → work queue (channel)
 ### 视频 1: AI的正确打开方式
 
 ```bash
-cd tools/vytdl-cli
+cd vYtDL-standalone
 ./vYtDL download --no-tui --output ./downloads_case \
   "https://www.youtube.com/watch?v=9A98hWZs5yU"
 ```
@@ -158,7 +158,7 @@ Completed: 0 succeeded, 2 failed.
 ## 输出文件结构
 
 ```
-tools/vytdl-cli/downloads_case/
+vYtDL-standalone/downloads_case/
 ├── download_record.json
 ├── subtitle_mapping.json
 └── downloads_case/

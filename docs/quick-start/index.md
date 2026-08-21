@@ -17,13 +17,13 @@
 ### Build
 
 ```bash
-cd tools/vytdl-cli
+cd vYtDL-standalone
 go build -o vYtDL .
 ```
 
 ### Configure
 
-Edit `tools/vytdl-cli/config.json` to set your yt-dlp binary path:
+Edit `vYtDL-standalone/config.json` to set your yt-dlp binary path:
 
 ```json
 {
@@ -54,7 +54,7 @@ Common paths:
 ### Install Dependencies
 
 ```bash
-cd tools/vytdl-cli-desktop
+cd vYtDL-standalone-desktop
 pnpm install
 ```
 
@@ -62,7 +62,7 @@ pnpm install
 
 **Cross-platform (all OS):**
 ```bash
-cd tools/vytdl-cli-desktop
+cd vYtDL-standalone-desktop
 python scripts/start-desktop.py
 ```
 
@@ -78,14 +78,14 @@ python scripts/start-desktop.py
 
 **Or manually:**
 ```bash
-cd tools/vytdl-cli-desktop
+cd vYtDL-standalone-desktop
 pnpm tauri:dev
 ```
 
 ### Build for Production
 
 ```bash
-cd tools/vytdl-cli-desktop
+cd vYtDL-standalone-desktop
 pnpm tauri:build
 ```
 

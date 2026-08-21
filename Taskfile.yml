@@ -1,7 +1,7 @@
 version: "3"
 
 vars:
-  CLI_DIR: ./tools/vytdl-cli
+  CLI_DIR: ./vYtDL-standalone
   DESKTOP_APP_DIR: ./apps/vytdl-desktop
   CONTENTFORGE_DIR: ./tools/contentforge-cli
   CLI_BIN: vYtDL
@@ -20,6 +20,8 @@ tasks:
   cli:build:
     desc: Build the Go CLI for the current platform
     dir: "{{.CLI_DIR}}"
+    env:
+      GOWORK: "off"
     cmds:
       - go build -trimpath -ldflags "-s -w" -o {{.CLI_BIN}} .
     sources:
@@ -28,36 +30,89 @@ tasks:
       - "{{.CLI_BIN}}"
 
   cli:build:all:
-    desc: Cross-compile the Go CLI for all platforms
+    desc: Cross-compile the Go CLI for macOS/Linux/Windows
     dir: "{{.CLI_DIR}}"
+    env:
+      GOWORK: "off"
     cmds:
       - mkdir -p {{.DIST_DIR}}
-      - |
-        for pair in "darwin amd64" "darwin arm64" "linux amd64" "linux arm64" "windows amd64" "windows arm64"; do
-          GOOS=$(echo $pair | cut -d' ' -f1)
-          GOARCH=$(echo $pair | cut -d' ' -f2)
-          EXT=""
-          [ "$GOOS" = "windows" ] && EXT=".exe"
-          echo "Building {{.CLI_BIN}}-${GOOS}-${GOARCH}${EXT}"
-          CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build -trimpath -ldflags "-s -w" -o "{{.DIST_DIR}}/{{.CLI_BIN}}-${GOOS}-${GOARCH}${EXT}" .
-        done
-      - echo "Artifacts in {{.DIST_DIR}}/"
+      - ./scripts/build.sh {{.DIST_DIR}} {{.CLI_BIN}}
+    sources:
+      - "**/*.go"
+
+  cli:build:windows:
+    desc: Cross-compile Windows amd64 + arm64 (.exe → vYtDL-standalone/dist/)
+    dir: "{{.CLI_DIR}}"
+    env:
+      GOWORK: "off"
+      ONLY: windows
+    cmds:
+      - mkdir -p {{.DIST_DIR}}
+      - ./scripts/build.sh {{.DIST_DIR}} {{.CLI_BIN}}
+    sources:
+      - "**/*.go"
+    generates:
+      - "{{.DIST_DIR}}/{{.CLI_BIN}}-windows-amd64.exe"
+      - "{{.DIST_DIR}}/{{.CLI_BIN}}-windows-arm64.exe"
+
+  cli:build:windows:amd64:
+    desc: Cross-compile Windows amd64 only
+    dir: "{{.CLI_DIR}}"
+    env:
+      GOWORK: "off"
+      ONLY: windows/amd64
+    cmds:
+      - mkdir -p {{.DIST_DIR}}
+      - ./scripts/build.sh {{.DIST_DIR}} {{.CLI_BIN}}
+    generates:
+      - "{{.DIST_DIR}}/{{.CLI_BIN}}-windows-amd64.exe"
+
+  cli:build:windows:arm64:
+    desc: Cross-compile Windows arm64 only
+    dir: "{{.CLI_DIR}}"
+    env:
+      GOWORK: "off"
+      ONLY: windows/arm64
+    cmds:
+      - mkdir -p {{.DIST_DIR}}
+      - ./scripts/build.sh {{.DIST_DIR}} {{.CLI_BIN}}
+    generates:
+      - "{{.DIST_DIR}}/{{.CLI_BIN}}-windows-arm64.exe"
+
+  cli:build:windows:embed:
+    desc: Cross-compile Windows with yt-dlp embedded
+    dir: "{{.CLI_DIR}}"
+    env:
+      GOWORK: "off"
+      ONLY: windows
+      EMBED: "1"
+    cmds:
+      - mkdir -p {{.DIST_DIR}}
+      - ./scripts/build.sh {{.DIST_DIR}} {{.CLI_BIN}}
+    sources:
+      - "**/*.go"
 
   cli:run:
     desc: Run the Go CLI (pass args via CLI_ARGS)
     dir: "{{.CLI_DIR}}"
+    env:
+      GOWORK: "off"
     cmds:
       - go run . {{.CLI_ARGS | default "--help"}}
 
   cli:test:
     desc: Run Go CLI tests
     dir: "{{.CLI_DIR}}"
+    env:
+      GOWORK: "off"
     cmds:
       - go test ./...
 
   cli:install:
     desc: Install the Go CLI to $GOPATH/bin
     dir: "{{.CLI_DIR}}"
+    env:
+      GOWORK: "off"
     cmds:
       - go install -trimpath -ldflags "-s -w" .
 
@@ -81,7 +136,7 @@ tasks:
       - "{{.PYTHON}} scripts/download-yt-dlp-binaries.py"
 
   desktop:cli:
-    desc: Build tools/vytdl-cli and stage it as the desktop sidecar binary (bin/vYtDL-<triple>)
+    desc: Build vYtDL-standalone and stage it as the desktop sidecar binary (bin/vYtDL-<triple>)
     dir: "."
     cmds:
       - "{{.PYTHON}} scripts/build-desktop.py cli"
@@ -219,8 +274,11 @@ tasks:
         echo ""
         echo "  Install Task:  brew install go-task"
         echo ""
-        echo "  vYtDL CLI (monorepo copy):"
+        echo "  vYtDL CLI (canonical checkout vYtDL-standalone/):"
+        echo "    git clone https://github.com/qdriven/innate-vytdl.git vYtDL-standalone"
         echo "    task cli:build"
+        echo "    task cli:build:windows      # Windows amd64 + arm64"
+        echo "    task cli:build:windows:amd64"
         echo "    task cli:run -- URL"
         echo ""
         echo "  Desktop:"

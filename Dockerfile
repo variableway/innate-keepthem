@@ -28,14 +28,14 @@ RUN npm install
 COPY apps/vytdl-web/ ./
 RUN npm run build
 
-# ── Stage 3: Build Go CLI ──
+# ── Stage 3: Build Go CLI (canonical repo qdriven/innate-vytdl) ──
 FROM golang:1.24-alpine AS cli-builder
 WORKDIR /app
 
 RUN apk add --no-cache git
-
-COPY tools/vytdl-cli/ /app/tools/vytdl-cli/
-WORKDIR /app/tools/vytdl-cli
+RUN git clone --depth 1 https://github.com/qdriven/innate-vytdl.git /app/vYtDL-standalone
+WORKDIR /app/vYtDL-standalone
+ENV GOWORK=off
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=$(go env GOARCH) go build -ldflags="-s -w" -o vYtDL .
 
 # ── Stage 4: Production ──
@@ -56,7 +56,7 @@ COPY --from=frontend-builder /app/apps/vytdl-desktop/out ./out
 COPY --from=server-builder /app/dist ./server
 COPY --from=server-builder /app/node_modules ./server/node_modules
 
-COPY --from=cli-builder /app/tools/vytdl-cli/vYtDL ./cli/vYtDL
+COPY --from=cli-builder /app/vYtDL-standalone/vYtDL ./cli/vYtDL
 
 RUN mkdir -p /app/data /app/downloads
 

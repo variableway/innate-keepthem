@@ -12,7 +12,14 @@ tools/vytdl-cli/vYtDL
 tools/contentforge-cli/contentforge
 *.exe
 *.mp4
+*.webm
+*.mkv
+*.m4a
+*.mp3
 *.vtt
+*.srt
+*.part
+*.ytdl
 *.log
 node_modules/
 out/
@@ -47,10 +54,11 @@ downloadeds/*
 for_V/for_V/*
 */test_download/*
 
-# Nested canonical repo for tools/vytdl-cli (kept untracked on purpose)
+# Nested canonical CLI checkout (separate git repo; not tracked here)
+# Clone: git clone https://github.com/qdriven/innate-vytdl.git vYtDL-standalone
 vYtDL-standalone/
 
-# Desktop CLI sidecar (built from tools/vytdl-cli, staged by scripts/build-desktop.py)
+# Desktop CLI sidecar (built from vYtDL-standalone, staged by scripts/build-desktop.py)
 apps/vytdl-desktop/src-tauri/bin/vYtDL-*
 
 # contentforge Python venv (created via cf-env.sh workflow)

@@ -12,7 +12,8 @@ task                      # 列出所有任务
 
 | 任务 | 作用 |
 |---|---|
-| `task cli:build` | 构建 `tools/vytdl-cli` -> `./vYtDL` |
+| `task cli:build` | 构建 `vYtDL-standalone` -> `./vYtDL` |
+| `task cli:build:windows` | 交叉编译 Windows amd64 + arm64 |
 | `task cli:test` | 运行 CLI 单元测试 |
 | `task desktop:cli` | 构建 CLI 并预置为桌面端 sidecar（`src-tauri/bin/vYtDL-<triple>`） |
 | `task desktop:yt-dlp` | 下载 yt-dlp 平台二进制到桌面端资源目录 |
@@ -20,22 +21,29 @@ task                      # 列出所有任务
 | `task desktop:build` | 桌面端生产构建 |
 | `task desktop:bundle` | 构建 + 生成安装包 |
 
-## 1. vYtDL CLI（tools/vytdl-cli）
+## 1. vYtDL CLI（vYtDL-standalone）
 
 ```bash
-cd tools/vytdl-cli
-go build -o vYtDL .
-go test ./...
+# 首次需要 clone 规范仓库
+git clone https://github.com/qdriven/innate-vytdl.git vYtDL-standalone
+
+cd vYtDL-standalone
+GOWORK=off go build -o vYtDL .
+GOWORK=off go test ./...
 ./vYtDL download --no-tui -o ./downloads -q 1080 "https://..."
+
+# 或从 monorepo 根目录：
+task cli:build
+task cli:build:windows
 
 # 单文件发布版（内嵌 yt-dlp）
 ./scripts/fetch-ytdlp.sh --embed
-go build -tags embed_ytdlp -o vYtDL .
+GOWORK=off go build -tags embed_ytdlp -o vYtDL .
 ```
 
 - CLI 的 yt-dlp 解析顺序：`--yt-dlp-bin` -> PATH -> 内嵌 -> 缓存 -> 自动从 GitHub 下载。
 - 慢网络用镜像：`export VYTDL_YTDLP_MIRROR="https://ghproxy.net/https://github.com/yt-dlp/yt-dlp/releases/latest/download/"`。
-- 规范仓库为 [qdriven/innate-vytdl](https://github.com/qdriven/innate-vytdl)；monorepo 内改动需双向同步。
+- 规范仓库为 [qdriven/innate-vytdl](https://github.com/qdriven/innate-vytdl)；勿再维护已删除的 `vYtDL-standalone` 双份副本。
 
 ## 2. vYtDL Desktop（apps/vytdl-desktop）
 
@@ -57,7 +65,7 @@ pnpm vytdl:build
 
 构建前置（脚本自动完成，手动时需自知）：
 
-1. **CLI sidecar**：`bundle.externalBin` 要求 `src-tauri/bin/vYtDL-<target-triple>` 存在。`build-desktop.py` 会自动从 `tools/vytdl-cli` 构建并按 Rust triple 命名预置（GOOS/GOARCH 自动映射）。产物 gitignored。
+1. **CLI sidecar**：`bundle.externalBin` 要求 `src-tauri/bin/vYtDL-<target-triple>` 存在。`build-desktop.py` 会自动从 `vYtDL-standalone` 构建并按 Rust triple 命名预置（GOOS/GOARCH 自动映射）。产物 gitignored。
 2. **yt-dlp 资源**：`resources/yt-dlp/`（分平台解压后的 yt-dlp），由 `scripts/download-yt-dlp-binaries.py` 下载，gitignored，支持 `VYTDL_YTDLP_MIRROR`。
 3. **Node 依赖**：`pnpm install`（根 workspace，一次安装覆盖全部 apps/packages）。
 

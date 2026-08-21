@@ -8,7 +8,7 @@
 
 | Job | Runner | 覆盖范围 | 关键步骤 |
 |---|---|---|---|
-| **Go (CLI tools)** | ubuntu | `tools/vytdl-cli`、`tools/contentforge-cli` | `go build` + `go test`（vytdl-cli）；`go build`（contentforge-cli） |
+| **Go (CLI tools)** | ubuntu | `vYtDL-standalone`、`tools/contentforge-cli` | `go build` + `go test`（vytdl-cli）；`go build`（contentforge-cli） |
 | **Rust (matrix)** | ubuntu | `apps/vytdl-desktop`、`apps/contentforge-desktop` 两个 Tauri 应用（matrix 并行） | 见下 |
 | **Node (workspace)** | ubuntu | pnpm workspace 全部 `apps/*` + `packages/*` | `pnpm install --frozen-lockfile` + `pnpm run build`（turbo 按依赖序） |
 | **Python** | ubuntu | `packages/contentforge-core/python` + `scripts/` | `compileall` 语法检查 |
@@ -17,7 +17,7 @@
 
 vytdl-desktop 的 `cargo check` 需要 Tauri 构建脚本校验通过，因此 CI 先执行与本地完全相同的预置步骤：
 
-1. `python3 scripts/build-desktop.py cli` -- 从 `tools/vytdl-cli` 构建并预置 sidecar（`bin/vYtDL-<triple>`）
+1. `python3 scripts/build-desktop.py cli` -- 从 `vYtDL-standalone` 构建并预置 sidecar（`bin/vYtDL-<triple>`）
 2. `python3 scripts/download-yt-dlp-binaries.py` -- 下载 yt-dlp 到 `resources/yt-dlp/`
 3. 安装 Tauri Linux 系统依赖（libwebkit2gtk-4.1-dev 等）
 4. `cargo check --manifest-path apps/<app>/src-tauri/Cargo.toml`
@@ -35,7 +35,7 @@ contentforge-desktop 无外部资源依赖，直接 `cargo check`。
 
 ```bash
 # Go
-cd tools/vytdl-cli && go build ./... && go test ./... && cd ../..
+cd vYtDL-standalone && go build ./... && go test ./... && cd ../..
 
 # Rust (先预置，与 CI 相同)
 python3 scripts/build-desktop.py cli

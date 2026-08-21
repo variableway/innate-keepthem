@@ -12,11 +12,12 @@ vYtDL is a YouTube downloader suite with four components:
 
 ## Technology Stack
 
-### CLI (tools/vytdl-cli/)
+### CLI (vYtDL-standalone/)
 - **Language**: Go 1.24+
 - **CLI Framework**: spf13/cobra
 - **TUI Framework**: charmbracelet/bubbletea + lipgloss
 - **External Dependency**: yt-dlp (called as subprocess)
+- **Canonical repo**: https://github.com/qdriven/innate-vytdl (local checkout `vYtDL-standalone/`)
 
 ### Desktop (apps/vytdl-desktop/)
 - **Frontend**: Next.js + React 19 + TypeScript + Tailwind CSS
@@ -87,7 +88,7 @@ SQLite Database
 
 ## Key Modules
 
-### CLI (tools/vytdl-cli/)
+### CLI (vYtDL-standalone/)
 
 - `cmd/root.go` - Cobra root command
 - `cmd/download.go` - CLI flags, download orchestration, concurrent dispatch, TUI coordination
@@ -248,7 +249,7 @@ This allows the same Next.js frontend to run in both Tauri desktop and Docker we
 
 ## Shell Scripts
 
-Located in `tools/vytdl-cli/scripts/`:
+Located in `vYtDL-standalone/scripts/`:
 - `download_video.sh` - Single video wrapper
 - `download_collection.sh` - Playlist wrapper
 - `build.sh` - Cross-build helper for macOS/Linux/Windows targets

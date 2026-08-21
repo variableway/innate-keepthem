@@ -170,11 +170,11 @@ function Show-NextSteps {
     Write-Host "============================================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "1. Build the CLI:"
-    Write-Host "   cd tools/vytdl-cli"
+    Write-Host "   cd vYtDL-standalone"
     Write-Host "   go build -o vYtDL.exe ."
     Write-Host ""
     Write-Host "2. Run the desktop app in dev mode:"
-    Write-Host "   cd tools/vytdl-cli-desktop\apps\desktop"
+    Write-Host "   cd vYtDL-standalone-desktop\apps\desktop"
     Write-Host "   pnpm install"
     Write-Host "   pnpm tauri dev"
     Write-Host ""

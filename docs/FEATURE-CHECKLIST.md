@@ -7,7 +7,7 @@
 
 ---
 
-## 1. vYtDL CLI（tools/vytdl-cli）
+## 1. vYtDL CLI（vYtDL-standalone）
 
 | # | 功能 | 需要验证的内容 | 方式 |
 |---|---|---|---|
@@ -117,7 +117,7 @@
 
 ```bash
 # 自动化（本地复现 CI）
-cd tools/vytdl-cli && go build ./... && go test ./... && cd ../..
+cd vYtDL-standalone && go build ./... && go test ./... && cd ../..
 python3 scripts/build-desktop.py cli && python3 scripts/download-yt-dlp-binaries.py
 cargo test --manifest-path apps/vytdl-desktop/src-tauri/Cargo.toml --lib
 cargo check --manifest-path apps/vytdl-desktop/src-tauri/Cargo.toml

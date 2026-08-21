@@ -34,7 +34,7 @@ which yt-dlp && yt-dlp --version
 ### 1. 构建 CLI 二进制
 
 ```bash
-cd tools/vytdl-cli
+cd vYtDL-standalone
 
 # 如果模块缓存有权限问题，使用临时缓存目录：
 GOMODCACHE=/tmp/gomodcache GOCACHE=/tmp/gobuildcache \
@@ -47,7 +47,7 @@ ls -lh vYtDL
 
 ### 2. 配置 yt-dlp 路径
 
-编辑 `tools/vytdl-cli/config.json`，指向 yt-dlp 的实际位置：
+编辑 `vYtDL-standalone/config.json`，指向 yt-dlp 的实际位置：
 
 ```json
 {
@@ -65,7 +65,7 @@ ls -lh vYtDL
 ### 3. 执行下载
 
 ```bash
-cd tools/vytdl-cli
+cd vYtDL-standalone
 
 ./vYtDL download --no-tui \
   --output ./downloads_case \
@@ -114,7 +114,7 @@ Completed: 1 succeeded, 0 failed.
 ### 文件结构
 
 ```
-tools/vytdl-cli/downloads_case/
+vYtDL-standalone/downloads_case/
 ├── download_record.json          # 下载记录
 ├── subtitle_mapping.json         # 字幕-视频映射
 └── downloads_case/
@@ -234,7 +234,7 @@ GOMODCACHE=/tmp/gomodcache GOCACHE=/tmp/gobuildcache go build -o vYtDL .
 
 ## 相关文档
 
-- [vYtDL USAGE.md](../../tools/vytdl-cli/USAGE.md) — CLI 完整使用指南
-- [vYtDL help.md](../../tools/vytdl-cli/help.md) — yt-dlp 底层参数参考
+- [vYtDL USAGE.md](../../vYtDL-standalone/USAGE.md) — CLI 完整使用指南
+- [vYtDL help.md](../../vYtDL-standalone/help.md) — yt-dlp 底层参数参考
 - [docs/how-to/README.md](../how-to/README.md) — 项目搭建教程
 - [docs/how-to/yt-dlp-ffmpeg-guide.md](../how-to/yt-dlp-ffmpeg-guide.md) — yt-dlp 与 FFmpeg 配置

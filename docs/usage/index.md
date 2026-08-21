@@ -76,7 +76,7 @@ Each run generates:
 
 ### Configuration
 
-Edit `tools/vytdl-cli/config.json`:
+Edit `vYtDL-standalone/config.json`:
 
 ```json
 {
@@ -95,18 +95,18 @@ VYTDL_CONFIG=/path/to/config.json ./vYtDL download --no-tui "VIDEO_URL"
 
 **Cross-platform (recommended):**
 ```bash
-cd tools/vytdl-cli-desktop
+cd vYtDL-standalone-desktop
 python scripts/start-desktop.py
 ```
 
 **Mac/Linux:**
 ```bash
-cd tools/vytdl-cli-desktop && ./scripts/start-desktop.sh
+cd vYtDL-standalone-desktop && ./scripts/start-desktop.sh
 ```
 
 **Windows:**
 ```bash
-cd tools/vytdl-cli-desktop && .\scripts\start-desktop.ps1
+cd vYtDL-standalone-desktop && .\scripts\start-desktop.ps1
 ```
 
 ### Batch Download
@@ -132,7 +132,7 @@ Switch to the **Smart** tab for batch download with automatic playlist detection
 ### Building
 
 ```bash
-cd tools/vytdl-cli-desktop
+cd vYtDL-standalone-desktop
 pnpm tauri:build
 ```
 

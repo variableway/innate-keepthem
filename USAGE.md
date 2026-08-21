@@ -7,11 +7,11 @@
 Build the binary:
 
 ```bash
-cd tools/vytdl-cli
+cd vYtDL-standalone
 go build -o vYtDL .
 ```
 
-The default `yt-dlp` binary path is configured in `tools/vytdl-cli/config.json`:
+The default `yt-dlp` binary path is configured in `vYtDL-standalone/config.json`:
 
 ```json
 {

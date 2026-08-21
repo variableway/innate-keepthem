@@ -9,8 +9,7 @@ use crate::queue::QueueManager;
 /// Load yt-dlp binary path from the shared vYtDL config file.
 /// Searches in order:
 /// 1. VYTDL_CONFIG env var pointing to a custom config file
-/// 2. tools/vytdl-cli/config.json (or legacy vYtDL/config.json) relative to
-///    current working directory (walking up)
+/// 2. vYtDL-standalone/config.json (canonical CLI checkout) walking up from cwd
 /// 3. config.json next to the executable
 fn load_vytdl_config_yt_dlp_path() -> Option<String> {
     // 1. Env var override
@@ -21,10 +20,12 @@ fn load_vytdl_config_yt_dlp_path() -> Option<String> {
     }
 
     // 2. Walk up from current dir looking for the CLI config
-    //    (tools/vytdl-cli/config.json; legacy vYtDL/config.json kept for old checkouts)
     if let Ok(mut cwd) = std::env::current_dir() {
         for _ in 0..6 {
-            for rel in ["tools/vytdl-cli/config.json", "vYtDL/config.json"] {
+            for rel in [
+                "vYtDL-standalone/config.json",
+                "vYtDL/config.json", // legacy path
+            ] {
                 let candidate = cwd.join(rel);
                 if candidate.exists() {
                     if let Some(bin) = parse_yt_dlp_bin_from_file(candidate.to_str().unwrap_or("")) {
@@ -359,7 +360,7 @@ pub async fn get_settings(
     // Load from database if available, otherwise use defaults
     let language = db.get_setting("language").await.unwrap_or(None).unwrap_or_else(|| "zh".to_string());
     let mut yt_dlp_path = db.get_setting("yt_dlp_path").await.unwrap_or(None);
-    // Fallback to tools/vytdl-cli/config.json
+    // Fallback to vYtDL-standalone/config.json (or legacy paths)
     if yt_dlp_path.is_none() {
         yt_dlp_path = load_vytdl_config_yt_dlp_path();
     }

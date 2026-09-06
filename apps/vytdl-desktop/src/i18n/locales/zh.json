@@ -122,7 +122,22 @@
     "single": "单个",
     "batch": "批量",
     "smart": "智能",
+    "collection": "清单",
     "newBadge": "新"
+  },
+  "collectionTab": {
+    "title": "合集清单",
+    "description": "获取播放列表 / 合集内容，勾选要下载的视频",
+    "urlLabel": "播放列表 / 合集链接",
+    "urlPlaceholder": "播放列表、频道或 B 站合集链接...",
+    "fetch": "获取清单",
+    "fetching": "获取中...",
+    "fetchFailed": "获取清单失败",
+    "entriesCount": "{{count}} 个视频",
+    "selectAll": "全选",
+    "selectNone": "全不选",
+    "downloadSelected": "下载选中 ({{count}})",
+    "submitting": "提交中..."
   },
   "analyze": {
     "nav": "字幕分析",

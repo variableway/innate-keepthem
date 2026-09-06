@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Download, List, Sparkles } from "lucide-react";
+import { Download, List, Sparkles, ClipboardList } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@vytdl/ui";
 import { Badge } from "@vytdl/ui";
 import { DownloadForm } from "@/components/download-form";
+import { CollectionTab } from "@/components/collection-tab";
 import { DownloadList } from "@/components/download-list";
 import { MainContent } from "@/components/layout/main-content";
 import { useDownloadStore } from "@/store/downloadStore";
@@ -32,7 +33,7 @@ export default function HomePage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full grid grid-cols-3">
+        <TabsList className="w-full grid grid-cols-4">
           <TabsTrigger value="single" className="flex items-center gap-2">
             <Download className="h-4 w-4" />
             {t("home.single")}
@@ -44,6 +45,11 @@ export default function HomePage() {
           <TabsTrigger value="smart" className="flex items-center gap-2">
             <Sparkles className="h-4 w-4" />
             {t("home.smart")}
+            <Badge variant="secondary" className="ml-1 text-xs">{t("home.newBadge")}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="collection" className="flex items-center gap-2">
+            <ClipboardList className="h-4 w-4" />
+            {t("home.collection")}
             <Badge variant="secondary" className="ml-1 text-xs">{t("home.newBadge")}</Badge>
           </TabsTrigger>
         </TabsList>
@@ -58,6 +64,10 @@ export default function HomePage() {
 
         <TabsContent value="smart" className="mt-4">
           <DownloadForm mode="smart" />
+        </TabsContent>
+
+        <TabsContent value="collection" className="mt-4">
+          <CollectionTab />
         </TabsContent>
       </Tabs>
 

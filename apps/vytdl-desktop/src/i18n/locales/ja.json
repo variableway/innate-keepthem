@@ -122,7 +122,22 @@
     "single": "単一",
     "batch": "一括",
     "smart": "スマート",
+    "collection": "リスト",
     "newBadge": "新機能"
+  },
+  "collectionTab": {
+    "title": "コレクションリスト",
+    "description": "プレイリスト / コレクションを取得し、ダウンロードする動画を選択",
+    "urlLabel": "プレイリスト / コレクションURL",
+    "urlPlaceholder": "プレイリスト、チャンネル、BilibiliコレクションのURL...",
+    "fetch": "リストを取得",
+    "fetching": "取得中...",
+    "fetchFailed": "リストの取得に失敗しました",
+    "entriesCount": "{{count}} 件",
+    "selectAll": "すべて選択",
+    "selectNone": "選択解除",
+    "downloadSelected": "選択をダウンロード ({{count}})",
+    "submitting": "送信中..."
   },
   "analyze": {
     "nav": "分析",

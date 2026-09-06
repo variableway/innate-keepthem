@@ -123,6 +123,7 @@ export function DownloadForm({ mode }: DownloadFormProps) {
   const infoAbortRef = useRef<AbortController | null>(null);
 
   const [playlistInfo, setPlaylistInfo] = useState<PlaylistInfo | null>(null);
+  const [playlistInfoFor, setPlaylistInfoFor] = useState<string | null>(null);
   const [isLoadingPlaylist, setIsLoadingPlaylist] = useState(false);
   const [playlistError, setPlaylistError] = useState<string | null>(null);
   const playlistAbortRef = useRef<AbortController | null>(null);
@@ -238,6 +239,7 @@ export function DownloadForm({ mode }: DownloadFormProps) {
       if (!abortController.signal.aborted) {
         if (response.success && response.data) {
           setPlaylistInfo(response.data);
+          setPlaylistInfoFor(url);
         } else {
           setPlaylistError(response.error || t("downloadForm.collectionLoadFailed"));
         }
@@ -432,7 +434,7 @@ export function DownloadForm({ mode }: DownloadFormProps) {
     }
 
     // Single mode
-    const options: DownloadOptions = {
+    const baseOptions: DownloadOptions = {
       url: url.trim(),
       is_playlist: isPlaylist,
       quality,
@@ -453,7 +455,50 @@ export function DownloadForm({ mode }: DownloadFormProps) {
       extractor_args: settings?.extractor_args ?? undefined,
     };
 
-    const downloadId = await startDownload(options);
+    // Playlist submit: expand into one queue item per entry so every video
+    // shows up individually in the download list (progress/retry per video).
+    if (isPlaylist) {
+      let entries =
+        playlistInfoFor === url.trim() ? playlistInfo?.entries ?? null : null;
+      if (!entries) {
+        try {
+          const res = await apiInvoke<ApiResponse<PlaylistInfo>>(
+            "get_playlist_info",
+            { url: url.trim() }
+          );
+          entries = res.data?.entries ?? null;
+        } catch {
+          entries = null;
+        }
+      }
+      const downloadable = (entries ?? []).filter((e) => e.webpage_url);
+
+      if (downloadable.length > 0) {
+        setBatchProgress({ submitted: 0, total: downloadable.length, failed: 0 });
+        let failed = 0;
+        for (let i = 0; i < downloadable.length; i++) {
+          const entryId = await startDownload({
+            ...baseOptions,
+            url: downloadable[i].webpage_url!,
+            is_playlist: false,
+          });
+          if (!entryId) failed++;
+          setBatchProgress({ submitted: i + 1, total: downloadable.length, failed });
+        }
+        if (failed === 0) {
+          addToHistory(url.trim(), playlistInfo?.title || undefined);
+          setUrl("");
+          setPlaylistInfo(null);
+          setPlaylistInfoFor(null);
+        }
+        setIsSubmitting(false);
+        return;
+      }
+      // Expansion unavailable (metadata fetch failed) — fall through and let
+      // the backend download the whole playlist as a single task.
+    }
+
+    const downloadId = await startDownload(baseOptions);
 
     if (downloadId) {
       addToHistory(url.trim(), videoInfo?.title || undefined);
@@ -910,7 +955,7 @@ export function DownloadForm({ mode }: DownloadFormProps) {
             </div>
           )}
 
-          {(mode === "batch" || mode === "smart") && isSubmitting && batchProgress.total > 0 && (
+          {isSubmitting && batchProgress.total > 0 && (
             <div className="text-sm text-muted-foreground text-center">
               {t("downloadForm.batchSubmitProgress", {
                 submitted: String(batchProgress.submitted),

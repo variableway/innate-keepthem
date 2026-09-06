@@ -122,7 +122,22 @@
     "single": "Single",
     "batch": "Batch",
     "smart": "Smart",
+    "collection": "Collection",
     "newBadge": "New"
+  },
+  "collectionTab": {
+    "title": "Collection List",
+    "description": "Fetch a playlist / collection and pick the videos to download",
+    "urlLabel": "Playlist / collection URL",
+    "urlPlaceholder": "Playlist, channel, or Bilibili collection URL...",
+    "fetch": "Fetch list",
+    "fetching": "Fetching...",
+    "fetchFailed": "Failed to fetch the collection list",
+    "entriesCount": "{{count}} items",
+    "selectAll": "Select all",
+    "selectNone": "Select none",
+    "downloadSelected": "Download selected ({{count}})",
+    "submitting": "Submitting..."
   },
   "analyze": {
     "nav": "Analyze",

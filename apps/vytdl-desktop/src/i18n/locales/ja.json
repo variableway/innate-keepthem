@@ -47,7 +47,8 @@
     },
     "workspace": {
       "subtitle": "メディアライブラリと対話",
-      "chat": "チャット"
+      "chat": "チャット",
+      "terminal": "AI ターミナル"
     }
   },
   "workspace": {
@@ -73,6 +74,41 @@
     "agentKimi": "Kimi CLI",
     "mockBadge": "プレースホルダー応答",
     "kimiHint": "Kimi Code CLI を使用し、.agents/skills/ のスキルを読み込みます",
+    "terminal": {
+      "title": "AI ターミナル",
+      "subtitle": "ローカルターミナル（Ghostty など）で AI コーディングエージェントを起動し、選択した LLM プロバイダーとモデルを注入します。",
+      "desktopOnly": "この機能はデスクトップ版（Tauri）でのみ利用できます。",
+      "refresh": "再検出",
+      "sectionTerminal": "ターミナル",
+      "terminalLabel": "ターミナルアプリ",
+      "terminalHint": "選択したターミナルの新しいウィンドウでエージェントを実行します。未検出のターミナルは表示されません。",
+      "terminalNoneFound": "利用可能なターミナルアプリが検出されませんでした。",
+      "sectionAgent": "エージェント CLI",
+      "agentName": {
+        "kimi": "Kimi CLI",
+        "claude-code": "Claude Code",
+        "codex": "Codex CLI"
+      },
+      "agentFound": "検出済み",
+      "agentNotFound": "未検出",
+      "sectionProvider": "LLM プロバイダー",
+      "providerLabel": "プロバイダー",
+      "regionLabel": "リージョン",
+      "modelLabel": "モデル",
+      "modelFixed": "固定モデル",
+      "modelCliDefault": "CLI デフォルト（アカウントログイン）",
+      "apiKeyLabel": "API キー",
+      "apiKeyPlaceholder": "このプロバイダーの API キーを入力",
+      "apiKeyHint": "ローカルにのみ保存され、環境変数としてターミナルセッションに注入されます。",
+      "workdirLabel": "作業ディレクトリ",
+      "workdirPlaceholder": "デフォルトはホームディレクトリ",
+      "launch": "ターミナルを開いて起動",
+      "launching": "起動中…",
+      "successTitle": "{{terminal}} を開きました",
+      "successHint": "ウィンドウが表示されない場合は、ターミナルアプリが外部起動を許可しているか確認してください。",
+      "agentDirect": "このプロバイダーは自身のログインを使用します。設定不要で直接起動できます。",
+      "cliMissing": "{{command}} が検出されませんでした。インストールまたはパスを確認してから起動してください。"
+    },
     "quickActions": "クイック操作",
     "actionSummarize": "選択を要約",
     "newSession": "新しいセッション",
@@ -98,6 +134,19 @@
     "recent": "最近の分析",
     "empty": "まだ分析がありません。YouTube URLを貼り付けて始めましょう。"
   },
+  "platform": {
+    "youtube": "YouTube",
+    "bilibili": "ビリビリ動画",
+    "xiaohongshu": "小紅書 (XHS)",
+    "twitter": "X (Twitter)",
+    "tiktok": "TikTok",
+    "vimeo": "Vimeo",
+    "twitch": "Twitch",
+    "facebook": "Facebook",
+    "instagram": "Instagram",
+    "dailymotion": "Dailymotion",
+    "nicovideo": "ニコニコ動画"
+  },
   "downloadForm": {
     "newDownload": "新規ダウンロード",
     "batchDownload": "一括ダウンロード",
@@ -111,6 +160,12 @@
     "fetchFailed": "動画情報の取得に失敗しました",
     "retry": "再試行",
     "playlistCheckbox": "プレイリストとしてダウンロード",
+    "playlistForceHint": "スマートモードはURLごとにプレイリストを自動判定します。チェックすると全URLを強制的にプレイリストとして扱います（Bilibiliのマルチパート動画など）。",
+    "collectionDetected": "プレイリスト / コレクションを検出",
+    "collectionItems": "{{count}} 件",
+    "collectionLoading": "コレクション情報を取得中...",
+    "collectionLoadFailed": "コレクション情報の取得に失敗しました",
+    "collectionModeHint": "プレイリストモードが自動的に有効になり、コレクション全体がキューに追加されます。",
     "qualityLabel": "画質",
     "formatLabel": "フォーマット",
     "subtitleLabel": "字幕言語",

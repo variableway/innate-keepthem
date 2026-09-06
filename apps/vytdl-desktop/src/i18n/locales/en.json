@@ -47,7 +47,8 @@
     },
     "workspace": {
       "subtitle": "Chat with your media library",
-      "chat": "Chat"
+      "chat": "Chat",
+      "terminal": "AI Terminal"
     }
   },
   "workspace": {
@@ -73,6 +74,41 @@
     "agentKimi": "Kimi CLI",
     "mockBadge": "Placeholder responses",
     "kimiHint": "Uses Kimi Code CLI with project skills from .agents/skills/",
+    "terminal": {
+      "title": "AI Terminal",
+      "subtitle": "Launch AI coding agents in a local terminal (e.g. Ghostty) with the selected LLM provider and model injected.",
+      "desktopOnly": "This feature is only available in the desktop (Tauri) app.",
+      "refresh": "Re-detect",
+      "sectionTerminal": "Terminal",
+      "terminalLabel": "Terminal app",
+      "terminalHint": "A new window of the selected terminal will open and run the agent; undetected terminals are hidden.",
+      "terminalNoneFound": "No supported terminal app detected.",
+      "sectionAgent": "Agent CLI",
+      "agentName": {
+        "kimi": "Kimi CLI",
+        "claude-code": "Claude Code",
+        "codex": "Codex CLI"
+      },
+      "agentFound": "Detected",
+      "agentNotFound": "Not found",
+      "sectionProvider": "LLM Provider",
+      "providerLabel": "Provider",
+      "regionLabel": "Region",
+      "modelLabel": "Model",
+      "modelFixed": "Fixed model",
+      "modelCliDefault": "CLI default (account login)",
+      "apiKeyLabel": "API Key",
+      "apiKeyPlaceholder": "Enter the API key for this provider",
+      "apiKeyHint": "Stored locally only; injected into the terminal session via environment variables.",
+      "workdirLabel": "Working directory",
+      "workdirPlaceholder": "Defaults to your home directory",
+      "launch": "Open terminal & launch",
+      "launching": "Launching…",
+      "successTitle": "Opened {{terminal}}",
+      "successHint": "If no window appeared, check that your terminal app allows external invocation.",
+      "agentDirect": "This provider uses its own login — no configuration needed, just launch.",
+      "cliMissing": "{{command}} was not detected. Install it or fix its path before launching."
+    },
     "quickActions": "Quick Actions",
     "actionSummarize": "Summarize selected",
     "newSession": "New session",
@@ -98,6 +134,19 @@
     "recent": "Recent Analyses",
     "empty": "No analyses yet. Paste a YouTube URL above to get started."
   },
+  "platform": {
+    "youtube": "YouTube",
+    "bilibili": "Bilibili",
+    "xiaohongshu": "Xiaohongshu",
+    "twitter": "X (Twitter)",
+    "tiktok": "TikTok",
+    "vimeo": "Vimeo",
+    "twitch": "Twitch",
+    "facebook": "Facebook",
+    "instagram": "Instagram",
+    "dailymotion": "Dailymotion",
+    "nicovideo": "Niconico"
+  },
   "downloadForm": {
     "newDownload": "New Download",
     "batchDownload": "Batch Download",
@@ -111,6 +160,12 @@
     "fetchFailed": "Failed to fetch video info",
     "retry": "Retry",
     "playlistCheckbox": "Download as playlist",
+    "playlistForceHint": "Smart mode auto-detects playlists per URL; check the box to force playlist mode for all URLs (e.g. Bilibili multi-part videos).",
+    "collectionDetected": "Playlist / collection detected",
+    "collectionItems": "{{count}} items",
+    "collectionLoading": "Loading collection info...",
+    "collectionLoadFailed": "Failed to load collection info",
+    "collectionModeHint": "Playlist mode is enabled automatically — the whole collection will be queued.",
     "qualityLabel": "Quality",
     "formatLabel": "Format",
     "subtitleLabel": "Subtitle Languages",

@@ -40,6 +40,12 @@ const defaultSettings: Settings = {
   po_token: null,
   extractor_args: null,
   config_location: null,
+  agent_terminal: null,
+  agent_terminal_workdir: null,
+  agent_glm_api_key: null,
+  agent_minimax_api_key: null,
+  agent_anthropic_api_key: null,
+  agent_openai_api_key: null,
 };
 
 export const useSettingsStore = create<SettingsState>()(

@@ -14,6 +14,20 @@ export function AppShell({ children }: { children: ReactNode }) {
     setMounted(true);
   }, []);
 
+  // Cmd/Ctrl+R reloads the page — the desktop webviews ship no built-in
+  // reload shortcut (macOS adds a native View→Reload menu item in lib.rs;
+  // this handler covers the webview fallback and plain-browser mode).
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "r") {
+        e.preventDefault();
+        window.location.reload();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   if (!mounted) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">

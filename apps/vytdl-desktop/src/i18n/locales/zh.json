@@ -47,7 +47,8 @@
     },
     "workspace": {
       "subtitle": "与媒体库对话",
-      "chat": "对话"
+      "chat": "对话",
+      "terminal": "AI 终端"
     }
   },
   "workspace": {
@@ -73,6 +74,41 @@
     "agentKimi": "Kimi CLI",
     "mockBadge": "占位回复",
     "kimiHint": "使用 Kimi Code CLI，自动加载项目 .agents/skills/",
+    "terminal": {
+      "title": "AI 终端",
+      "subtitle": "在本地终端（如 Ghostty）中启动 AI 编程 Agent，并注入所选 LLM 的 Provider 与模型配置。",
+      "desktopOnly": "此功能仅在桌面版（Tauri）中可用。",
+      "refresh": "重新检测",
+      "sectionTerminal": "终端",
+      "terminalLabel": "终端应用",
+      "terminalHint": "将打开所选终端的新窗口并运行 Agent；未检测到的终端不会出现在列表中。",
+      "terminalNoneFound": "未检测到受支持的终端应用。",
+      "sectionAgent": "Agent CLI",
+      "agentName": {
+        "kimi": "Kimi CLI",
+        "claude-code": "Claude Code",
+        "codex": "Codex CLI"
+      },
+      "agentFound": "已检测到",
+      "agentNotFound": "未检测到",
+      "sectionProvider": "LLM Provider",
+      "providerLabel": "提供方",
+      "regionLabel": "区域",
+      "modelLabel": "模型",
+      "modelFixed": "固定模型",
+      "modelCliDefault": "使用 CLI 默认（账号登录）",
+      "apiKeyLabel": "API Key",
+      "apiKeyPlaceholder": "输入该 Provider 的 API Key",
+      "apiKeyHint": "仅保存在本机设置中，通过环境变量注入终端会话。",
+      "workdirLabel": "工作目录",
+      "workdirPlaceholder": "默认为用户主目录",
+      "launch": "打开终端并启动",
+      "launching": "正在启动…",
+      "successTitle": "已打开 {{terminal}}",
+      "successHint": "如未弹出窗口，请检查终端应用是否允许被外部调用。",
+      "agentDirect": "该 Provider 使用自身登录态，无需配置，可直接启动。",
+      "cliMissing": "未检测到 {{command}}，请先安装或修正路径后再启动。"
+    },
     "quickActions": "快捷操作",
     "actionSummarize": "总结所选内容",
     "newSession": "新会话",
@@ -98,6 +134,19 @@
     "recent": "最近分析",
     "empty": "暂无分析记录。粘贴 YouTube 链接开始使用。"
   },
+  "platform": {
+    "youtube": "YouTube",
+    "bilibili": "哔哩哔哩",
+    "xiaohongshu": "小红书",
+    "twitter": "X (Twitter)",
+    "tiktok": "TikTok",
+    "vimeo": "Vimeo",
+    "twitch": "Twitch",
+    "facebook": "Facebook",
+    "instagram": "Instagram",
+    "dailymotion": "Dailymotion",
+    "nicovideo": "Niconico"
+  },
   "downloadForm": {
     "newDownload": "新建下载",
     "batchDownload": "批量下载",
@@ -111,6 +160,12 @@
     "fetchFailed": "获取视频信息失败",
     "retry": "重试",
     "playlistCheckbox": "下载播放列表",
+    "playlistForceHint": "智能模式会按链接自动识别播放列表；勾选后强制所有链接按播放列表下载（如 B 站多 P 视频）。",
+    "collectionDetected": "检测到播放列表 / 合集",
+    "collectionItems": "{{count}} 个视频",
+    "collectionLoading": "正在加载合集信息...",
+    "collectionLoadFailed": "加载合集信息失败",
+    "collectionModeHint": "已自动启用播放列表模式，整个合集将加入下载队列。",
     "qualityLabel": "画质",
     "formatLabel": "格式",
     "subtitleLabel": "字幕语言",

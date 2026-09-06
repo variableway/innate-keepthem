@@ -1,61 +1,78 @@
-# vYtDL Desktop（apps/vytdl-desktop）
+# vYtDL Desktop（`apps/vytdl-desktop/`）
 
-跨平台桌面下载工作台：Tauri v2（Rust 后端）+ Next.js 15 / React 19 / TypeScript / Tailwind 前端，多语言（中/英/日）。
+## 定位
+
+跨平台桌面下载器：队列、库、播放器、字幕分析、设置与工作区对话。包名 `@vytdl/desktop`。
 
 ## 技术栈
 
-- 前端：Next.js 15（App Router）、React 19、Tailwind、`@vytdl/ui`（packages/ui）
-- 后端：Rust（tauri 2.x、tokio、sqlx/sqlite）
-- 打包：Tauri bundler，产出 dmg/msi/AppImage
+| 层 | 技术 |
+|----|------|
+| 前端 | Next.js（静态导出 `out/`）、React 19、Tailwind、Zustand、i18n（en/zh/ja） |
+| 桌面壳 | Tauri v2 |
+| 后端 | Rust：tokio 队列、sqlx/SQLite、yt-dlp 子进程 |
+| 共享包 | `@vytdl/ui`、`@vytdl/utils` |
+| 侧车 | `vYtDL-standalone` 编译的 `bin/vYtDL-<triple>` |
 
-## 目录结构
+## 入口
 
+| 路径 | 作用 |
+|------|------|
+| `src/app/page.tsx` | 下载页（single / batch / smart） |
+| `src/app/{library,player,settings,analyze,workspace}/` | 其他页面 |
+| `src/components/download-form.tsx` | 下载表单 |
+| `src/components/download-list.tsx` | 队列与进度 |
+| `src/lib/api-client.ts` | Tauri IPC ↔ HTTP/WS 抽象 |
+| `src/store/*` | Zustand（download / settings / chat） |
+| `src-tauri/src/lib.rs` | 启动、yt-dlp 解压、未完成任务恢复 |
+| `src-tauri/src/{commands,downloader,queue,database}.rs` | IPC / 下载 / 队列 / DB |
+| `src-tauri/src/{vtt_analysis,audio_extractor,agent_*}.rs` | 字幕 / 音频 / Agent |
+
+## 功能
+
+### 下载
+
+- **Single**：单 URL，拉元信息与缩略图预览
+- **Batch**：多行 URL / `#` 注释 / `.txt` 导入，去重后入队
+- **Smart**：Batch + 播放列表 URL 启发式检测
+- 队列：并发可配、取消、重试、删除、打开目录
+- 进度：百分比、速度、ETA、日志
+- 高级选项：格式选择、嵌入封面/元数据/章节、SponsorBlock、限速等
+- Cookie：浏览器 / 文件；画质、格式、字幕语言
+
+### 其他
+
+- 视频 / 格式 / 播放列表信息查询
+- 音频提取、VTT 分析与报告 CRUD、`summarize_video`
+- 启动时将中断的 `downloading` 重置为 `pending` 并重新入队
+- 首次运行解压捆绑 yt-dlp 资源
+
+### API 双模式
+
+`api-client.ts`：
+
+- Desktop：`invoke` + Tauri Event
+- Web：`POST /api/{command}` + `WS /api/ws`
+
+命令名与 `apps/vytdl-web` 对齐。
+
+## 启动
+
+```bash
+task desktop:dev          # 含 sidecar + yt-dlp bootstrap
+task desktop:dev:fast     # 跳过 pnpm install
+task desktop:build
+task desktop:bundle
+
+# 或
+pnpm --filter @vytdl/desktop tauri:dev
+python3 scripts/build-desktop.py dev
 ```
-apps/vytdl-desktop/
-├── src/                      # Next.js 前端
-│   ├── app/                  # 页面（App Router）
-│   ├── components/           # download-form、download-list、layout、settings、workspace
-│   ├── store/                # 状态（downloadStore 等）
-│   └── lib/                  # api-client（invoke/WS 双模式）等
-└── src-tauri/
-    ├── src/
-    │   ├── commands.rs       # Tauri command 入口 + yt-dlp 路径解析（VYTDL_CONFIG 等）
-    │   ├── downloader.rs     # 下载执行：spawn yt-dlp、进度解析、代理环境清理
-    │   ├── vtt_analysis.rs   # 调用 vYtDL CLI sidecar 做字幕分析（find_vytdl_cli）
-    │   ├── database.rs       # SQLite（下载记录、日志）
-    │   └── queue.rs          # 下载队列与并发
-    ├── bin/                  # CLI sidecar（vYtDL-<triple>，gitignored，构建时预置）
-    ├── resources/yt-dlp/     # 平台 yt-dlp 二进制（gitignored，脚本下载）
-    ├── resilience.rs         # 韧性引擎：11 类错误分类 + 恢复决策 + 回退选择器（含单测）
-    ├── process_control.rs    # 子进程控制：pid 注册表、暂停/恢复(SIGSTOP)、进程树取消
-    ├── cookie.rs             # Cookie 四模式 -> yt-dlp 参数
-    └── tauri.conf.json       # externalBin=bin/vYtDL、resources、beforeBuild
-```
 
-## 关键机制
+仅更新前端、不启桌面壳：在 `apps/vytdl-desktop` 跑 `pnpm dev`（Next），配合已有后端或 Web 模式。
 
-### CLI sidecar（单一二进制来源）
+## 与其他模块
 
-`tauri.conf.json` 声明 `bundle.externalBin: ["bin/vYtDL"]`。构建时 `scripts/build-desktop.py` 从 `vYtDL-standalone` 构建并按 Rust triple 预置为 `bin/vYtDL-<triple>`（交叉编译自动映射 GOOS/GOARCH）。运行时 `find_vytdl_cli()` 按序解析：应用旁 sidecar -> `VYTDL_CLI_PATH` -> monorepo 路径 -> PATH。
-
-### yt-dlp 引擎（2026-08 下载引擎升级，借鉴 yt-dlp-gui / v2，详见 docs/suggestions/borrow-from-yt-dlp-guis.md 实施记录）
-
-- 路径解析（`commands.rs`）：`VYTDL_CONFIG` 指向的 config -> `vYtDL-standalone/config.json`（向上回溯）-> 可执行文件旁 -> bundled `resources/yt-dlp/<platform>` -> PATH。
-- 参数构建（`downloader.rs`）：完整参数包（Cookie/代理/限速/并发分片/PO Token/嵌入后处理/SponsorBlock/时间裁剪+no-direct-merge/文件名模板/config-location + 默认 --ignore-config）。
-- 进度协议：`--progress-template` CSV（首列 format_id）槽路由出 video/audio 双进度；正则兜底。
-- 输出路径：`--print-to-file after_move:filepath` 精确捕获（后处理改名后仍准）。
-- 韧性（`resilience.rs`）：失败自动分类（11 类）+ 降级重试一次（缩略图失败关缩略图、格式失败回退选择器；429/鉴权不自动重试）。
-- 进程治理（`process_control.rs`）：pid 注册表、暂停/恢复（Unix SIGSTOP/SIGCONT；Windows 不支持）、取消杀进程树 + 清 `.part`。
-- 下载执行：spawn 前清理 `*_proxy` 环境变量；强制 `PYTHONUTF8=1`；Windows `CREATE_NO_WINDOW`。
-
-### 前后端通信
-
-`src/lib/api-client.ts`：Tauri 环境走 `invoke` + Tauri Event；纯浏览器模式走 WebSocket（复用 vytdl-web 协议）。
-
-## 构建/运行
-
-见 `docs/BUILD.md`（`python3 scripts/build-desktop.py dev|build|bundle`，或 `task desktop:dev`）。
-
-## 已知未完成项
-
-见 `docs/STATUS.md`（格式列表解析 TODO、部分 database 方法未接线等）。
+- 依赖 `@vytdl/ui` / `@vytdl/utils`
+- sidecar 来自 `vYtDL-standalone`
+- 静态产物供 `vytdl-web` / Docker 托管

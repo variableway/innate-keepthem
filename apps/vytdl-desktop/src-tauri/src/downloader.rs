@@ -228,17 +228,12 @@ impl Downloader {
             args.push("--concurrent-fragments".to_string());
             args.push(frag.to_string());
         }
-        if let Some(po) = &self.options.po_token {
-            let mut ea = format!("youtube:po_token={po}");
-            if let Some(extra) = &self.options.extractor_args {
-                ea.push_str(&format!(";{extra}"));
-            }
-            args.push("--extractor-args".to_string());
-            args.push(ea);
-        } else if let Some(extra) = &self.options.extractor_args {
-            args.push("--extractor-args".to_string());
-            args.push(format!("youtube:{extra}"));
-        }
+        push_extractor_args(
+            &mut args,
+            &self.options.url,
+            self.options.po_token.as_deref(),
+            self.options.extractor_args.as_deref(),
+        );
 
         // ── 格式选择：format_id（Format Picker）优先，其次 quality 预设 ──
         let has_sections = self.options.start_time.is_some() || self.options.end_time.is_some();
@@ -585,16 +580,20 @@ impl Downloader {
         
         let yt_dlp_path = self.find_yt_dlp().await?;
         
-        let args = vec![
+        let mut args = vec![
             "--dump-json".to_string(),
             "--no-download".to_string(),
+            // watch URLs with a list= param must extract only the video, not
+            // the whole playlist (slow, and breaks single-JSON parsing)
+            "--no-playlist".to_string(),
             "--socket-timeout".to_string(),
             "10".to_string(),
             "--no-warnings".to_string(),
-            url.to_string(),
         ];
-        
-        let output = run_yt_dlp_blocking(yt_dlp_path, args, 30).await?;
+        push_extractor_args(&mut args, url, None, self.options.extractor_args.as_deref());
+        args.push(url.to_string());
+
+        let output = run_yt_dlp_blocking(yt_dlp_path, args, 40).await?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
@@ -622,15 +621,17 @@ impl Downloader {
         
         let yt_dlp_path = self.find_yt_dlp().await?;
         
-        let args = vec![
+        let mut args = vec![
             "--dump-json".to_string(),
             "--no-download".to_string(),
+            "--no-playlist".to_string(),
             "--socket-timeout".to_string(),
             "10".to_string(),
             "--no-warnings".to_string(),
-            url.to_string(),
         ];
-        
+        push_extractor_args(&mut args, url, None, self.options.extractor_args.as_deref());
+        args.push(url.to_string());
+
         let output = run_yt_dlp_blocking(yt_dlp_path, args, 60).await?;
 
         if !output.status.success() {
@@ -693,14 +694,15 @@ impl Downloader {
         
         let yt_dlp_path = self.find_yt_dlp().await?;
         
-        let args = vec![
+        let mut args = vec![
             "--dump-single-json".to_string(),
             "--flat-playlist".to_string(),
             "--socket-timeout".to_string(),
             "10".to_string(),
             "--no-warnings".to_string(),
-            url.to_string(),
         ];
+        push_extractor_args(&mut args, url, None, self.options.extractor_args.as_deref());
+        args.push(url.to_string());
         
         let output = run_yt_dlp_blocking(yt_dlp_path, args, 90).await?;
 
@@ -730,8 +732,12 @@ impl Downloader {
             duration: Option<f64>,
             thumbnail: Option<String>,
             uploader: Option<String>,
-            _webpage_url: Option<String>,
-            _url: Option<String>,
+            #[serde(default)]
+            webpage_url: Option<String>,
+            #[serde(default)]
+            url: Option<String>,
+            #[serde(default)]
+            ie_key: Option<String>,
         }
 
         let info: YtdlpPlaylist = serde_json::from_slice(&output.stdout)
@@ -740,12 +746,15 @@ impl Downloader {
         let entries: Vec<PlaylistVideo> = info.entries.into_iter()
             .map(|e| PlaylistVideo {
                 id: e.id.clone(),
-                title: e.title,
                 duration: e.duration.map(|d| d as i64),
+                title: e.title,
                 thumbnail: e.thumbnail,
                 uploader: e.uploader,
-                webpage_url: e._webpage_url.unwrap_or_else(|| 
-                    format!("https://www.youtube.com/watch?v={}", e.id)
+                webpage_url: playlist_entry_url(
+                    e.ie_key.as_deref(),
+                    &e.id,
+                    e.url.as_deref(),
+                    e.webpage_url.as_deref(),
                 ),
             })
             .collect();
@@ -913,9 +922,200 @@ fn sanitize_filename(s: &str) -> String {
     }
 }
 
+fn hostname_of(url: &str) -> String {
+    let s = url.trim();
+    if s.is_empty() {
+        return String::new();
+    }
+    let rest = s.split_once("://").map(|(_, r)| r).unwrap_or(s);
+    let host = rest.split(['/', '?', '#']).next().unwrap_or("").split(':').next().unwrap_or("");
+    host.trim_start_matches("www.")
+        .trim_start_matches("mobile.")
+        .to_ascii_lowercase()
+}
+
+fn is_twitter_url(url: &str) -> bool {
+    let host = hostname_of(url);
+    matches!(
+        host.as_str(),
+        "twitter.com" | "x.com" | "vxtwitter.com" | "fxtwitter.com" | "nitter.net"
+    ) || host.ends_with(".twitter.com")
+}
+
+fn is_youtube_entry(ie_key: Option<&str>) -> bool {
+    let key = ie_key.unwrap_or("").trim().to_ascii_lowercase();
+    key.is_empty() || key.starts_with("youtube")
+}
+
+/// Resolve a flat-playlist entry's page URL across sites. Prefer the entry's
+/// own URLs; only reconstruct a YouTube watch URL for YouTube entries, so
+/// Bilibili/XHS/etc. entries never receive an invented youtube.com link.
+fn playlist_entry_url(
+    ie_key: Option<&str>,
+    id: &str,
+    url: Option<&str>,
+    webpage_url: Option<&str>,
+) -> String {
+    if let Some(u) = webpage_url.map(str::trim).filter(|s| !s.is_empty()) {
+        return u.to_string();
+    }
+    let raw_url = url.map(str::trim).unwrap_or("");
+    if raw_url.starts_with("http://") || raw_url.starts_with("https://") {
+        return raw_url.to_string();
+    }
+    if is_youtube_entry(ie_key) {
+        if !raw_url.is_empty() {
+            return format!("https://www.youtube.com/watch?v={raw_url}");
+        }
+        if !id.is_empty() {
+            return format!("https://www.youtube.com/watch?v={id}");
+        }
+    }
+    String::new()
+}
+
+fn has_twitter_api_arg(existing: Option<&str>) -> bool {
+    existing
+        .unwrap_or("")
+        .to_ascii_lowercase()
+        .contains("twitter:api=")
+}
+
+fn normalize_user_extractor_args(extra: &str) -> String {
+    let extra = extra.trim();
+    if extra.contains(':') {
+        extra.to_string()
+    } else {
+        format!("youtube:{extra}")
+    }
+}
+
+fn extractor_arg_values(url: &str, po_token: Option<&str>, extra: Option<&str>) -> Vec<String> {
+    let mut values = Vec::new();
+    if let Some(po) = po_token.map(str::trim).filter(|s| !s.is_empty()) {
+        values.push(format!("youtube:po_token={po}"));
+    }
+    if let Some(extra) = extra.map(str::trim).filter(|s| !s.is_empty()) {
+        values.push(normalize_user_extractor_args(extra));
+    }
+    if is_twitter_url(url) && !has_twitter_api_arg(extra) {
+        values.push("twitter:api=syndication".to_string());
+    }
+    values
+}
+
+fn push_extractor_args(args: &mut Vec<String>, url: &str, po_token: Option<&str>, extra: Option<&str>) {
+    for value in extractor_arg_values(url, po_token, extra) {
+        args.push("--extractor-args".to_string());
+        args.push(value);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn twitter_urls_are_detected() {
+        assert!(is_twitter_url("https://x.com/user/status/1"));
+        assert!(is_twitter_url("https://www.x.com/user/status/1"));
+        assert!(is_twitter_url("https://twitter.com/user/status/1"));
+        assert!(is_twitter_url("https://mobile.twitter.com/user/status/1"));
+        assert!(!is_twitter_url("https://www.youtube.com/watch?v=1"));
+        assert!(!is_twitter_url("https://examplex.com/status/1"));
+        assert!(!is_twitter_url("https://prefixx.com/foo"));
+    }
+
+    #[test]
+    fn playlist_entry_url_prefers_own_urls() {
+        // webpage_url wins
+        assert_eq!(
+            playlist_entry_url(
+                Some("BiliBili"),
+                "BV1xx",
+                Some("https://www.bilibili.com/video/BV1xx"),
+                Some("https://www.bilibili.com/video/BV1xx?p=2")
+            ),
+            "https://www.bilibili.com/video/BV1xx?p=2"
+        );
+        // absolute url is the fallback for entries without webpage_url
+        assert_eq!(
+            playlist_entry_url(
+                Some("BiliBili"),
+                "BV1xx",
+                Some("https://www.bilibili.com/video/BV1xx"),
+                None
+            ),
+            "https://www.bilibili.com/video/BV1xx"
+        );
+    }
+
+    #[test]
+    fn youtube_flat_entry_reconstructs_watch_url() {
+        assert_eq!(
+            playlist_entry_url(None, "dQw4w9WgXcQ", Some("dQw4w9WgXcQ"), None),
+            "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        );
+        assert_eq!(
+            playlist_entry_url(Some("Youtube"), "abc123", None, None),
+            "https://www.youtube.com/watch?v=abc123"
+        );
+    }
+
+    #[test]
+    fn non_youtube_entry_never_invents_youtube_url() {
+        assert_eq!(
+            playlist_entry_url(Some("BiliBili"), "BV1xx", Some("BV1xx"), None),
+            ""
+        );
+        assert_eq!(playlist_entry_url(Some("XiaoHongShu"), "note1", None, None), "");
+    }
+
+    #[test]
+    fn twitter_urls_get_syndication_extractor() {
+        let values = extractor_arg_values(
+            "https://x.com/IndianaFever/status/2095632325371461901",
+            None,
+            None,
+        );
+        assert_eq!(values, vec!["twitter:api=syndication".to_string()]);
+    }
+
+    #[test]
+    fn user_twitter_api_wins() {
+        let values = extractor_arg_values(
+            "https://x.com/user/status/1",
+            None,
+            Some("twitter:api=legacy"),
+        );
+        assert_eq!(values, vec!["twitter:api=legacy".to_string()]);
+    }
+
+    #[test]
+    fn extractor_args_without_ie_key_are_youtube() {
+        let values = extractor_arg_values(
+            "https://www.youtube.com/watch?v=1",
+            Some("tok"),
+            Some("player_client=web"),
+        );
+        assert_eq!(
+            values,
+            vec![
+                "youtube:po_token=tok".to_string(),
+                "youtube:player_client=web".to_string()
+            ]
+        );
+    }
+
+    #[test]
+    fn namespaced_extractor_args_are_not_prefixed() {
+        let values = extractor_arg_values(
+            "https://www.youtube.com/watch?v=1",
+            None,
+            Some("twitter:api=syndication"),
+        );
+        assert_eq!(values, vec!["twitter:api=syndication".to_string()]);
+    }
 
     #[tokio::test]
     async fn test_get_info_blocking() {

@@ -1,5 +1,14 @@
 import type { LucideIcon } from "lucide-react";
-import { Bot, Download, FileText, Library, MessageSquare, Settings, Video } from "lucide-react";
+import {
+  Bot,
+  Download,
+  FileText,
+  Library,
+  MessageSquare,
+  Settings,
+  SquareTerminal,
+  Video,
+} from "lucide-react";
 
 export type AppSection = "video" | "workspace" | "settings";
 
@@ -73,6 +82,12 @@ export const workspaceNavItems: SectionNavItem[] = [
     icon: MessageSquare,
     titleKey: "nav.workspace.chat",
   },
+  {
+    id: "terminal",
+    href: "/workspace/terminal",
+    icon: SquareTerminal,
+    titleKey: "nav.workspace.terminal",
+  },
 ];
 
 export const settingsNavItems: SectionNavItem[] = [
@@ -117,7 +132,7 @@ export function isSectionNavActive(pathname: string, item: SectionNavItem): bool
     return pathname.startsWith(item.href);
   }
   if (item.href === "/workspace") {
-    return pathname === "/workspace" || pathname.startsWith("/workspace/");
+    return pathname === "/workspace";
   }
   if (item.href === "/") {
     return pathname === "/";

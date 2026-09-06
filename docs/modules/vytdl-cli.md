@@ -1,73 +1,58 @@
-# vYtDL CLI（vYtDL-standalone）
+# vYtDL CLI（`vYtDL-standalone/`）
 
-Go 实现的命令行/TUI 下载工具，包装 yt-dlp，覆盖 1800+ 站点。
+## 定位
 
-**唯一源码位置**：仓库根目录下的 `vYtDL-standalone/`（本地 checkout）。规范远程仓库为 [qdriven/innate-vytdl](https://github.com/qdriven/innate-vytdl)。
+Go CLI / TUI，将 **yt-dlp** 作为子进程调用，提供简化参数、播放列表断点续传、下载记录与字幕分析。规范远程仓库：[qdriven/innate-vytdl](https://github.com/qdriven/innate-vytdl)。
 
-> 旧路径 `tools/vytdl-cli/` 已移除，避免与 standalone 双份维护。
-
-## 获取源码
+本地目录为嵌套 git checkout（monorepo 中 gitignore）。若不存在：
 
 ```bash
-# 若本地还没有 checkout：
 git clone https://github.com/qdriven/innate-vytdl.git vYtDL-standalone
 ```
 
-`vYtDL-standalone/` 带独立 `.git`，在 monorepo 中被 gitignore（嵌套仓库）。CI / Docker 会在构建时 clone。
-
 ## 技术栈
 
-Go 1.24+ / Cobra（命令）/ Bubble Tea（TUI）/ 标准库为主
+- Go 1.24+
+- spf13/cobra
+- charmbracelet/bubbletea + lipgloss
+- 可选：`-tags embed_ytdlp` 内嵌 yt-dlp
 
-## 目录结构
+## 入口
 
-```
-vYtDL-standalone/
-├── main.go
-├── cmd/                  # Cobra 命令：download、analyze、root
-├── internal/
-│   ├── config/           # config.json 读取（yt_dlp_bin 路径）
-│   ├── downloader/       # yt-dlp 进程封装、进度解析、选项映射
-│   ├── ytdlpbin/         # yt-dlp 二进制解析器（PATH→内嵌→缓存→自动下载）
-│   ├── playliststate/    # 播放列表断点续传状态
-│   ├── record/           # download_record / subtitle_mapping 记录
-│   ├── tui/              # Bubble Tea 终端 UI
-│   └── vtt/              # VTT 字幕解析
-└── scripts/              # build.sh/ps1、fetch-ytdlp.sh 等
-```
+| 文件 | 作用 |
+|------|------|
+| `main.go` | 入口 → `cmd.Execute()` |
+| `cmd/download.go` | 下载命令与并发调度 |
+| `cmd/analyze.go` | VTT → text / markdown |
+| `internal/downloader/` | 参数组装、进度解析、播放列表 |
+| `internal/ytdlpbin/` | yt-dlp 解析 / 安装 / 内嵌 |
+| `internal/record/` | `download_record` + `subtitle_mapping` |
+| `internal/playliststate/` | `.playlist_state.json` 续传 |
+| `internal/tui/` | 终端进度 UI |
+| `internal/vtt/` | WebVTT 解析 |
 
-## 对外接口
+## 功能
 
-```bash
-cd vYtDL-standalone
-./vYtDL download [--no-tui] [-o DIR] [-q 1080] [--playlist]
-               [--cookies-from-browser B] [--js-runtimes node] URL...
-./vYtDL analyze --mode text file.vtt
-```
+- 任意 yt-dlp 支持站点（无域名白名单）
+- 画质 `-q`、容器 `-f`、时间片段 `--start` / `--end`
+- 默认中英字幕（含自动字幕），可用 `--no-subs` 关闭
+- Cookie / 代理 / `--extractor-args` / `--js-runtimes`（默认 `node`）透传
+- `--playlist`：按标题建子目录 + 断点续传
+- `-j N` 多 URL 并发
+- `--install-yt-dlp` 写入本地缓存
+- `analyze`：清洗 YouTube 自动字幕 VTT
 
-用户手册：`vYtDL-standalone/USAGE.md`（含 YouTube / Bilibili 详细示例）。
-
-## 构建（monorepo Task）
+## 构建
 
 ```bash
 task cli:build
-task cli:build:windows
+task cli:build:windows          # amd64 + arm64
 task cli:test
+cd vYtDL-standalone && GOWORK=off go build -o vYtDL .
 ```
 
-`Taskfile.yml` 的 `CLI_DIR` 指向 `./vYtDL-standalone`，并设置 `GOWORK=off`。
+## 与其他模块
 
-## yt-dlp 二进制解析顺序
-
-`--yt-dlp-bin` → `config.json` → PATH → 内嵌（`-tags embed_ytdlp`）→ 用户缓存 → GitHub 自动下载（`VYTDL_YTDLP_MIRROR`）。
-
-## 与其他模块的关系
-
-- **vytdl-desktop**：`scripts/build-desktop.py` 从 `vYtDL-standalone` 构建 sidecar。
-- **vytdl-web**：Docker 构建阶段 `git clone` innate-vytdl，不依赖 monorepo 内嵌源码树。
-
-## 测试
-
-```bash
-cd vYtDL-standalone && GOWORK=off go test ./...
-```
+- 桌面 sidecar：`scripts/build-desktop.py` → `apps/vytdl-desktop/src-tauri/bin/vYtDL-<triple>`
+- Docker：根 `Dockerfile` clone 本仓库后编译进镜像
+- 详细用法：`vYtDL-standalone/USAGE.md`

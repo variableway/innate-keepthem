@@ -50,12 +50,15 @@ export interface VideoInfo {
 }
 
 export interface PlaylistInfo {
+  id?: string;
   title: string;
   uploader: string | null;
   entries: Array<{
     id: string;
     title: string;
     duration: number | null;
+    thumbnail: string | null;
+    webpage_url?: string;
   }>;
 }
 
@@ -187,12 +190,18 @@ export function runYtDlp(args: string[], timeoutMs = 30000): Promise<{ stdout: s
 }
 
 export async function getVideoInfo(url: string): Promise<VideoInfo> {
+  // --socket-timeout bounds hung sockets so failures surface quickly;
+  // 40s stays under the frontend's 45s timeout for slow extractions.
   const { stdout } = await runYtDlp([
     "--dump-json",
     "--no-playlist",
     "--skip-download",
+    "--no-warnings",
+    "--socket-timeout",
+    "10",
+    ...siteExtractorArgs(url),
     url,
-  ]);
+  ], 40000);
   const data = JSON.parse(stdout.trim().split("\n").pop() || stdout);
   return {
     id: data.id,
@@ -216,28 +225,33 @@ export async function getVideoFormats(url: string): Promise<VideoInfo["formats"]
 }
 
 export async function getPlaylistInfo(url: string): Promise<PlaylistInfo> {
+  // Single dump-single-json call: metadata and flat entries in one response.
+  // 55s cap stays under the frontend's 60s collection-preview timeout.
   const { stdout } = await runYtDlp(
-    ["--dump-json", "--flat-playlist", "--skip-download", url],
-    60000
+    [
+      "--dump-single-json",
+      "--flat-playlist",
+      "--skip-download",
+      "--no-warnings",
+      "--socket-timeout",
+      "10",
+      ...siteExtractorArgs(url),
+      url,
+    ],
+    55000
   );
-  const lines = stdout.trim().split("\n").filter(Boolean);
-  const entries = lines.map((line) => {
-    const data = JSON.parse(line);
-    return {
-      id: data.id,
-      title: data.title || "Unknown",
-      duration: data.duration || null,
-    };
-  });
+  const meta = JSON.parse(stdout.trim().split("\n").pop() || stdout);
 
-  // Get playlist metadata from first entry's playlist info or do a separate call
-  const { stdout: metaStdout } = await runYtDlp(
-    ["--dump-single-json", "--flat-playlist", "--skip-download", url],
-    60000
-  );
-  const meta = JSON.parse(metaStdout.trim().split("\n").pop() || metaStdout);
+  const entries = (meta.entries || []).map((e: any) => ({
+    id: e.id,
+    title: e.title || "Unknown",
+    duration: e.duration || null,
+    thumbnail: e.thumbnail || null,
+    webpage_url: e.url || e.webpage_url || undefined,
+  }));
 
   return {
+    id: meta.id,
     title: meta.title || "Playlist",
     uploader: meta.uploader || null,
     entries,
@@ -246,6 +260,38 @@ export async function getPlaylistInfo(url: string): Promise<PlaylistInfo> {
 
 const PROGRESS_REGEX =
   /^\[download\]\s+(\d+\.?\d*)%\s+of\s+~?\s*(\S+)\s+at\s+(\S+)\s+ETA\s+(\S+).*$/;
+
+const TWITTER_HOSTS = new Set([
+  "twitter.com",
+  "x.com",
+  "vxtwitter.com",
+  "fxtwitter.com",
+  "nitter.net",
+]);
+
+export function isTwitterUrl(url: string): boolean {
+  try {
+    const host = new URL(url.includes("://") ? url : `https://${url}`).hostname
+      .replace(/^www\./i, "")
+      .replace(/^mobile\./i, "")
+      .toLowerCase();
+    return TWITTER_HOSTS.has(host) || host.endsWith(".twitter.com");
+  } catch {
+    return false;
+  }
+}
+
+export function siteExtractorArgs(url: string, existing?: string): string[] {
+  const args: string[] = [];
+  const hasTwitterApi = (existing || "").toLowerCase().includes("twitter:api=");
+  if (isTwitterUrl(url) && !hasTwitterApi) {
+    args.push("--extractor-args", "twitter:api=syndication");
+  }
+  if (existing?.trim()) {
+    args.push("--extractor-args", existing.trim());
+  }
+  return args;
+}
 
 export function spawnDownload(
   options: DownloadOptions,
@@ -294,6 +340,7 @@ export function spawnDownload(
       args.push("--download-sections", `*${sections.join("-")}`);
     }
 
+    args.push(...siteExtractorArgs(options.url));
     args.push(options.url);
 
     onLog({ level: "info", message: `Starting download: ${options.url}` });

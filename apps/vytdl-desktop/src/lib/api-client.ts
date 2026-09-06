@@ -1,5 +1,10 @@
 "use client";
 
+// Base URL of the web backend (Hono server). Empty in production, where the
+// API is served same-origin behind the static export; set in .env.development
+// so a plain browser on the Next dev port can reach the backend.
+const API_BASE = (process.env.NEXT_PUBLIC_API_BASE || "").replace(/\/+$/, "");
+
 // Detect if running inside Tauri
 function isTauri(): boolean {
   if (typeof window === "undefined") return false;
@@ -46,7 +51,8 @@ function ensureWebSocket() {
   if (ws?.readyState === WebSocket.CONNECTING) return;
 
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  const wsUrl = `${protocol}//${window.location.host}/api/ws`;
+  const wsOrigin = API_BASE ? API_BASE.replace(/^http/, "ws") : `${protocol}//${window.location.host}`;
+  const wsUrl = `${wsOrigin}/api/ws`;
 
   ws = new WebSocket(wsUrl);
 
@@ -80,7 +86,8 @@ function ensureWebSocket() {
 
 export async function apiInvoke<T>(
   command: string,
-  args?: Record<string, unknown>
+  args?: Record<string, unknown>,
+  options?: { signal?: AbortSignal }
 ): Promise<T> {
   await loadTauri();
 
@@ -90,15 +97,20 @@ export async function apiInvoke<T>(
 
   // Web mode: HTTP API
   const endpoint = command.replace(/_/g, "-");
-  const response = await fetch(`/api/${endpoint}`, {
+  const response = await fetch(`${API_BASE}/api/${endpoint}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(args || {}),
+    signal: options?.signal,
   });
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(text || `HTTP ${response.status}`);
+    // Avoid dumping whole HTML error pages (e.g. a dev-server 404) into the UI
+    const isJson = (response.headers.get("content-type") || "").includes("json");
+    throw new Error(
+      isJson ? text || `HTTP ${response.status}` : `API request failed (HTTP ${response.status} on /api/${endpoint})`
+    );
   }
 
   return response.json();

@@ -1,7 +1,7 @@
 import { spawn } from "child_process";
+import { randomUUID } from "crypto";
 import { promises as fs } from "fs";
 import path from "path";
-import { v4 as uuidv4 } from "uuid";
 import { Database, VttReport } from "./database";
 import { runYtDlp } from "./downloader";
 import WebSocket from "ws";
@@ -35,7 +35,7 @@ export class VttAnalyzer {
   }
 
   async startAnalysis(youtubeUrl: string): Promise<string> {
-    const id = uuidv4();
+    const id = randomUUID();
     const videoId = extractVideoId(youtubeUrl);
 
     this.db.createVttReport({

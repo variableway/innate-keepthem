@@ -7,7 +7,7 @@ This document provides context for AI agents working on the vYtDL codebase.
 vYtDL is a YouTube downloader suite with four components:
 - **vYtDL CLI** - Go-based CLI wrapping yt-dlp
 - **vYtDL Desktop** - Tauri v2 + Next.js + React 19 desktop app with i18n support
-- **vYtDL Web** - Docker-deployable web UI with Express backend
+- **vYtDL Web** - Docker-deployable web UI with Hono backend
 - **URL Extractor** - Chrome extension for URL extraction
 
 ## Technology Stack
@@ -29,7 +29,7 @@ vYtDL is a YouTube downloader suite with four components:
 - **API Abstraction**: `api-client.ts` supports both Tauri IPC and HTTP API modes
 
 ### Web Server (apps/vytdl-web/)
-- **Backend**: Node.js + Express + WebSocket (`ws`)
+- **Backend**: Node.js + Hono (@hono/node-server) + WebSocket (`ws`)
 - **Database**: better-sqlite3 (same schema as desktop)
 - **Queue**: In-memory queue manager with configurable concurrency
 - **yt-dlp**: Spawned as child process
@@ -77,9 +77,9 @@ yt-dlp subprocess (via Tauri Rust backend)
 ```
 Browser
     ↓
-Next.js Static Build (served by Express)
+Next.js Static Build (served by Hono)
     ↓
-HTTP API / WebSocket (Express server)
+HTTP API / WebSocket (Hono server)
     ↓
 Queue Manager → yt-dlp subprocess
     ↓
@@ -114,11 +114,12 @@ SQLite Database
   - `downloader.rs` - yt-dlp subprocess wrapper
   - `database.rs` - SQLite database layer (downloads + settings tables)
   - `queue.rs` - Async download queue manager (max concurrency, FIFO, cancel)
+  - `terminal_launcher.rs` - AI agent terminal launcher (detect terminals/CLIs, provider catalog, launch script generation)
   - `lib.rs` - App setup, bundled yt-dlp extraction, auto-resume on startup
 - `packages/ui/` - Shared UI components
 - `packages/utils/` - Shared utilities
 - `scripts/` - Startup scripts
-- `apps/vytdl-web/` - Docker web API server (Node.js + Express)
+- `apps/vytdl-web/` - Docker web API server (Node.js + Hono)
 
 ### URL Extractor (extensions/url-extractor/)
 
@@ -141,6 +142,18 @@ Batch/Smart modes:
 - `#` lines are treated as comments and ignored
 - `.txt` file import supported via hidden `<input type="file">`
 - Sequential `startDownload()` calls; queue handles concurrency
+
+## AI Agent Terminal Launcher
+
+`/workspace/terminal` (desktop/Tauri only) opens the user's local terminal (Ghostty, iTerm2, Terminal.app, Alacritty, kitty, WezTerm; wt/cmd on Windows) running an AI coding agent CLI with LLM provider config injected.
+
+- Backend: `src-tauri/src/terminal_launcher.rs` — commands `detect_agent_terminals`, `list_agent_providers`, `detect_agent_clis`, `launch_agent_terminal`
+- Frontend: `src/components/workspace/terminal-launcher.tsx`
+- Mechanism: a launch script is generated per session under `~/.vytdl/agent-sessions/<uuid>/` containing PATH bootstrap + env exports; the terminal is told to run that script (`open -na Ghostty --args -e` on macOS, `osascript` for Terminal/iTerm, direct binary flags elsewhere)
+- Claude Code third-party providers (GLM/MiniMax) inject `ANTHROPIC_BASE_URL/AUTH_TOKEN/MODEL` + default model slots; codex third-party providers use a session-scoped `CODEX_HOME` with generated `config.toml` (`experimental_bearer_token`, `wire_api = "responses"`) so the user's `~/.codex` is never touched
+- Kimi opens directly (single fixed model, its own login); official Anthropic/OpenAI run with the CLI's own account login
+- Persisted settings keys: `agent_terminal`, `agent_terminal_workdir`, `agent_glm_api_key`, `agent_minimax_api_key`, `agent_anthropic_api_key`, `agent_openai_api_key`
+- Model/endpoint facts come from vendor docs (GLM: `open.bigmodel.cn/api/anthropic` + `/api/v1`; MiniMax: `api.minimax.cn|io` + `/anthropic`|`/v1`); update the catalog in `list_agent_providers()` when vendors ship new models
 
 ## Download Queue System
 
@@ -263,28 +276,18 @@ Located in `scripts/`:
 
 Download wrapper scripts validate `yt-dlp`/`youtube-dl` availability before running.
 
-## AI Skills
+## Documentation
 
-项目 Skills 位于 `.agents/skills/`，Cursor 通过 `.cursor/skills` 符号链接访问同一目录。
+- Index: [`docs/README.md`](docs/README.md)
+- Architecture: [`docs/architecture.md`](docs/architecture.md)
+- Modules: [`docs/modules/`](docs/modules/)
 
-| Skill | 用途 |
-|-------|------|
-| `vytdl-dev` | vYtDL 全栈开发（CLI、Desktop、Web、Extension） |
-| `vtt-analyze` | VTT 字幕 AI 分析工作流 |
-| `contentforge` | ContentForge 采集 / 处理 / 发布开发 |
-| `contentforge-pipeline` | Pipeline 预设与 DAG 引擎 |
-
-完整索引：`.agents/skills/_index.md`
-
-## AI Skill & Development Guide
-
-- **How-To Tutorial**: `docs/how-to/README.md` — Step-by-step guide for implementing this project with AI assistance, including tech stack overview and dependency installation.
-- **One-Click Setup**: `docs/how-to/setup.sh` (macOS/Linux) and `docs/how-to/setup.ps1` (Windows) — Install all dependencies (Go, Node.js, Rust, yt-dlp, FFmpeg) in one command.
+Project-local AI Skills (`.agents/skills`) have been removed; use the docs above for context.
 
 ## Known Issues
 
-- yt-dlp must be installed separately and path configured in `config.json`
+- yt-dlp must be installed separately and path configured in `config.json` (or rely on auto-resolve / `--install-yt-dlp`)
 - YouTube may block anonymous requests; use `--cookies-from-browser` as workaround
-- YouTube `n` challenge requires a JS runtime (deno/node). Use `--js-runtimes node` if Node.js is available, or `brew install deno`. The vYtDL CLI does not pass `--js-runtimes` through yet; use yt-dlp directly for now.
+- YouTube `n` challenge requires a JS runtime (deno/node). vYtDL CLI defaults to `--js-runtimes node`
 - URL escaping issues were fixed; downloader normalizes input URLs
 - Desktop `tauriStorage` type has known TypeScript incompatibility with Zustand `PersistStorage`

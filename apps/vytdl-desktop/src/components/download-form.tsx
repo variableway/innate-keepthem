@@ -11,7 +11,7 @@ import { useSettingsStore } from "@/store/settingsStore";
 import { useDownloadStore } from "@/store/downloadStore";
 import { formatDuration } from "@vytdl/utils";
 import { useTranslation } from "@/i18n";
-import type { DownloadOptions, VideoInfo, ApiResponse } from "@/types";
+import type { DownloadOptions, VideoInfo, PlaylistInfo, ApiResponse } from "@/types";
 
 const QUALITY_OPTIONS = [
   { value: "best", labelKey: "downloadForm.bestQuality" },
@@ -32,22 +32,63 @@ const FORMAT_OPTIONS = [
 
 import { apiInvoke } from "@/lib/api-client";
 
+// Supported platforms, shared by URL validation and the platform badge UI.
+const PLATFORM_PATTERNS: { key: string; labelKey: string; pattern: RegExp }[] = [
+  { key: "youtube", labelKey: "platform.youtube", pattern: /youtube\.com|youtu\.be/ },
+  { key: "bilibili", labelKey: "platform.bilibili", pattern: /bilibili\.com|b23\.tv/ },
+  { key: "xiaohongshu", labelKey: "platform.xiaohongshu", pattern: /xiaohongshu\.com|xhslink\.com/ },
+  { key: "twitter", labelKey: "platform.twitter", pattern: /twitter\.com|x\.com/ },
+  { key: "tiktok", labelKey: "platform.tiktok", pattern: /tiktok\.com/ },
+  { key: "vimeo", labelKey: "platform.vimeo", pattern: /vimeo\.com/ },
+  { key: "twitch", labelKey: "platform.twitch", pattern: /twitch\.tv/ },
+  { key: "facebook", labelKey: "platform.facebook", pattern: /facebook\.com|fb\.watch/ },
+  { key: "instagram", labelKey: "platform.instagram", pattern: /instagram\.com/ },
+  { key: "dailymotion", labelKey: "platform.dailymotion", pattern: /dailymotion\.com|dai\.ly/ },
+  { key: "nicovideo", labelKey: "platform.nicovideo", pattern: /nicovideo\.jp/ },
+];
+
+function detectPlatform(url: string): { key: string; labelKey: string } | null {
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+  return PLATFORM_PATTERNS.find((p) => p.pattern.test(trimmed)) ?? null;
+}
+
 function isValidVideoUrl(url: string): boolean {
   if (!url.trim()) return false;
-  const patterns = [
-    /youtube\.com|youtu\.be/,
-    /bilibili\.com|b23\.tv/,
-    /xiaohongshu\.com|xhslink\.com/,
-    /vimeo\.com/,
-    /twitter\.com|x\.com/,
-    /tiktok\.com/,
-    /dailymotion\.com|dai\.ly/,
-    /twitch\.tv/,
-    /facebook\.com|fb\.watch/,
-    /instagram\.com/,
-    /nicovideo\.jp/,
-  ];
-  return patterns.some((p) => p.test(url));
+  return detectPlatform(url) !== null;
+}
+
+function hostnameOf(url: string): string {
+  try {
+    const withScheme = url.includes("://") ? url : `https://${url}`;
+    return new URL(withScheme).hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+
+// Detect playlist/collection URLs per platform.
+// - YouTube keeps the original heuristic (playlist pages, list=, channel/user/handle tabs)
+//   plus the channel "playlists" tab (a collection of playlists)
+// - Bilibili: bangumi season/media list, favorites, collections and series
+// - multi-P (watch) URLs stay single-download unless the playlist checkbox is forced
+function isPlaylistUrl(url: string): boolean {
+  const host = hostnameOf(url);
+  if (/(^|\.)youtube\.com$/.test(host) || host === "youtu.be") {
+    return /playlist|list=|\/channel\/|\/user\/|\/c\/|\/@[^/]+|\/playlists\b/.test(url);
+  }
+  if (/(^|\.)bilibili\.com$/.test(host)) {
+    return /\/bangumi\/play\/(ss|md)|favlist|medialist|collectiondetail|seriesdetail/.test(url);
+  }
+  return /playlist|list=/.test(url);
+}
+
+// A pure collection URL shows the collection preview card and auto-enables
+// playlist mode. watch?v=X&list=Y is ambiguous (usually "this video from a
+// playlist"), so it keeps the single-video preview.
+function isCollectionUrl(url: string): boolean {
+  if (/[?&]v=[^&]*/.test(url) && /[?&]list=/.test(url)) return false;
+  return isPlaylistUrl(url);
 }
 
 interface DownloadFormProps {
@@ -80,6 +121,11 @@ export function DownloadForm({ mode }: DownloadFormProps) {
   const [infoError, setInfoError] = useState<string | null>(null);
   const [infoRetryCount, setInfoRetryCount] = useState(0);
   const infoAbortRef = useRef<AbortController | null>(null);
+
+  const [playlistInfo, setPlaylistInfo] = useState<PlaylistInfo | null>(null);
+  const [isLoadingPlaylist, setIsLoadingPlaylist] = useState(false);
+  const [playlistError, setPlaylistError] = useState<string | null>(null);
+  const playlistAbortRef = useRef<AbortController | null>(null);
 
   const [history, setHistory] = useState<{ url: string; title?: string; date: string }[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -114,18 +160,27 @@ export function DownloadForm({ mode }: DownloadFormProps) {
       }
     };
 
-    // Frontend timeout: 25s to accommodate slow YouTube responses
-    const timeoutMs = 25000;
+    // Frontend timeout must exceed the backend caps (web 40s / Tauri 30s) so
+    // slow-but-successful yt-dlp extractions are not reported as failures.
+    const timeoutMs = 45000;
+    const maxRetries = 2;
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
     const timeoutPromise = new Promise<never>((_, reject) => {
-      timeoutId = setTimeout(() => reject(new Error(t("downloadForm.requestTimeout"))), timeoutMs);
+      timeoutId = setTimeout(() => {
+        // Cancel the underlying HTTP request (web mode); Tauri IPC cannot be
+        // cancelled, but stale responses are ignored via the abort flag.
+        abortController.abort();
+        const err = new Error(t("downloadForm.requestTimeout")) as Error & { isTimeout?: boolean };
+        err.isTimeout = true;
+        reject(err);
+      }, timeoutMs);
     });
 
     let willRetry = false;
     try {
       console.log("[DownloadForm] Fetching video info for:", url, "retry:", retryAttempt);
       const response = await Promise.race([
-        apiInvoke<ApiResponse<VideoInfo>>("get_video_info", { url }),
+        apiInvoke<ApiResponse<VideoInfo>>("get_video_info", { url }, { signal: abortController.signal }),
         timeoutPromise,
       ]);
       console.log("[DownloadForm] Video info response:", response);
@@ -139,22 +194,68 @@ export function DownloadForm({ mode }: DownloadFormProps) {
       }
     } catch (err) {
       console.error("[DownloadForm] Video info error:", err);
-      if (!abortController.signal.aborted) {
-        const errStr = String(err);
-        // Auto-retry once on timeout
-        if (errStr.includes("timed out") && retryAttempt < 1) {
-          willRetry = true;
-          setInfoRetryCount(retryAttempt + 1);
-          setTimeout(() => fetchVideoInfo(retryAttempt + 1), 1500);
-        } else {
-          setInfoError(errStr);
-        }
+      const isTimeout = Boolean((err as { isTimeout?: boolean }).isTimeout);
+      // Timeout errors carry a language-independent tag, so retry detection
+      // works in every locale (the message itself is translated).
+      if (isTimeout && retryAttempt < maxRetries) {
+        willRetry = true;
+        setInfoRetryCount(retryAttempt + 1);
+        setTimeout(() => fetchVideoInfo(retryAttempt + 1), 1500);
+      } else if (!abortController.signal.aborted) {
+        setInfoError(String(err));
       }
     } finally {
       if (timeoutId) clearTimeout(timeoutId);
       if (!willRetry) done();
     }
   }, [url, t]);
+
+  // Fetch collection metadata (get_playlist_info) for collection URLs
+  const fetchPlaylistInfo = useCallback(async () => {
+    const abortController = new AbortController();
+    playlistAbortRef.current = abortController;
+
+    setIsLoadingPlaylist(true);
+    setPlaylistError(null);
+
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        abortController.abort();
+        reject(new Error(t("downloadForm.collectionLoadFailed")));
+      }, 60000);
+    });
+
+    try {
+      const response = await Promise.race([
+        apiInvoke<ApiResponse<PlaylistInfo>>(
+          "get_playlist_info",
+          { url },
+          { signal: abortController.signal }
+        ),
+        timeoutPromise,
+      ]);
+      if (!abortController.signal.aborted) {
+        if (response.success && response.data) {
+          setPlaylistInfo(response.data);
+        } else {
+          setPlaylistError(response.error || t("downloadForm.collectionLoadFailed"));
+        }
+      }
+    } catch (err) {
+      if (!abortController.signal.aborted) {
+        setPlaylistError(String(err));
+      }
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (!abortController.signal.aborted) setIsLoadingPlaylist(false);
+    }
+  }, [url, t]);
+
+  // Pure collection URLs (playlist pages, channels, Bilibili 合集/番剧/收藏夹,
+  // the YouTube "playlists" tab) show a collection preview and auto-enable
+  // playlist mode instead of the single-video info card.
+  const collectionDetected = mode === "single" && isValidVideoUrl(url) && isCollectionUrl(url);
 
   useEffect(() => {
     setVideoInfo(null);
@@ -165,7 +266,7 @@ export function DownloadForm({ mode }: DownloadFormProps) {
       infoAbortRef.current.abort();
     }
 
-    if (!isValidVideoUrl(url)) {
+    if (!isValidVideoUrl(url) || isCollectionUrl(url)) {
       return;
     }
 
@@ -180,6 +281,38 @@ export function DownloadForm({ mode }: DownloadFormProps) {
       }
     };
   }, [url, fetchVideoInfo]);
+
+  useEffect(() => {
+    setPlaylistInfo(null);
+    setPlaylistError(null);
+
+    if (playlistAbortRef.current) {
+      playlistAbortRef.current.abort();
+    }
+
+    if (!collectionDetected) {
+      setIsLoadingPlaylist(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      fetchPlaylistInfo();
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+      if (playlistAbortRef.current) {
+        playlistAbortRef.current.abort();
+      }
+    };
+  }, [collectionDetected, fetchPlaylistInfo]);
+
+  // Auto-enable playlist mode for collections; users can still uncheck it
+  useEffect(() => {
+    if (collectionDetected) {
+      setIsPlaylist(true);
+    }
+  }, [collectionDetected]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -216,9 +349,17 @@ export function DownloadForm({ mode }: DownloadFormProps) {
     return urls;
   };
 
-  // Detect if URL is a playlist
-  const isPlaylistUrl = (url: string): boolean => {
-    return /playlist|list=|\/channel\/|\/user\/|\/c\//.test(url);
+  // Summarize detected platforms for a batch of URLs
+  const platformSummary = (urls: string[]): { key: string; labelKey: string; count: number }[] => {
+    const counts = new Map<string, { labelKey: string; count: number }>();
+    for (const u of urls) {
+      const p = detectPlatform(u);
+      if (!p) continue;
+      const entry = counts.get(p.key);
+      if (entry) entry.count++;
+      else counts.set(p.key, { labelKey: p.labelKey, count: 1 });
+    }
+    return [...counts.entries()].map(([key, v]) => ({ key, ...v }));
   };
 
   // Handle file import for batch URLs
@@ -352,11 +493,18 @@ export function DownloadForm({ mode }: DownloadFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2" ref={historyRef}>
-            <Label htmlFor="url">
-              {mode === "batch" || mode === "smart"
-                ? t("downloadForm.batchUrlLabel")
-                : t("downloadForm.urlLabel")}
-            </Label>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="url">
+                {mode === "batch" || mode === "smart"
+                  ? t("downloadForm.batchUrlLabel")
+                  : t("downloadForm.urlLabel")}
+              </Label>
+              {mode === "single" && detectPlatform(url) && (
+                <Badge variant="outline" className="text-[11px] px-2 py-0">
+                  {t(detectPlatform(url)!.labelKey)}
+                </Badge>
+              )}
+            </div>
 
             {mode === "batch" || mode === "smart" ? (
               <div className="space-y-2">
@@ -369,9 +517,16 @@ export function DownloadForm({ mode }: DownloadFormProps) {
                   className="w-full min-h-[120px] rounded-md border border-input bg-background px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
                 />
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">
-                    {t("downloadForm.validUrlsCount", { count: String(parseBatchUrls(url).length) })}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-xs text-muted-foreground">
+                      {t("downloadForm.validUrlsCount", { count: String(parseBatchUrls(url).length) })}
+                    </span>
+                    {platformSummary(parseBatchUrls(url)).map((p) => (
+                      <Badge key={p.key} variant="outline" className="text-[10px] px-1.5 py-0">
+                        {t(p.labelKey)}×{p.count}
+                      </Badge>
+                    ))}
+                  </div>
                   <label className="flex items-center gap-1 cursor-pointer text-xs text-primary hover:underline">
                     <FileUp className="h-3 w-3" />
                     <span>{t("downloadForm.importFromFile")}</span>
@@ -441,6 +596,79 @@ export function DownloadForm({ mode }: DownloadFormProps) {
               </div>
             )}
           </div>
+
+          {collectionDetected && (
+            <div className="border rounded-lg p-4 bg-muted/50 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <h4 className="font-medium text-sm truncate">
+                    {playlistInfo?.title || t("downloadForm.collectionDetected")}
+                  </h4>
+                  {playlistInfo?.uploader && (
+                    <p className="text-xs text-muted-foreground truncate">{playlistInfo.uploader}</p>
+                  )}
+                </div>
+                {playlistInfo && (
+                  <Badge variant="secondary" className="shrink-0">
+                    {t("downloadForm.collectionItems", { count: String(playlistInfo.entries.length) })}
+                  </Badge>
+                )}
+              </div>
+
+              {isLoadingPlaylist && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm">{t("downloadForm.collectionLoading")}</span>
+                </div>
+              )}
+
+              {playlistError && (
+                <div className="flex items-center gap-2 text-destructive">
+                  <X className="h-4 w-4 shrink-0" />
+                  <span className="text-sm flex-1">{playlistError}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => fetchPlaylistInfo()}
+                    className="h-7 px-2 text-xs"
+                  >
+                    {t("downloadForm.retry")}
+                  </Button>
+                </div>
+              )}
+
+              {playlistInfo && playlistInfo.entries.length > 0 && (
+                <div className="max-h-60 overflow-auto rounded-md border divide-y">
+                  {playlistInfo.entries.slice(0, 100).map((entry, index) => (
+                    <div key={`${entry.id}-${index}`} className="flex items-center gap-3 px-3 py-2">
+                      <span className="text-xs text-muted-foreground w-6 shrink-0 text-right">
+                        {index + 1}
+                      </span>
+                      {entry.thumbnail ? (
+                        <img
+                          src={entry.thumbnail}
+                          alt={entry.title}
+                          className="w-16 h-10 object-cover rounded bg-muted shrink-0"
+                        />
+                      ) : (
+                        <div className="w-16 h-10 bg-muted rounded flex items-center justify-center shrink-0">
+                          <Film className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm truncate">{entry.title || entry.id}</p>
+                        {entry.duration != null && (
+                          <p className="text-xs text-muted-foreground">{formatDuration(entry.duration)}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <p className="text-xs text-muted-foreground">{t("downloadForm.collectionModeHint")}</p>
+            </div>
+          )}
 
           {mode === "single" && (isLoadingInfo || videoInfo || infoError) && url && isValidVideoUrl(url) && (
             <div className="border rounded-lg p-4 bg-muted/50">
@@ -584,20 +812,23 @@ export function DownloadForm({ mode }: DownloadFormProps) {
             </div>
           )}
 
-          {mode !== "smart" && (
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isPlaylist}
-                  onChange={(e) => setIsPlaylist(e.target.checked)}
-                  className="rounded border-gray-300"
-                  disabled={isSubmitting}
-                />
-                <span className="text-sm">{t("downloadForm.playlistCheckbox")}</span>
-              </label>
-            </div>
-          )}
+          <div className="flex flex-wrap items-center gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isPlaylist}
+                onChange={(e) => setIsPlaylist(e.target.checked)}
+                className="rounded border-gray-300"
+                disabled={isSubmitting}
+              />
+              <span className="text-sm">{t("downloadForm.playlistCheckbox")}</span>
+            </label>
+            {mode === "smart" && (
+              <span className="text-xs text-muted-foreground">
+                {t("downloadForm.playlistForceHint")}
+              </span>
+            )}
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

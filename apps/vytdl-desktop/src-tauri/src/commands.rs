@@ -351,6 +351,19 @@ pub struct Settings {
     pub extractor_args: Option<String>,
     #[serde(default)]
     pub config_location: Option<String>,
+    // ── AI agent terminal launcher ──
+    #[serde(default)]
+    pub agent_terminal: Option<String>,
+    #[serde(default)]
+    pub agent_terminal_workdir: Option<String>,
+    #[serde(default)]
+    pub agent_glm_api_key: Option<String>,
+    #[serde(default)]
+    pub agent_minimax_api_key: Option<String>,
+    #[serde(default)]
+    pub agent_anthropic_api_key: Option<String>,
+    #[serde(default)]
+    pub agent_openai_api_key: Option<String>,
 }
 
 #[tauri::command]
@@ -400,6 +413,12 @@ pub async fn get_settings(
     let po_token = db.get_setting("po_token").await.unwrap_or(None);
     let extractor_args = db.get_setting("extractor_args").await.unwrap_or(None);
     let config_location = db.get_setting("config_location").await.unwrap_or(None);
+    let agent_terminal = db.get_setting("agent_terminal").await.unwrap_or(None);
+    let agent_terminal_workdir = db.get_setting("agent_terminal_workdir").await.unwrap_or(None);
+    let agent_glm_api_key = db.get_setting("agent_glm_api_key").await.unwrap_or(None);
+    let agent_minimax_api_key = db.get_setting("agent_minimax_api_key").await.unwrap_or(None);
+    let agent_anthropic_api_key = db.get_setting("agent_anthropic_api_key").await.unwrap_or(None);
+    let agent_openai_api_key = db.get_setting("agent_openai_api_key").await.unwrap_or(None);
     let _ = get_bool;
 
     let settings = Settings {
@@ -427,6 +446,12 @@ pub async fn get_settings(
         po_token,
         extractor_args,
         config_location,
+        agent_terminal,
+        agent_terminal_workdir,
+        agent_glm_api_key,
+        agent_minimax_api_key,
+        agent_anthropic_api_key,
+        agent_openai_api_key,
     };
     Ok(ApiResponse::ok(settings))
 }
@@ -510,6 +535,21 @@ pub async fn update_settings(
     let _ = db.set_setting("po_token", settings.po_token.as_deref().unwrap_or("")).await;
     let _ = db.set_setting("extractor_args", settings.extractor_args.as_deref().unwrap_or("")).await;
     let _ = db.set_setting("config_location", settings.config_location.as_deref().unwrap_or("")).await;
+    // ── AI agent terminal launcher ──
+    let _ = db.set_setting("agent_terminal", settings.agent_terminal.as_deref().unwrap_or("")).await;
+    let _ = db
+        .set_setting("agent_terminal_workdir", settings.agent_terminal_workdir.as_deref().unwrap_or(""))
+        .await;
+    let _ = db.set_setting("agent_glm_api_key", settings.agent_glm_api_key.as_deref().unwrap_or("")).await;
+    let _ = db
+        .set_setting("agent_minimax_api_key", settings.agent_minimax_api_key.as_deref().unwrap_or(""))
+        .await;
+    let _ = db
+        .set_setting("agent_anthropic_api_key", settings.agent_anthropic_api_key.as_deref().unwrap_or(""))
+        .await;
+    let _ = db
+        .set_setting("agent_openai_api_key", settings.agent_openai_api_key.as_deref().unwrap_or(""))
+        .await;
 
     Ok(ApiResponse::ok(()))
 }
@@ -521,6 +561,36 @@ pub async fn detect_agent_cli(
 ) -> Result<ApiResponse<crate::agent_cli::DetectAgentCliResult>, String> {
     let result = crate::agent_cli::detect_agent_cli_tools(kimi_bin, other_bin);
     Ok(ApiResponse::ok(result))
+}
+
+// ── AI agent terminal launcher ──
+
+#[tauri::command]
+pub async fn detect_agent_terminals()
+-> Result<ApiResponse<Vec<crate::terminal_launcher::AgentTerminalInfo>>, String> {
+    Ok(ApiResponse::ok(crate::terminal_launcher::detect_terminals()))
+}
+
+#[tauri::command]
+pub async fn list_agent_providers()
+-> Result<ApiResponse<Vec<crate::terminal_launcher::AgentProviderInfo>>, String> {
+    Ok(ApiResponse::ok(crate::terminal_launcher::list_agent_providers()))
+}
+
+#[tauri::command]
+pub async fn detect_agent_clis()
+-> Result<ApiResponse<Vec<crate::terminal_launcher::AgentCliToolInfo>>, String> {
+    Ok(ApiResponse::ok(crate::terminal_launcher::detect_agent_clis()))
+}
+
+#[tauri::command]
+pub async fn launch_agent_terminal(
+    request: crate::terminal_launcher::LaunchAgentTerminalRequest,
+) -> Result<ApiResponse<crate::terminal_launcher::LaunchAgentTerminalResult>, String> {
+    match crate::terminal_launcher::launch_agent_terminal(request) {
+        Ok(result) => Ok(ApiResponse::ok(result)),
+        Err(e) => Ok(ApiResponse::err(e)),
+    }
 }
 
 // Video info command

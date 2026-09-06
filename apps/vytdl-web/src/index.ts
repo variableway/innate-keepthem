@@ -1,30 +1,41 @@
-import express from "express";
-import cors from "cors";
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { createAdaptorServer } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
+import { randomUUID } from "crypto";
+import { mkdirSync } from "fs";
+import { readFile } from "fs/promises";
+import type { Server as HttpServer } from "http";
 import path from "path";
-import { createServer } from "http";
 import { WebSocketServer } from "ws";
-import { v4 as uuidv4 } from "uuid";
 import { Database } from "./database";
 import { QueueManager } from "./queue";
 import { getVideoInfo, getVideoFormats, getPlaylistInfo, findYtDlp, extractAudio } from "./downloader";
 import { VttAnalyzer } from "./vtt-analysis";
 
-const app = express();
-const server = createServer(app);
+const app = new Hono();
+const server = createAdaptorServer({ fetch: app.fetch }) as HttpServer;
 const wss = new WebSocketServer({ server, path: "/api/ws" });
 
-app.use(cors());
-app.use(express.json());
+app.use("/*", cors());
 
-// Serve static Next.js build
+// Serve static Next.js build (falls through to the API routes when no file matches)
 const staticDir = process.env.VYTDL_STATIC_DIR || path.join(__dirname, "../../out");
-app.use(express.static(staticDir));
+app.use("/*", serveStatic({ root: path.relative(process.cwd(), staticDir) }));
+
+// Unified error response for thrown errors (invalid JSON bodies map to 400)
+app.onError((err, c) => {
+  const status = err instanceof SyntaxError ? 400 : 500;
+  return c.json(
+    { success: false, error: err instanceof Error ? err.message : String(err) },
+    status
+  );
+});
 
 // Ensure data directory exists
 const dbPath = process.env.VYTDL_DB_PATH || "./data/vytdl.db";
 const outputDir = process.env.VYTDL_OUTPUT_DIR || "./downloads";
 
-import { mkdirSync } from "fs";
 mkdirSync(path.dirname(dbPath), { recursive: true });
 mkdirSync(outputDir, { recursive: true });
 
@@ -51,316 +62,229 @@ for (const [key, value] of Object.entries(defaults)) {
 
 // ── API Routes ──
 
-app.post("/api/start-download", (req, res) => {
-  try {
-    const id = uuidv4();
-    const request = req.body;
-    const outputDirSetting = db.getSetting("default_output_dir") || outputDir;
+app.post("/api/start-download", async (c) => {
+  const id = randomUUID();
+  // Frontend apiInvoke wraps args as { request: {...} } to mirror the Tauri command
+  const body = await c.req.json();
+  const request = body?.request ?? body ?? {};
+  const outputDirSetting = db.getSetting("default_output_dir") || outputDir;
 
-    const record = {
-      id,
-      url: request.url,
-      title: null,
-      status: "pending" as const,
-      progress: 0.0,
-      speed: null,
-      eta: null,
-      output_dir: request.output_dir || outputDirSetting,
-      filename: null,
-      subtitles: "[]",
-      error: null,
-      queue_position: 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+  const record = {
+    id,
+    url: request.url,
+    title: null,
+    status: "pending" as const,
+    progress: 0.0,
+    speed: null,
+    eta: null,
+    output_dir: request.output_dir || outputDirSetting,
+    filename: null,
+    subtitles: "[]",
+    error: null,
+    queue_position: 0,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
 
-    db.createDownload(record);
-    queue.enqueue(id, {
-      url: request.url,
-      is_playlist: request.is_playlist || false,
-      quality: request.quality,
-      format: request.format,
-      output_dir: request.output_dir || outputDirSetting,
-      sub_langs: request.sub_langs,
-      write_subs: request.write_subs,
-      write_auto_subs: request.write_auto_subs,
-      start_time: request.start_time,
-      end_time: request.end_time,
-    });
+  db.createDownload(record);
+  queue.enqueue(id, {
+    url: request.url,
+    is_playlist: request.is_playlist || false,
+    quality: request.quality,
+    format: request.format,
+    output_dir: request.output_dir || outputDirSetting,
+    sub_langs: request.sub_langs,
+    write_subs: request.write_subs,
+    write_auto_subs: request.write_auto_subs,
+    start_time: request.start_time,
+    end_time: request.end_time,
+  });
 
-    res.json({ success: true, data: id });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
+  return c.json({ success: true, data: id });
 });
 
-app.post("/api/cancel-download", (req, res) => {
-  try {
-    const { downloadId } = req.body;
-    queue.cancel(downloadId);
-    res.json({ success: true, data: null });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
+app.post("/api/cancel-download", async (c) => {
+  const { downloadId } = await c.req.json();
+  queue.cancel(downloadId);
+  return c.json({ success: true, data: null });
 });
 
-app.post("/api/retry-download", (req, res) => {
-  try {
-    const { id } = req.body;
-    const original = db.getDownloadById(id);
-    if (!original) {
-      res.status(404).json({ success: false, error: "Download not found" });
-      return;
+app.post("/api/retry-download", async (c) => {
+  const { id } = await c.req.json();
+  const original = db.getDownloadById(id);
+  if (!original) {
+    return c.json({ success: false, error: "Download not found" }, 404);
+  }
+
+  const newId = randomUUID();
+  const outputDirSetting = db.getSetting("default_output_dir") || outputDir;
+
+  const record = {
+    id: newId,
+    url: original.url,
+    title: null,
+    status: "pending" as const,
+    progress: 0.0,
+    speed: null,
+    eta: null,
+    output_dir: original.output_dir || outputDirSetting,
+    filename: null,
+    subtitles: "[]",
+    error: null,
+    queue_position: 0,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  db.createDownload(record);
+  queue.enqueue(newId, {
+    url: original.url,
+    is_playlist: false,
+    output_dir: original.output_dir || outputDirSetting,
+  });
+
+  return c.json({ success: true, data: newId });
+});
+
+// The frontend derives web-mode endpoints from Tauri command names
+// (apiInvoke("get_downloads") → POST /api/get-downloads), so route names
+// must match that contract. Legacy aliases are kept for external callers.
+app.post("/api/get-downloads", (c) => {
+  const downloads = db.getAllDownloads();
+  return c.json({ success: true, data: downloads });
+});
+
+app.get("/api/downloads", (c) => {
+  const downloads = db.getAllDownloads();
+  return c.json({ success: true, data: downloads });
+});
+
+app.post("/api/delete-download", async (c) => {
+  const { id } = await c.req.json();
+  db.deleteDownload(id);
+  return c.json({ success: true, data: null });
+});
+
+app.post("/api/get-video-info", async (c) => {
+  const { url } = await c.req.json();
+  const info = await getVideoInfo(url);
+  return c.json({ success: true, data: info });
+});
+
+app.post("/api/get-video-formats", async (c) => {
+  const { url } = await c.req.json();
+  const formats = await getVideoFormats(url);
+  return c.json({ success: true, data: formats });
+});
+
+app.post("/api/get-playlist-info", async (c) => {
+  const { url } = await c.req.json();
+  const info = await getPlaylistInfo(url);
+  return c.json({ success: true, data: info });
+});
+
+app.post("/api/get-settings", (c) => {
+  const keys = [
+    "yt_dlp_path",
+    "default_output_dir",
+    "default_quality",
+    "default_format",
+    "default_sub_langs",
+    "language",
+    "max_concurrent_downloads",
+    "ai_provider",
+    "ai_api_key",
+    "ai_model",
+    "agent_cli_kimi_bin",
+    "agent_cli_other_bin",
+  ];
+  const settings: Record<string, unknown> = {};
+  for (const key of keys) {
+    const value = db.getSetting(key);
+    if (key === "default_sub_langs" && value) {
+      settings[key] = JSON.parse(value);
+    } else if (key === "max_concurrent_downloads" && value) {
+      settings[key] = parseInt(value, 10);
+    } else {
+      settings[key] = value ?? null;
     }
-
-    const newId = uuidv4();
-    const outputDirSetting = db.getSetting("default_output_dir") || outputDir;
-
-    const record = {
-      id: newId,
-      url: original.url,
-      title: null,
-      status: "pending" as const,
-      progress: 0.0,
-      speed: null,
-      eta: null,
-      output_dir: original.output_dir || outputDirSetting,
-      filename: null,
-      subtitles: "[]",
-      error: null,
-      queue_position: 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    db.createDownload(record);
-    queue.enqueue(newId, {
-      url: original.url,
-      is_playlist: false,
-      output_dir: original.output_dir || outputDirSetting,
-    });
-
-    res.json({ success: true, data: newId });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err instanceof Error ? err.message : String(err),
-    });
   }
+  return c.json({ success: true, data: settings });
 });
 
-app.get("/api/downloads", (_req, res) => {
-  try {
-    const downloads = db.getAllDownloads();
-    res.json({ success: true, data: downloads });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
-});
-
-app.post("/api/delete-download", (req, res) => {
-  try {
-    const { id } = req.body;
-    db.deleteDownload(id);
-    res.json({ success: true, data: null });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
-});
-
-app.post("/api/video-info", async (req, res) => {
-  try {
-    const { url } = req.body;
-    const info = await getVideoInfo(url);
-    res.json({ success: true, data: info });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
-});
-
-app.post("/api/video-formats", async (req, res) => {
-  try {
-    const { url } = req.body;
-    const formats = await getVideoFormats(url);
-    res.json({ success: true, data: formats });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
-});
-
-app.post("/api/playlist-info", async (req, res) => {
-  try {
-    const { url } = req.body;
-    const info = await getPlaylistInfo(url);
-    res.json({ success: true, data: info });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
-});
-
-app.get("/api/settings", (_req, res) => {
-  try {
-    const keys = [
-      "yt_dlp_path",
-      "default_output_dir",
-      "default_quality",
-      "default_format",
-      "default_sub_langs",
-      "language",
-      "max_concurrent_downloads",
-      "ai_provider",
-      "ai_api_key",
-      "ai_model",
-      "agent_cli_kimi_bin",
-      "agent_cli_other_bin",
-    ];
-    const settings: Record<string, unknown> = {};
-    for (const key of keys) {
-      const value = db.getSetting(key);
-      if (key === "default_sub_langs" && value) {
-        settings[key] = JSON.parse(value);
-      } else if (key === "max_concurrent_downloads" && value) {
-        settings[key] = parseInt(value, 10);
-      } else {
-        settings[key] = value ?? null;
-      }
+app.post("/api/update-settings", async (c) => {
+  // Frontend apiInvoke wraps args as { settings: {...} } to mirror the Tauri command
+  const body = await c.req.json();
+  const settings = body?.settings ?? body ?? {};
+  for (const [key, value] of Object.entries(settings)) {
+    if (value === undefined || value === null) continue;
+    let stored = String(value);
+    if (Array.isArray(value)) {
+      stored = JSON.stringify(value);
     }
-    res.json({ success: true, data: settings });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err instanceof Error ? err.message : String(err),
-    });
+    db.setSetting(key, stored);
   }
+  // Update queue concurrency if changed
+  if (settings.max_concurrent_downloads !== undefined) {
+    queue.setMaxConcurrent(parseInt(String(settings.max_concurrent_downloads), 10));
+  }
+  return c.json({ success: true, data: null });
 });
 
-app.post("/api/settings", (req, res) => {
-  try {
-    const settings = req.body;
-    for (const [key, value] of Object.entries(settings)) {
-      if (value === undefined || value === null) continue;
-      let stored = String(value);
-      if (Array.isArray(value)) {
-        stored = JSON.stringify(value);
-      }
-      db.setSetting(key, stored);
-    }
-    // Update queue concurrency if changed
-    if (settings.max_concurrent_downloads !== undefined) {
-      queue.setMaxConcurrent(parseInt(String(settings.max_concurrent_downloads), 10));
-    }
-    res.json({ success: true, data: null });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
+// Pause/resume are desktop-only queue operations; respond with a clean JSON
+// error instead of a 404 page so the web UI can display a friendly message.
+for (const route of ["/api/pause-download", "/api/resume-download"]) {
+  app.post(route, (c) =>
+    c.json({ success: false, error: "Pause/resume is not supported in web mode" })
+  );
+}
+
+app.post("/api/extract-audio", async (c) => {
+  const { video_path, output_dir, audio_format } = await c.req.json();
+  const audioPath = await extractAudio(video_path, output_dir, audio_format || "mp3");
+  return c.json({ success: true, data: { audio_path: audioPath } });
 });
 
-app.post("/api/extract-audio", async (req, res) => {
-  try {
-    const { video_path, output_dir, audio_format } = req.body;
-    const audioPath = await extractAudio(video_path, output_dir, audio_format || "mp3");
-    res.json({ success: true, data: { audio_path: audioPath } });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err instanceof Error ? err.message : String(err),
-    });
+app.post("/api/analyze-vtt", async (c) => {
+  const { url } = await c.req.json();
+  if (!url || typeof url !== "string") {
+    return c.json({ success: false, error: "url is required" }, 400);
   }
+  const reportId = await vttAnalyzer.startAnalysis(url);
+  return c.json({ success: true, data: { reportId } });
 });
 
-app.post("/api/analyze-vtt", async (req, res) => {
-  try {
-    const { url } = req.body;
-    if (!url || typeof url !== "string") {
-      res.status(400).json({ success: false, error: "url is required" });
-      return;
-    }
-    const reportId = await vttAnalyzer.startAnalysis(url);
-    res.json({ success: true, data: { reportId } });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err instanceof Error ? err.message : String(err),
-    });
+app.get("/api/vtt-report/:id", (c) => {
+  const report = db.getVttReport(c.req.param("id"));
+  if (!report) {
+    return c.json({ success: false, error: "Report not found" }, 404);
   }
+  return c.json({ success: true, data: report });
 });
 
-app.get("/api/vtt-report/:id", (req, res) => {
-  try {
-    const report = db.getVttReport(req.params.id);
-    if (!report) {
-      res.status(404).json({ success: false, error: "Report not found" });
-      return;
-    }
-    res.json({ success: true, data: report });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
+app.get("/api/vtt-reports", (c) => {
+  const page = Math.max(1, parseInt(c.req.query("page") ?? "1", 10));
+  const limit = Math.min(100, Math.max(1, parseInt(c.req.query("limit") ?? "20", 10)));
+  const lang = c.req.query("lang");
+  const result = db.listVttReports(page, limit, lang);
+  return c.json({ success: true, data: result });
 });
 
-app.get("/api/vtt-reports", (req, res) => {
-  try {
-    const page = Math.max(1, parseInt(String(req.query.page || "1"), 10));
-    const limit = Math.min(100, Math.max(1, parseInt(String(req.query.limit || "20"), 10)));
-    const lang = typeof req.query.lang === "string" ? req.query.lang : undefined;
-    const result = db.listVttReports(page, limit, lang);
-    res.json({ success: true, data: result });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
+app.post("/api/delete-vtt-report", async (c) => {
+  const { id } = await c.req.json();
+  db.deleteVttReport(id);
+  return c.json({ success: true, data: null });
 });
 
-app.post("/api/delete-vtt-report", (req, res) => {
-  try {
-    const { id } = req.body;
-    db.deleteVttReport(id);
-    res.json({ success: true, data: null });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
-});
-
-app.post("/api/open-download-folder", (_req, res) => {
+app.post("/api/open-download-folder", (c) => {
   // No-op in Docker/web mode
-  res.json({ success: true, data: null });
+  return c.json({ success: true, data: null });
 });
 
 // Fallback to index.html for SPA routing
-app.get("*", (_req, res) => {
-  res.sendFile(path.join(staticDir, "index.html"));
+app.get("*", async (c) => {
+  const html = await readFile(path.join(staticDir, "index.html"), "utf-8");
+  return c.html(html);
 });
 
 // ── WebSocket ──

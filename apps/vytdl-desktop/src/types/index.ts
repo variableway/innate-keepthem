@@ -116,6 +116,13 @@ export interface Settings {
   po_token?: string | null;
   extractor_args?: string | null;
   config_location?: string | null;
+  /** AI agent terminal launcher */
+  agent_terminal?: string | null;
+  agent_terminal_workdir?: string | null;
+  agent_glm_api_key?: string | null;
+  agent_minimax_api_key?: string | null;
+  agent_anthropic_api_key?: string | null;
+  agent_openai_api_key?: string | null;
 }
 
 export interface AgentCliDetection {
@@ -157,29 +164,92 @@ export interface DetectAgentCliResult {
   other: AgentCliDetection;
 }
 
+// ── AI agent terminal launcher ──
+
+export interface AgentTerminalInfo {
+  id: string;
+  label: string;
+  platform: string;
+  found: boolean;
+  detail: string | null;
+}
+
+export interface AgentModelInfo {
+  id: string;
+  label: string;
+}
+
+export interface ProviderRegion {
+  id: string;
+  label: string;
+  base_url: string;
+}
+
+export interface AgentProviderInfo {
+  id: string;
+  label: string;
+  agent_cli: AgentCliToolId;
+  requires_api_key: boolean;
+  api_key_setting: keyof Settings | null;
+  models: AgentModelInfo[];
+  regions: ProviderRegion[];
+  hint: string | null;
+}
+
+export type AgentCliToolId = "kimi" | "claude-code" | "codex";
+
+export interface AgentCliToolInfo {
+  id: AgentCliToolId;
+  label: string;
+  command: string;
+  found: boolean;
+  path: string | null;
+  source: string;
+}
+
+export interface LaunchAgentTerminalRequest {
+  terminal_id: string;
+  agent_cli: AgentCliToolId;
+  provider_id: string;
+  region?: string | null;
+  model?: string | null;
+  api_key?: string | null;
+  workdir?: string | null;
+  cli_bin?: string | null;
+}
+
+export interface LaunchAgentTerminalResult {
+  terminal_label: string;
+  script_path: string;
+  command_line: string;
+  env_summary: string[];
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data: T | null;
   error: string | null;
 }
 
+// Union-compatible with the Tauri PlaylistInfo (full) and the web
+// getPlaylistInfo response (title/uploader/entries only).
 export interface PlaylistVideo {
   id: string;
   title: string;
-  duration?: number;
-  thumbnail?: string;
-  uploader?: string;
-  webpage_url: string;
+  duration?: number | null;
+  thumbnail?: string | null;
+  uploader?: string | null;
+  webpage_url?: string;
 }
 
 export interface PlaylistInfo {
-  id: string;
+  id?: string;
   title: string;
-  uploader?: string;
-  description?: string;
-  thumbnail?: string;
+  uploader?: string | null;
+  description?: string | null;
+  thumbnail?: string | null;
   entries: PlaylistVideo[];
-  webpage_url: string;
+  webpage_url?: string;
 }
 
 export interface ExtractAudioRequest {

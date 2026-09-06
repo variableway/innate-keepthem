@@ -63,8 +63,9 @@ A complete YouTube downloading toolkit with CLI, desktop app, web UI (Docker), a
 ### CLI
 
 ```bash
-cd vYtDL
-go build -o vYtDL .
+git clone https://github.com/qdriven/innate-vytdl.git vYtDL-standalone
+cd vYtDL-standalone
+GOWORK=off go build -o vYtDL .
 ```
 
 ### Desktop App
@@ -137,31 +138,30 @@ docker-compose down
 
 ## Usage
 
-See [USAGE.md](USAGE.md) for detailed CLI usage. Full documentation lives in [docs/](docs/) - start at [docs/README.md](docs/README.md): [PURPOSE](docs/PURPOSE.md), [modules](docs/modules/), [specs](docs/specs/), [BUILD](docs/BUILD.md), [CI](docs/CI.md), [STATUS](docs/STATUS.md).
+See [USAGE.md](USAGE.md) for CLI usage. Project docs: [docs/README.md](docs/README.md) — architecture and per-module guides.
 
 ## Project Structure
 
 ```
 ├── apps/
-│   ├── vytdl-desktop/        # Desktop app (Tauri + Next.js)
-│   ├── vytdl-web/            # Web API server (Node.js, Docker)
-│   └── contentforge-desktop/ # ContentForge desktop app (Tauri + Next.js)
+│   ├── vytdl-desktop/         # Desktop app (Tauri + Next.js)
+│   ├── vytdl-web/             # Web API server (Node.js, Docker)
+│   └── contentforge-desktop/  # ContentForge desktop (Tauri + Next.js)
 ├── packages/
-│   ├── contentforge-core/    # ContentForge core (Go + Python)
-│   ├── ui/                   # Shared UI components
-│   └── utils/                # Shared utilities
+│   ├── contentforge-core/     # ContentForge Python core
+│   ├── ui/                    # @vytdl/ui
+│   └── utils/                 # @vytdl/utils
 ├── services/
-│   └── agent-reach/          # Agent Reach service (submodule)
+│   └── agent-reach/           # Agent Reach (git submodule)
 ├── tools/
-│   ├── vytdl-cli/            # Go CLI application (mirror of qdriven/innate-vytdl)
-│   └── contentforge-cli/     # ContentForge pipeline CLI (Go)
+│   └── contentforge-cli/      # ContentForge Go CLI
+├── vYtDL-standalone/          # vYtDL Go CLI (clone of qdriven/innate-vytdl)
 ├── extensions/
-│   └── url-extractor/        # Chrome extension
-├── .agents/skills/           # AI Agent Skills
-├── scripts/                  # Build/startup scripts
-├── docker-compose.yml        # Docker Compose for web UI
-├── docs/                     # Documentation
-└── tasks/                    # Task definitions (PRDs)
+│   └── url-extractor/         # Chrome extension
+├── scripts/                   # Build/startup scripts
+├── docker-compose.yml
+├── docs/                      # Architecture + module docs
+└── tasks/                     # Task definitions
 ```
 
 ## License

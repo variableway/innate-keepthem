@@ -8,6 +8,7 @@ mod downloader;
 mod process_control;
 mod queue;
 mod resilience;
+mod terminal_launcher;
 mod vtt_analysis;
 
 use tauri::Manager;
@@ -131,7 +132,61 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_store::Builder::default().build())
+        .on_menu_event(|app, event| {
+            if event.id() == "reload" {
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.reload();
+                }
+            }
+        })
         .setup(|app| {
+            // Native macOS menu so Cmd+R (View → Reload) works even when the
+            // webview JS is unresponsive; the page also handles Cmd/Ctrl+R itself.
+            if cfg!(target_os = "macos") {
+                use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
+                let reload_item = MenuItemBuilder::with_id("reload", "Reload")
+                    .accelerator("CmdOrCtrl+R")
+                    .build(app)?;
+                let menu = MenuBuilder::new(app)
+                    .items(&[
+                        &SubmenuBuilder::new(app, "vYtDL")
+                            .about(None)
+                            .separator()
+                            .services()
+                            .separator()
+                            .hide()
+                            .hide_others()
+                            .show_all()
+                            .separator()
+                            .quit()
+                            .build()?,
+                        &SubmenuBuilder::new(app, "File")
+                            .close_window()
+                            .build()?,
+                        &SubmenuBuilder::new(app, "Edit")
+                            .undo()
+                            .redo()
+                            .separator()
+                            .cut()
+                            .copy()
+                            .paste()
+                            .select_all()
+                            .build()?,
+                        &SubmenuBuilder::new(app, "View")
+                            .item(&reload_item)
+                            .separator()
+                            .fullscreen()
+                            .build()?,
+                        &SubmenuBuilder::new(app, "Window")
+                            .minimize()
+                            .separator()
+                            .close_window()
+                            .build()?,
+                    ])
+                    .build()?;
+                app.set_menu(menu)?;
+            }
+
             if cfg!(debug_assertions) {
                 app.handle().plugin(
                     tauri_plugin_log::Builder::default()
@@ -264,6 +319,10 @@ pub fn run() {
             commands::list_vtt_reports,
             commands::delete_vtt_report,
             commands::agent_chat_send,
+            commands::detect_agent_terminals,
+            commands::list_agent_providers,
+            commands::detect_agent_clis,
+            commands::launch_agent_terminal,
             get_platform,
         ])
         .run(tauri::generate_context!())

@@ -930,6 +930,8 @@ fn parse_flat_playlist_json(
         title: Option<String>,
         duration: Option<f64>,
         thumbnail: Option<String>,
+        #[serde(default)]
+        thumbnails: Vec<YtdlpThumb>,
         uploader: Option<String>,
         #[serde(default)]
         webpage_url: Option<String>,
@@ -937,6 +939,11 @@ fn parse_flat_playlist_json(
         url: Option<String>,
         #[serde(default)]
         ie_key: Option<String>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct YtdlpThumb {
+        url: Option<String>,
     }
 
     let info: YtdlpPlaylist =
@@ -949,11 +956,16 @@ fn parse_flat_playlist_json(
             let id = e.id.unwrap_or_default();
             PlaylistVideo {
                 duration: e.duration.map(|d| d as i64),
-                title: e
-                    .title
-                    .filter(|t| !t.trim().is_empty())
-                    .unwrap_or_else(|| id.clone()),
-                thumbnail: e.thumbnail,
+                // Private/deleted videos report a null title — pass it through
+                // empty so the frontend can label them as unavailable.
+                title: e.title.filter(|t| !t.trim().is_empty()).unwrap_or_default(),
+                // Some flat entries only carry a thumbnails array
+                thumbnail: e.thumbnail.or_else(|| {
+                    e.thumbnails
+                        .iter()
+                        .rev()
+                        .find_map(|t| t.url.clone().filter(|u| !u.trim().is_empty()))
+                }),
                 uploader: e.uploader,
                 webpage_url: playlist_entry_url(
                     e.ie_key.as_deref(),
@@ -1117,7 +1129,8 @@ mod tests {
                 {"id": "ok1", "title": "Video 1", "duration": 42.0,
                  "url": "https://www.youtube.com/watch?v=ok1", "ie_key": "Youtube"},
                 {"id": "gone1", "title": null, "duration": null,
-                 "url": "gone1", "ie_key": "Youtube"}
+                 "url": "gone1", "ie_key": "Youtube",
+                 "thumbnails": [{"url": "https://i.ytimg.com/vi/gone1/hq.jpg"}]}
             ]
         }"#;
         let info =
@@ -1125,8 +1138,12 @@ mod tests {
         assert_eq!(info.entries.len(), 2);
         assert_eq!(info.entries[0].title, "Video 1");
         assert_eq!(info.entries[0].duration, Some(42));
-        // null title falls back to the entry id
-        assert_eq!(info.entries[1].title, "gone1");
+        // null title passes through empty — the frontend labels it unavailable
+        assert_eq!(info.entries[1].title, "");
+        assert_eq!(
+            info.entries[1].thumbnail.as_deref(),
+            Some("https://i.ytimg.com/vi/gone1/hq.jpg")
+        );
         assert_eq!(
             info.entries[1].webpage_url,
             "https://www.youtube.com/watch?v=gone1"

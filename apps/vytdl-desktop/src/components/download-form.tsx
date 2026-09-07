@@ -720,7 +720,9 @@ export function DownloadForm({ mode }: DownloadFormProps) {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm truncate">{entry.title || entry.id}</p>
+                        <p className="text-sm truncate">
+                          {(entry.title || "").trim() ? entry.title : t("collectionTab.unavailable")}
+                        </p>
                         {entry.duration != null && (
                           <p className="text-xs text-muted-foreground">{formatDuration(entry.duration)}</p>
                         )}

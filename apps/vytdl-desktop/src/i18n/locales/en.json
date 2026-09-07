@@ -137,7 +137,8 @@
     "selectAll": "Select all",
     "selectNone": "Select none",
     "downloadSelected": "Download selected ({{count}})",
-    "submitting": "Submitting..."
+    "submitting": "Submitting...",
+    "unavailable": "[Unavailable video]"
   },
   "analyze": {
     "nav": "Analyze",

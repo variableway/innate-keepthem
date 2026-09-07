@@ -137,7 +137,8 @@
     "selectAll": "すべて選択",
     "selectNone": "選択解除",
     "downloadSelected": "選択をダウンロード ({{count}})",
-    "submitting": "送信中..."
+    "submitting": "送信中...",
+    "unavailable": "[視聴不可の動画]"
   },
   "analyze": {
     "nav": "分析",

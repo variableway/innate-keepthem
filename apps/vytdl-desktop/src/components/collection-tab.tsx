@@ -57,11 +57,12 @@ export function CollectionTab() {
       ]);
       if (response.success && response.data) {
         setInfo(response.data);
-        // Default: every downloadable entry is selected
+        // Default: every downloadable entry is selected; entries without a
+        // title (private/deleted videos) stay unselected and disabled
         setSelected(
           new Set(
             (response.data.entries ?? [])
-              .filter((e) => e.webpage_url)
+              .filter((e) => e.webpage_url && (e.title || "").trim())
               .map((e) => e.webpage_url as string)
           )
         );
@@ -89,7 +90,14 @@ export function CollectionTab() {
     if (allSelected) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(downloadable.map((e) => e.webpage_url as string)));
+      // Skip unavailable entries (private/deleted videos without a title)
+      setSelected(
+        new Set(
+          downloadable
+            .filter((e) => (e.title || "").trim())
+            .map((e) => e.webpage_url as string)
+        )
+      );
     }
   };
 
@@ -216,15 +224,19 @@ export function CollectionTab() {
               {downloadable.map((entry, index) => {
                 const u = entry.webpage_url as string;
                 const checked = selected.has(u);
+                const unavailable = !(entry.title || "").trim();
                 return (
                   <label
                     key={`${entry.id}-${index}`}
-                    className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-accent"
+                    className={`flex items-center gap-3 px-3 py-2 hover:bg-accent ${
+                      unavailable ? "opacity-60" : "cursor-pointer"
+                    }`}
                   >
                     <input
                       type="checkbox"
                       checked={checked}
                       onChange={() => toggle(u)}
+                      disabled={unavailable}
                       className="rounded border-gray-300 shrink-0"
                     />
                     <span className="text-xs text-muted-foreground w-6 shrink-0 text-right">
@@ -242,7 +254,9 @@ export function CollectionTab() {
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm truncate">{entry.title || entry.id}</p>
+                      <p className="text-sm truncate">
+                        {unavailable ? t("collectionTab.unavailable") : entry.title}
+                      </p>
                       {entry.duration != null && (
                         <p className="text-xs text-muted-foreground">
                           {formatDuration(entry.duration)}

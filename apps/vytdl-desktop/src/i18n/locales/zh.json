@@ -137,7 +137,8 @@
     "selectAll": "全选",
     "selectNone": "全不选",
     "downloadSelected": "下载选中 ({{count}})",
-    "submitting": "提交中..."
+    "submitting": "提交中...",
+    "unavailable": "[不可用视频]"
   },
   "analyze": {
     "nav": "字幕分析",

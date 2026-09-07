@@ -244,9 +244,12 @@ export async function getPlaylistInfo(url: string): Promise<PlaylistInfo> {
 
   const entries = (meta.entries || []).map((e: any) => ({
     id: e.id,
-    title: e.title || "Unknown",
+    // Private/deleted videos report a null title — pass it through empty so
+    // the frontend can label them as unavailable instead of "Unknown".
+    title: e.title || "",
     duration: e.duration || null,
-    thumbnail: e.thumbnail || null,
+    // Some flat entries only carry a thumbnails array
+    thumbnail: e.thumbnail || e.thumbnails?.[e.thumbnails.length - 1]?.url || null,
     webpage_url: e.url || e.webpage_url || undefined,
   }));
 

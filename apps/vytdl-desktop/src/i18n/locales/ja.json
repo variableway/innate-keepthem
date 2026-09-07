@@ -121,7 +121,6 @@
     "subtitle": "YouTube、Bilibili、XHS などから動画をダウンロード",
     "single": "単一",
     "batch": "一括",
-    "smart": "スマート",
     "collection": "リスト",
     "newBadge": "新機能"
   },
@@ -172,7 +171,6 @@
   "downloadForm": {
     "newDownload": "新規ダウンロード",
     "batchDownload": "一括ダウンロード",
-    "smartDownload": "スマートダウンロード",
     "description": "動画のURLを入力してダウンロードを開始",
     "urlLabel": "動画/プレイリストURL",
     "urlPlaceholder": "YouTube、Bilibili、XHS、VimeoのURL...",
@@ -182,7 +180,6 @@
     "fetchFailed": "動画情報の取得に失敗しました",
     "retry": "再試行",
     "playlistCheckbox": "プレイリストとしてダウンロード",
-    "playlistForceHint": "スマートモードはURLごとにプレイリストを自動判定します。チェックすると全URLを強制的にプレイリストとして扱います（Bilibiliのマルチパート動画など）。",
     "collectionDetected": "プレイリスト / コレクションを検出",
     "collectionItems": "{{count}} 件",
     "collectionLoading": "コレクション情報を取得中...",
@@ -218,12 +215,7 @@
   },
   "downloadList": {
     "title": "ダウンロード一覧",
-    "emptyTitle": "ダウンロードが見つかりません",
     "emptyDescription": "上から新しいダウンロードを追加してください",
-    "filterAll": "すべて",
-    "filterDownloading": "ダウンロード中",
-    "filterCompleted": "完了",
-    "filterFailed": "失敗",
     "statusPending": "待機中",
     "statusDownloading": "ダウンロード中",
     "statusPaused": "一時停止",
@@ -250,7 +242,14 @@
     "noVideoFile": "動画ファイルのパスが利用できません",
     "cancelAll": "すべて停止",
     "expand": "展開",
-    "collapse": "折りたたむ"
+    "collapse": "折りたたむ",
+    "tabActive": "ダウンロード中",
+    "tabCompleted": "完了",
+    "prevPage": "前へ",
+    "nextPage": "次へ",
+    "pageOf": "{{page}}/{{total}} ページ · 全{{count}}件",
+    "emptyActiveTitle": "アクティブなダウンロードはありません",
+    "emptyCompletedTitle": "完了したダウンロードはまだありません"
   },
   "settings": {
     "title": "設定",

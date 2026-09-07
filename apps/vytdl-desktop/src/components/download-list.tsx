@@ -477,9 +477,12 @@ function CollectionGroup({
   );
 }
 
+const PAGE_SIZE = 10;
+
 export function DownloadList() {
   const { downloads, isLoading, fetchDownloads } = useDownloadStore();
-  const [filter, setFilter] = useState<Download["status"] | "all">("all");
+  const [tab, setTab] = useState<"active" | "completed">("active");
+  const [page, setPage] = useState(1);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -497,15 +500,44 @@ export function DownloadList() {
     return () => clearInterval(interval);
   }, [hasActive, fetchDownloads]);
 
-  const filteredDownloads = downloads.filter(
-    (d) => filter === "all" || d.status === filter
+  // Two big tabs: active work (downloading first, then queue order, then
+  // failed/cancelled newest-first) and completed (completion time desc).
+  const statusRank: Record<string, number> = {
+    downloading: 0,
+    pending: 1,
+    failed: 2,
+    cancelled: 3,
+  };
+  const activeDownloads = useMemo(
+    () =>
+      downloads
+        .filter((d) => d.status !== "completed")
+        .sort((a, b) => {
+          const ra = statusRank[a.status] ?? 9;
+          const rb = statusRank[b.status] ?? 9;
+          if (ra !== rb) return ra - rb;
+          if (a.status === "pending" && b.status === "pending")
+            return (a.queue_position ?? 0) - (b.queue_position ?? 0);
+          return b.updated_at.localeCompare(a.updated_at);
+        }),
+    [downloads]
   );
+  const completedDownloads = useMemo(
+    () =>
+      downloads
+        .filter((d) => d.status === "completed")
+        // updated_at is the completion time for finished downloads
+        .sort((a, b) => b.updated_at.localeCompare(a.updated_at)),
+    [downloads]
+  );
+
+  const listForTab = tab === "active" ? activeDownloads : completedDownloads;
 
   // Collection batches collapse into one row; standalone downloads stay as-is
   const { groups, standalone } = useMemo(() => {
     const standalone: Download[] = [];
     const groupMap = new Map<string, { title: string; items: Download[] }>();
-    for (const d of filteredDownloads) {
+    for (const d of listForTab) {
       const cid = d.collection_id?.trim();
       if (!cid) {
         standalone.push(d);
@@ -519,7 +551,7 @@ export function DownloadList() {
       g.items.push(d);
     }
     return { groups: [...groupMap.entries()], standalone };
-  }, [filteredDownloads]);
+  }, [listForTab]);
 
   const pendingQueuePositions = useMemo(() => {
     const positions = new Map<string, number>();
@@ -530,12 +562,18 @@ export function DownloadList() {
     return positions;
   }, [downloads]);
 
-  const filters: { value: Download["status"] | "all"; labelKey: string }[] = [
-    { value: "all", labelKey: "downloadList.filterAll" },
-    { value: "downloading", labelKey: "downloadList.filterDownloading" },
-    { value: "completed", labelKey: "downloadList.filterCompleted" },
-    { value: "failed", labelKey: "downloadList.filterFailed" },
-  ];
+  // Paginate over rendered rows (a collapsed group counts as one row)
+  const rows = useMemo(
+    () => [
+      ...groups.map(([cid, g]) => ({ kind: "group" as const, cid, g })),
+      ...standalone.map((d) => ({ kind: "item" as const, d })),
+    ],
+    [groups, standalone]
+  );
+  const totalRows = rows.length;
+  const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageRows = rows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <Card className="w-full min-w-0">
@@ -546,16 +584,26 @@ export function DownloadList() {
             {t("common.downloads")}
           </CardTitle>
           <div className="flex gap-1">
-            {filters.map((f) => (
-              <Badge
-                key={f.value}
-                variant={filter === f.value ? "default" : "outline"}
-                className="cursor-pointer"
-                onClick={() => setFilter(f.value)}
-              >
-                {t(f.labelKey)}
-              </Badge>
-            ))}
+            <Badge
+              variant={tab === "active" ? "default" : "outline"}
+              className="cursor-pointer"
+              onClick={() => {
+                setTab("active");
+                setPage(1);
+              }}
+            >
+              {t("downloadList.tabActive")} ({activeDownloads.length})
+            </Badge>
+            <Badge
+              variant={tab === "completed" ? "default" : "outline"}
+              className="cursor-pointer"
+              onClick={() => {
+                setTab("completed");
+                setPage(1);
+              }}
+            >
+              {t("downloadList.tabCompleted")} ({completedDownloads.length})
+            </Badge>
           </div>
         </div>
       </CardHeader>
@@ -564,30 +612,64 @@ export function DownloadList() {
           <div className="flex items-center justify-center p-8">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        ) : filteredDownloads.length === 0 ? (
+        ) : totalRows === 0 ? (
           <div className="text-center p-8 text-muted-foreground">
             <DownloadIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>{t("downloadList.emptyTitle")}</p>
+            <p>
+              {tab === "active"
+                ? t("downloadList.emptyActiveTitle")
+                : t("downloadList.emptyCompletedTitle")}
+            </p>
             <p className="text-sm">{t("downloadList.emptyDescription")}</p>
           </div>
         ) : (
-          <div className="divide-y">
-            {groups.map(([cid, g]) => (
-              <CollectionGroup
-                key={cid}
-                title={g.title}
-                items={g.items}
-                pendingQueuePositions={pendingQueuePositions}
-              />
-            ))}
-            {standalone.map((download) => (
-              <DownloadItem
-                key={download.id}
-                download={download}
-                queuePosition={pendingQueuePositions.get(download.id)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="divide-y">
+              {pageRows.map((row) =>
+                row.kind === "group" ? (
+                  <CollectionGroup
+                    key={row.cid}
+                    title={row.g.title}
+                    items={row.g.items}
+                    pendingQueuePositions={pendingQueuePositions}
+                  />
+                ) : (
+                  <DownloadItem
+                    key={row.d.id}
+                    download={row.d}
+                    queuePosition={pendingQueuePositions.get(row.d.id)}
+                  />
+                )
+              )}
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-3 py-3 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage <= 1}
+                  onClick={() => setPage(currentPage - 1)}
+                >
+                  {t("downloadList.prevPage")}
+                </Button>
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  {t("downloadList.pageOf", {
+                    page: String(currentPage),
+                    total: String(totalPages),
+                    count: String(totalRows),
+                  })}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setPage(currentPage + 1)}
+                >
+                  {t("downloadList.nextPage")}
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

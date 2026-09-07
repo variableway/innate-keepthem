@@ -104,7 +104,7 @@ SQLite Database
 
 - `src/app/` - Next.js pages (home, settings, library, player)
 - `src/components/` - React components
-  - `download-form.tsx` - Single/Batch/Smart download form with textarea + file import
+  - `download-form.tsx` - Single/Batch download form with textarea + file import
   - `download-list.tsx` - Download list with progress, logs, queue position, retry
 - `src/i18n/` - Internationalization (provider, hook, locale JSON files)
 - `src/store/` - Zustand stores
@@ -129,15 +129,15 @@ SQLite Database
 
 ## Download Form Modes
 
-The `download-form.tsx` component supports three modes via the `mode` prop:
+The download page has three tabs:
 
-| Mode | Input | Behavior |
-|------|-------|----------|
-| `single` | Single `<Input>` | Fetches video info on URL input, shows thumbnail preview |
-| `batch` | `<textarea>` + file import | Parses multiple URLs (one per line), submits all to queue |
-| `smart` | `<textarea>` + file import | Same as batch, but auto-detects playlist URLs (regex heuristic) |
+| Tab | Component | Input | Behavior |
+|-----|-----------|-------|----------|
+| Single | `download-form.tsx` (`mode="single"`) | Single `<Input>` | Fetches video info on URL input; playlist URLs show a collection preview and expand per-entry on submit |
+| Batch | `download-form.tsx` (`mode="batch"`) | `<textarea>` + file import | Parses multiple URLs (one per line), submits all to queue |
+| Collection | `collection-tab.tsx` | Single URL | Fetches playlist/collection entries with selection, size estimates, then submits per-entry |
 
-Batch/Smart modes:
+Batch mode:
 - URLs are split by newlines, filtered for validity, deduplicated
 - `#` lines are treated as comments and ignored
 - `.txt` file import supported via hidden `<input type="file">`

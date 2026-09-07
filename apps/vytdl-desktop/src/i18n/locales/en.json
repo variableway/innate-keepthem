@@ -121,7 +121,6 @@
     "subtitle": "Download videos from YouTube, Bilibili, XHS and more",
     "single": "Single",
     "batch": "Batch",
-    "smart": "Smart",
     "collection": "Collection",
     "newBadge": "New"
   },
@@ -172,7 +171,6 @@
   "downloadForm": {
     "newDownload": "New Download",
     "batchDownload": "Batch Download",
-    "smartDownload": "Smart Download",
     "description": "Enter a video URL to start downloading",
     "urlLabel": "Video/Playlist URL",
     "urlPlaceholder": "YouTube, Bilibili, XHS, Vimeo URL...",
@@ -182,7 +180,6 @@
     "fetchFailed": "Failed to fetch video info",
     "retry": "Retry",
     "playlistCheckbox": "Download as playlist",
-    "playlistForceHint": "Smart mode auto-detects playlists per URL; check the box to force playlist mode for all URLs (e.g. Bilibili multi-part videos).",
     "collectionDetected": "Playlist / collection detected",
     "collectionItems": "{{count}} items",
     "collectionLoading": "Loading collection info...",
@@ -218,12 +215,7 @@
   },
   "downloadList": {
     "title": "Downloads",
-    "emptyTitle": "No downloads found",
     "emptyDescription": "Start by adding a new download above",
-    "filterAll": "All",
-    "filterDownloading": "Downloading",
-    "filterCompleted": "Completed",
-    "filterFailed": "Failed",
     "statusPending": "Pending",
     "statusDownloading": "Downloading",
     "statusPaused": "Paused",
@@ -250,7 +242,14 @@
     "noVideoFile": "Video file path is not available",
     "cancelAll": "Stop all",
     "expand": "Expand",
-    "collapse": "Collapse"
+    "collapse": "Collapse",
+    "tabActive": "Active",
+    "tabCompleted": "Completed",
+    "prevPage": "Prev",
+    "nextPage": "Next",
+    "pageOf": "Page {{page}}/{{total}} · {{count}} items",
+    "emptyActiveTitle": "No active downloads",
+    "emptyCompletedTitle": "No completed downloads yet"
   },
   "settings": {
     "title": "Settings",

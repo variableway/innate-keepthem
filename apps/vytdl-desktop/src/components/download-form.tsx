@@ -93,7 +93,7 @@ function isCollectionUrl(url: string): boolean {
 }
 
 interface DownloadFormProps {
-  mode: "single" | "batch" | "smart";
+  mode: "single" | "batch";
 }
 
 export function DownloadForm({ mode }: DownloadFormProps) {
@@ -389,7 +389,7 @@ export function DownloadForm({ mode }: DownloadFormProps) {
     setIsSubmitting(true);
 
     // Batch / Smart mode: submit multiple URLs
-    if (mode === "batch" || mode === "smart") {
+    if (mode === "batch") {
       const urls = parseBatchUrls(url);
       if (urls.length === 0) {
         setIsSubmitting(false);
@@ -401,10 +401,9 @@ export function DownloadForm({ mode }: DownloadFormProps) {
 
       for (let i = 0; i < urls.length; i++) {
         const u = urls[i];
-        const autoPlaylist = mode === "smart" && isPlaylistUrl(u);
         const options: DownloadOptions = {
           url: u,
-          is_playlist: autoPlaylist || isPlaylist,
+          is_playlist: isPlaylist,
           quality,
           format,
           sub_langs: subLangs,
@@ -556,7 +555,7 @@ export function DownloadForm({ mode }: DownloadFormProps) {
   );
 
   const titleKey = mode === "batch" ? "downloadForm.batchDownload" :
-    mode === "smart" ? "downloadForm.smartDownload" : "downloadForm.newDownload";
+    "downloadForm.newDownload";
 
   return (
     <Card className="w-full">
@@ -574,7 +573,7 @@ export function DownloadForm({ mode }: DownloadFormProps) {
           <div className="space-y-2" ref={historyRef}>
             <div className="flex items-center gap-2">
               <Label htmlFor="url">
-                {mode === "batch" || mode === "smart"
+                {mode === "batch"
                   ? t("downloadForm.batchUrlLabel")
                   : t("downloadForm.urlLabel")}
               </Label>
@@ -585,7 +584,7 @@ export function DownloadForm({ mode }: DownloadFormProps) {
               )}
             </div>
 
-            {mode === "batch" || mode === "smart" ? (
+            {mode === "batch" ? (
               <div className="space-y-2">
                 <textarea
                   id="url"
@@ -904,11 +903,6 @@ export function DownloadForm({ mode }: DownloadFormProps) {
               />
               <span className="text-sm">{t("downloadForm.playlistCheckbox")}</span>
             </label>
-            {mode === "smart" && (
-              <span className="text-xs text-muted-foreground">
-                {t("downloadForm.playlistForceHint")}
-              </span>
-            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -1017,14 +1011,14 @@ export function DownloadForm({ mode }: DownloadFormProps) {
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {mode === "batch" || mode === "smart"
+                {mode === "batch"
                   ? t("downloadForm.batchStarting")
                   : t("downloadForm.starting")}
               </>
             ) : (
               <>
                 <Download className="mr-2 h-4 w-4" />
-                {mode === "batch" || mode === "smart"
+                {mode === "batch"
                   ? t("downloadForm.batchDownloadBtn", { count: String(parseBatchUrls(url).length) })
                   : t("downloadForm.downloadBtn")}
               </>

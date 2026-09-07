@@ -121,7 +121,6 @@
     "subtitle": "从 YouTube、Bilibili、小红书等平台下载视频",
     "single": "单个",
     "batch": "批量",
-    "smart": "智能",
     "collection": "清单",
     "newBadge": "新"
   },
@@ -172,7 +171,6 @@
   "downloadForm": {
     "newDownload": "新建下载",
     "batchDownload": "批量下载",
-    "smartDownload": "智能下载",
     "description": "输入视频链接开始下载",
     "urlLabel": "视频/播放列表链接",
     "urlPlaceholder": "YouTube、Bilibili、小红书、Vimeo 链接...",
@@ -182,7 +180,6 @@
     "fetchFailed": "获取视频信息失败",
     "retry": "重试",
     "playlistCheckbox": "下载播放列表",
-    "playlistForceHint": "智能模式会按链接自动识别播放列表；勾选后强制所有链接按播放列表下载（如 B 站多 P 视频）。",
     "collectionDetected": "检测到播放列表 / 合集",
     "collectionItems": "{{count}} 个视频",
     "collectionLoading": "正在加载合集信息...",
@@ -218,12 +215,7 @@
   },
   "downloadList": {
     "title": "下载任务",
-    "emptyTitle": "暂无下载任务",
     "emptyDescription": "从上方添加新的下载任务开始",
-    "filterAll": "全部",
-    "filterDownloading": "下载中",
-    "filterCompleted": "已完成",
-    "filterFailed": "失败",
     "statusPending": "等待中",
     "statusDownloading": "下载中",
     "statusPaused": "已暂停",
@@ -250,7 +242,14 @@
     "noVideoFile": "视频文件路径不可用",
     "cancelAll": "全部停止",
     "expand": "展开",
-    "collapse": "收起"
+    "collapse": "收起",
+    "tabActive": "下载中",
+    "tabCompleted": "已完成",
+    "prevPage": "上一页",
+    "nextPage": "下一页",
+    "pageOf": "第 {{page}}/{{total}} 页 · 共 {{count}} 项",
+    "emptyActiveTitle": "当前没有下载中的任务",
+    "emptyCompletedTitle": "还没有已完成的下载"
   },
   "settings": {
     "title": "设置",

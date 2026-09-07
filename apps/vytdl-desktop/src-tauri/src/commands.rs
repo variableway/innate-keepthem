@@ -94,6 +94,9 @@ impl<T> ApiResponse<T> {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StartDownloadRequest {
     pub url: String,
+    /// Pre-fetched title (e.g. from playlist expansion) so the download list
+    /// shows a meaningful name before yt-dlp reports the real one
+    pub title: Option<String>,
     pub is_playlist: bool,
     pub quality: Option<String>,
     pub format: Option<String>,
@@ -135,7 +138,12 @@ pub async fn start_download(
     let record = DownloadRecord {
         id: download_id.clone(),
         url: request.url.clone(),
-        title: None,
+        title: request
+            .title
+            .as_deref()
+            .map(str::trim)
+            .filter(|t| !t.is_empty())
+            .map(str::to_string),
         status: DownloadStatus::Pending,
         progress: 0.0,
         speed: None,

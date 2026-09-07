@@ -72,7 +72,7 @@ app.post("/api/start-download", async (c) => {
   const record = {
     id,
     url: request.url,
-    title: null,
+    title: (typeof request.title === "string" && request.title.trim()) || null,
     status: "pending" as const,
     progress: 0.0,
     speed: null,

@@ -65,6 +65,8 @@ export type CookieConfig =
 
 export interface DownloadOptions {
   url: string;
+  /** Pre-fetched title (e.g. playlist entry) shown in the list before download starts */
+  title?: string;
   is_playlist: boolean;
   quality?: string;
   /** 精确 format_id（Format Picker） */

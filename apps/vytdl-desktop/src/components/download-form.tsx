@@ -480,6 +480,7 @@ export function DownloadForm({ mode }: DownloadFormProps) {
           const entryId = await startDownload({
             ...baseOptions,
             url: downloadable[i].webpage_url!,
+            title: downloadable[i].title || undefined,
             is_playlist: false,
           });
           if (!entryId) failed++;

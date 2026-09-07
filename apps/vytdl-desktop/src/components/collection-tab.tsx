@@ -102,8 +102,10 @@ export function CollectionTab() {
     let failed = 0;
     const urls = [...selected];
     for (let i = 0; i < urls.length; i++) {
+      const entry = downloadable.find((e) => e.webpage_url === urls[i]);
       const options: DownloadOptions = {
         url: urls[i],
+        title: entry?.title,
         is_playlist: false,
         quality: "best",
         format: "mp4",

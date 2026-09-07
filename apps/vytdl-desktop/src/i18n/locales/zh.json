@@ -138,7 +138,8 @@
     "selectNone": "全不选",
     "downloadSelected": "下载选中 ({{count}})",
     "submitting": "提交中...",
-    "unavailable": "[不可用视频]"
+    "unavailable": "[不可用视频]",
+    "totalEstimate": "已选 {{count}} 项 · 预计共 {{size}}"
   },
   "analyze": {
     "nav": "字幕分析",

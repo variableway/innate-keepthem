@@ -138,7 +138,8 @@
     "selectNone": "Select none",
     "downloadSelected": "Download selected ({{count}})",
     "submitting": "Submitting...",
-    "unavailable": "[Unavailable video]"
+    "unavailable": "[Unavailable video]",
+    "totalEstimate": "{{count}} selected · estimated {{size}} total"
   },
   "analyze": {
     "nav": "Analyze",

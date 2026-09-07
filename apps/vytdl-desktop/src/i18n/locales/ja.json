@@ -138,7 +138,8 @@
     "selectNone": "選択解除",
     "downloadSelected": "選択をダウンロード ({{count}})",
     "submitting": "送信中...",
-    "unavailable": "[視聴不可の動画]"
+    "unavailable": "[視聴不可の動画]",
+    "totalEstimate": "{{count}} 件選択 · 合計約 {{size}}"
   },
   "analyze": {
     "nav": "分析",

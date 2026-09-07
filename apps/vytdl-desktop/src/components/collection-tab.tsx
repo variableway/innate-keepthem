@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ClipboardList, Loader2, X, Film, Download } from "lucide-react";
 import { Button } from "@vytdl/ui";
 import { Input } from "@vytdl/ui";
@@ -14,6 +14,15 @@ import { useTranslation } from "@/i18n";
 import type { DownloadOptions, PlaylistInfo, ApiResponse } from "@/types";
 import { apiInvoke } from "@/lib/api-client";
 import { sanitizeFolderName } from "@/lib/download-paths";
+import { estimateFileSizeMb, formatSizeMb } from "@/lib/size-estimate";
+
+const QUALITY_OPTIONS = [
+  { value: "best", label: "Best" },
+  { value: "1080", label: "1080p" },
+  { value: "720", label: "720p" },
+  { value: "480", label: "480p" },
+  { value: "360", label: "360p" },
+];
 
 // Dedicated tab for playlist / collection URLs: fetch the full entry list,
 // let the user pick items, then enqueue each selection as its own download.
@@ -25,6 +34,7 @@ export function CollectionTab() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [progress, setProgress] = useState({ submitted: 0, total: 0, failed: 0 });
+  const [quality, setQuality] = useState("best");
 
   const settings = useSettingsStore((s) => s.settings);
   const { startDownload, clearError } = useDownloadStore();
@@ -32,6 +42,26 @@ export function CollectionTab() {
 
   const downloadable = (info?.entries ?? []).filter((e) => e.webpage_url);
   const allSelected = downloadable.length > 0 && selected.size === downloadable.length;
+
+  const estimate = (e: { duration?: number | null }) => {
+    const mb = estimateFileSizeMb(e.duration, quality);
+    return mb != null ? formatSizeMb(mb) : null;
+  };
+
+  const selectedTotalMb = useMemo(() => {
+    let total = 0;
+    let known = false;
+    for (const e of downloadable) {
+      if (selected.has(e.webpage_url as string)) {
+        const mb = estimateFileSizeMb(e.duration, quality);
+        if (mb != null) {
+          total += mb;
+          known = true;
+        }
+      }
+    }
+    return known ? total : null;
+  }, [downloadable, selected, quality]);
 
   const fetchList = async () => {
     const target = url.trim();
@@ -128,7 +158,7 @@ export function CollectionTab() {
         title: entry?.title,
         is_playlist: false,
         output_dir: collectionDir,
-        quality: "best",
+        quality,
         format: "mp4",
         sub_langs: ["en", "zh"],
         write_subs: true,
@@ -214,6 +244,19 @@ export function CollectionTab() {
                 <Badge variant="secondary">
                   {t("collectionTab.entriesCount", { count: String(downloadable.length) })}
                 </Badge>
+                <select
+                  value={quality}
+                  onChange={(e) => setQuality(e.target.value)}
+                  disabled={isSubmitting}
+                  className="h-7 rounded-md border border-input bg-background px-2 text-xs"
+                  title={t("downloadForm.qualityLabel")}
+                >
+                  {QUALITY_OPTIONS.map((q) => (
+                    <option key={q.value} value={q.value}>
+                      {q.label}
+                    </option>
+                  ))}
+                </select>
                 <Button variant="outline" size="sm" onClick={toggleAll} className="h-7 text-xs">
                   {allSelected ? t("collectionTab.selectNone") : t("collectionTab.selectAll")}
                 </Button>
@@ -257,9 +300,11 @@ export function CollectionTab() {
                       <p className="text-sm truncate">
                         {unavailable ? t("collectionTab.unavailable") : entry.title}
                       </p>
-                      {entry.duration != null && (
+                      {(entry.duration != null || estimate(entry) != null) && (
                         <p className="text-xs text-muted-foreground">
-                          {formatDuration(entry.duration)}
+                          {entry.duration != null && formatDuration(entry.duration)}
+                          {entry.duration != null && estimate(entry) != null && " · "}
+                          {estimate(entry) != null && `≈ ${estimate(entry)}`}
                         </p>
                       )}
                     </div>
@@ -278,6 +323,15 @@ export function CollectionTab() {
                   <span className="text-destructive ml-1">({progress.failed} failed)</span>
                 )}
               </div>
+            )}
+
+            {selectedTotalMb != null && (
+              <p className="text-xs text-muted-foreground text-center">
+                {t("collectionTab.totalEstimate", {
+                  count: String(selected.size),
+                  size: `≈ ${formatSizeMb(selectedTotalMb)}`,
+                })}
+              </p>
             )}
 
             <Button

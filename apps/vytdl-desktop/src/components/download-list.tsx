@@ -5,6 +5,9 @@ import {
   Play,
   Trash2,
   FolderOpen,
+  FolderSearch,
+  ExternalLink,
+  MapPin,
   AlertCircle,
   CheckCircle,
   Download as DownloadIcon,
@@ -17,6 +20,7 @@ import {
   Pause,
 } from "lucide-react";
 import { apiInvoke, apiConfirm } from "@/lib/api-client";
+import { folderOfDownload } from "@/lib/download-paths";
 import { Button } from "@vytdl/ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@vytdl/ui";
 import { Badge } from "@vytdl/ui";
@@ -96,6 +100,7 @@ function DownloadItem({ download, queuePosition }: { download: DownloadItemType;
   const [showLogs, setShowLogs] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const { t } = useTranslation();
+  const folderPath = folderOfDownload(download);
 
   useEffect(() => {
     if (download.status === "downloading") {
@@ -231,6 +236,13 @@ function DownloadItem({ download, queuePosition }: { download: DownloadItemType;
             {formatDate(download.created_at)}
           </div>
 
+          {(folderPath || download.filename) && (
+            <div className="mt-1 text-xs text-muted-foreground flex items-start gap-1" title={download.filename || folderPath || ""}>
+              <MapPin className="inline h-3 w-3 mt-0.5 shrink-0" />
+              <span className="truncate">{download.filename || folderPath}</span>
+            </div>
+          )}
+
           {showLogs && (
             <LogViewer logs={downloadLogs.get(download.id) || []} />
           )}
@@ -246,20 +258,37 @@ function DownloadItem({ download, queuePosition }: { download: DownloadItemType;
             {showLogs ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
 
-          {download.output_dir && (
+          {download.status === "completed" && download.filename && (
             <Button
               variant="ghost"
               size="icon"
               onClick={async () => {
                 try {
-                  await apiInvoke("open_download_folder", { path: download.output_dir });
+                  await apiInvoke("open_download_folder", { path: download.filename });
                 } catch (e) {
-                  console.error("Failed to open folder:", e);
+                  console.error("Failed to open file:", e);
                 }
               }}
-              title={t("downloadList.openFolder")}
+              title={t("downloadList.openFile")}
             >
-              <FolderOpen className="h-4 w-4" />
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+          )}
+
+          {folderPath && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={async () => {
+                try {
+                  await apiInvoke("reveal_in_folder", { path: download.filename || folderPath });
+                } catch (e) {
+                  console.error("Failed to reveal in folder:", e);
+                }
+              }}
+              title={t("downloadList.revealInFolder")}
+            >
+              <FolderSearch className="h-4 w-4" />
             </Button>
           )}
 

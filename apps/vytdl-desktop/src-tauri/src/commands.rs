@@ -254,6 +254,35 @@ pub async fn open_download_folder(path: String) -> Result<ApiResponse<()>, Strin
     }
 }
 
+/// Reveal a file (or folder) in the platform file manager (Finder/Explorer).
+#[tauri::command]
+pub async fn reveal_in_folder(path: String) -> Result<ApiResponse<()>, String> {
+    match opener::reveal(path) {
+        Ok(_) => Ok(ApiResponse::ok(())),
+        Err(e) => Ok(ApiResponse::err(format!("Failed to reveal in folder: {}", e))),
+    }
+}
+
+/// Resolved base download directory: settings default_output_dir when set,
+/// otherwise the platform default (~/Downloads/vYtDL). The frontend uses this
+/// to place collection batches under `<base>/<collection title>/`.
+#[tauri::command]
+pub async fn get_default_output_dir(db: State<'_, Database>) -> Result<ApiResponse<String>, String> {
+    let configured = db
+        .get_setting("default_output_dir")
+        .await
+        .unwrap_or(None)
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty());
+    let dir = configured.unwrap_or_else(|| {
+        let home = dirs::download_dir()
+            .or_else(|| dirs::home_dir().map(|h| h.join("Downloads")))
+            .unwrap_or_else(|| std::env::current_dir().unwrap_or_default());
+        home.join("vYtDL").to_string_lossy().to_string()
+    });
+    Ok(ApiResponse::ok(dir))
+}
+
 #[tauri::command]
 pub async fn retry_download(
     app: AppHandle,

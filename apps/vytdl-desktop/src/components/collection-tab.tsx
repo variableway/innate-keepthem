@@ -13,6 +13,7 @@ import { useDownloadStore } from "@/store/downloadStore";
 import { useTranslation } from "@/i18n";
 import type { DownloadOptions, PlaylistInfo, ApiResponse } from "@/types";
 import { apiInvoke } from "@/lib/api-client";
+import { sanitizeFolderName } from "@/lib/download-paths";
 
 // Dedicated tab for playlist / collection URLs: fetch the full entry list,
 // let the user pick items, then enqueue each selection as its own download.
@@ -93,11 +94,22 @@ export function CollectionTab() {
   };
 
   const downloadSelected = async () => {
-    if (selected.size === 0 || isSubmitting) return;
+    if (selected.size === 0 || isSubmitting || !info) return;
 
     clearError();
     setIsSubmitting(true);
     setProgress({ submitted: 0, total: selected.size, failed: 0 });
+
+    // Group the whole batch under <base download dir>/<collection title>/
+    let collectionDir: string | undefined;
+    try {
+      const base = await apiInvoke<ApiResponse<string>>("get_default_output_dir");
+      if (base.success && base.data) {
+        collectionDir = `${base.data.replace(/\/+$/, "")}/${sanitizeFolderName(info.title)}`;
+      }
+    } catch {
+      // Fall back to the default download dir
+    }
 
     let failed = 0;
     const urls = [...selected];
@@ -107,6 +119,7 @@ export function CollectionTab() {
         url: urls[i],
         title: entry?.title,
         is_playlist: false,
+        output_dir: collectionDir,
         quality: "best",
         format: "mp4",
         sub_langs: ["en", "zh"],

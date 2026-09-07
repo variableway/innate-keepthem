@@ -227,6 +227,8 @@
     "subtitles": "个字幕",
     "deleteConfirm": "确定要删除这条下载记录吗？",
     "openFolder": "打开文件夹",
+    "openFile": "打开文件",
+    "revealInFolder": "在文件夹中显示",
     "deleteRecord": "删除记录",
     "retry": "重试",
     "waitingInQueue": "队列等待中...",

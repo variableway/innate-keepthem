@@ -31,6 +31,7 @@ const FORMAT_OPTIONS = [
 ];
 
 import { apiInvoke } from "@/lib/api-client";
+import { sanitizeFolderName } from "@/lib/download-paths";
 
 // Supported platforms, shared by URL validation and the platform badge UI.
 const PLATFORM_PATTERNS: { key: string; labelKey: string; pattern: RegExp }[] = [
@@ -458,8 +459,9 @@ export function DownloadForm({ mode }: DownloadFormProps) {
     // Playlist submit: expand into one queue item per entry so every video
     // shows up individually in the download list (progress/retry per video).
     if (isPlaylist) {
-      let entries =
+      let entries: PlaylistInfo["entries"] | null =
         playlistInfoFor === url.trim() ? playlistInfo?.entries ?? null : null;
+      let collectionTitle = playlistInfoFor === url.trim() ? playlistInfo?.title : null;
       if (!entries) {
         try {
           const res = await apiInvoke<ApiResponse<PlaylistInfo>>(
@@ -467,6 +469,7 @@ export function DownloadForm({ mode }: DownloadFormProps) {
             { url: url.trim() }
           );
           entries = res.data?.entries ?? null;
+          collectionTitle = res.data?.title ?? null;
         } catch {
           entries = null;
         }
@@ -474,6 +477,20 @@ export function DownloadForm({ mode }: DownloadFormProps) {
       const downloadable = (entries ?? []).filter((e) => e.webpage_url);
 
       if (downloadable.length > 0) {
+        // Group the whole batch under <base download dir>/<playlist title>/
+        let collectionDir: string | undefined;
+        try {
+          const base = await apiInvoke<ApiResponse<string>>("get_default_output_dir");
+          if (base.success && base.data) {
+            const name = collectionTitle ? sanitizeFolderName(collectionTitle) : null;
+            collectionDir = name
+              ? `${base.data.replace(/\/+$/, "")}/${name}`
+              : undefined;
+          }
+        } catch {
+          // Fall back to the default download dir
+        }
+
         setBatchProgress({ submitted: 0, total: downloadable.length, failed: 0 });
         let failed = 0;
         for (let i = 0; i < downloadable.length; i++) {
@@ -482,6 +499,7 @@ export function DownloadForm({ mode }: DownloadFormProps) {
             url: downloadable[i].webpage_url!,
             title: downloadable[i].title || undefined,
             is_playlist: false,
+            output_dir: collectionDir,
           });
           if (!entryId) failed++;
           setBatchProgress({ submitted: i + 1, total: downloadable.length, failed });

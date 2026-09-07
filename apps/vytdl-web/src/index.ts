@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createAdaptorServer } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
+import { spawn } from "child_process";
 import { randomUUID } from "crypto";
 import { mkdirSync } from "fs";
 import { readFile } from "fs/promises";
@@ -276,9 +277,61 @@ app.post("/api/delete-vtt-report", async (c) => {
   return c.json({ success: true, data: null });
 });
 
-app.post("/api/open-download-folder", (c) => {
-  // No-op in Docker/web mode
-  return c.json({ success: true, data: null });
+// Open a file/folder with the OS default app, or reveal it in the file
+// manager. Works when the server runs locally (dev); containerized
+// deployments fail gracefully with a clear message.
+function openPathLocally(target: string, reveal: boolean): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const isWin = process.platform === "win32";
+    const isMac = process.platform === "darwin";
+    const cmd = isMac
+      ? reveal
+        ? { bin: "open", args: ["-R", target] }
+        : { bin: "open", args: [target] }
+      : isWin
+      ? reveal
+        ? { bin: "explorer", args: [`/select,${target}`] }
+        : { bin: "explorer", args: [target] }
+      : { bin: "xdg-open", args: [target] };
+    const child = spawn(cmd.bin, cmd.args, { stdio: "ignore" });
+    child.on("error", (err) => reject(err));
+    child.on("exit", (code) =>
+      code === 0 ? resolve() : reject(new Error(`${cmd.bin} exited with code ${code}`))
+    );
+  });
+}
+
+app.post("/api/open-download-folder", async (c) => {
+  const { path: target } = await c.req.json();
+  if (!target) return c.json({ success: false, error: "path is required" }, 400);
+  try {
+    await openPathLocally(target, false);
+    return c.json({ success: true, data: null });
+  } catch (e) {
+    return c.json({
+      success: false,
+      error: `Cannot open locally (expected only when the server runs in Docker): ${e}`,
+    });
+  }
+});
+
+app.post("/api/reveal-in-folder", async (c) => {
+  const { path: target } = await c.req.json();
+  if (!target) return c.json({ success: false, error: "path is required" }, 400);
+  try {
+    await openPathLocally(target, true);
+    return c.json({ success: true, data: null });
+  } catch (e) {
+    return c.json({
+      success: false,
+      error: `Cannot reveal locally (expected only when the server runs in Docker): ${e}`,
+    });
+  }
+});
+
+app.post("/api/get-default-output-dir", (c) => {
+  const dir = db.getSetting("default_output_dir") || outputDir;
+  return c.json({ success: true, data: dir });
 });
 
 // Fallback to index.html for SPA routing

@@ -227,6 +227,8 @@
     "subtitles": "字幕",
     "deleteConfirm": "このダウンロード記録を削除してもよろしいですか？",
     "openFolder": "フォルダを開く",
+    "openFile": "ファイルを開く",
+    "revealInFolder": "フォルダーで表示",
     "deleteRecord": "記録を削除",
     "retry": "再試行",
     "waitingInQueue": "キュー待機中...",

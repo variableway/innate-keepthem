@@ -227,6 +227,8 @@
     "subtitles": "subtitle(s)",
     "deleteConfirm": "Are you sure you want to delete this download record?",
     "openFolder": "Open folder",
+    "openFile": "Open file",
+    "revealInFolder": "Reveal in file manager",
     "deleteRecord": "Delete record",
     "retry": "Retry",
     "waitingInQueue": "Waiting in queue...",

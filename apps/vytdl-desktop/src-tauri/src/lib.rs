@@ -305,6 +305,8 @@ pub fn run() {
             commands::get_download_by_id,
             commands::delete_download,
             commands::open_download_folder,
+            commands::reveal_in_folder,
+            commands::get_default_output_dir,
             commands::retry_download,
             commands::get_settings,
             commands::update_settings,

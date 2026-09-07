@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Play, FolderOpen, FileText, Search } from "lucide-react";
+import { Play, FolderOpen, FileText, Search, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@vytdl/ui";
 import { Input } from "@vytdl/ui";
 import { Button } from "@vytdl/ui";
 import { Badge } from "@vytdl/ui";
 import { useDownloadStore } from "@/store/downloadStore";
 import { apiInvoke } from "@/lib/api-client";
+import { folderOfDownload } from "@/lib/download-paths";
 import { formatDate } from "@vytdl/utils";
 import { useTranslation } from "@/i18n";
 import { MainContent } from "@/components/layout/main-content";
@@ -15,13 +16,25 @@ import type { Download } from "@/types";
 
 function VideoCard({ download }: { download: Download }) {
   const { t } = useTranslation();
+  const folderPath = folderOfDownload(download);
+
+  const handleOpenFile = async () => {
+    if (!download.filename) return;
+    try {
+      await apiInvoke("open_download_folder", { path: download.filename });
+    } catch (e) {
+      console.error("Failed to open file:", e);
+    }
+  };
 
   const handleOpenFolder = async () => {
-    if (!download.output_dir) return;
+    // Completed records may have a null output_dir — derive it from the file path
+    const target = folderPath || download.filename;
+    if (!target) return;
     try {
-      await apiInvoke("open_download_folder", { path: download.output_dir });
+      await apiInvoke("reveal_in_folder", { path: download.filename || target });
     } catch (e) {
-      console.error("Failed to open folder:", e);
+      console.error("Failed to reveal folder:", e);
     }
   };
 
@@ -51,7 +64,14 @@ function VideoCard({ download }: { download: Download }) {
         </p>
 
         <div className="flex gap-2 mt-3">
-          <Button size="sm" variant="secondary" className="flex-1 text-xs">
+          <Button
+            size="sm"
+            variant="secondary"
+            className="flex-1 text-xs"
+            onClick={handleOpenFile}
+            disabled={!download.filename}
+            title={download.filename || ""}
+          >
             <Play className="h-4 w-4 mr-1.5" strokeWidth={1.5} />
             {t("common.play")}
           </Button>
@@ -59,8 +79,19 @@ function VideoCard({ download }: { download: Download }) {
             size="sm"
             variant="ghost"
             className="px-2.5"
+            onClick={handleOpenFile}
+            disabled={!download.filename}
+            title={t("downloadList.openFile")}
+          >
+            <ExternalLink className="h-4 w-4" strokeWidth={1.5} />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="px-2.5"
             onClick={handleOpenFolder}
-            title={t("downloadList.openFolder")}
+            disabled={!folderPath && !download.filename}
+            title={t("downloadList.revealInFolder")}
           >
             <FolderOpen className="h-4 w-4" strokeWidth={1.5} />
           </Button>

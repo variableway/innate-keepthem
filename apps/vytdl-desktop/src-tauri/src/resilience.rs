@@ -124,6 +124,9 @@ pub fn classify_download_error(stdout: &str, stderr: &str, cancelled: bool) -> D
     }
     if c.contains("timed out") || c.contains("connection reset") || c.contains("network")
         || c.contains("unable to connect") || c.contains("temporary failure")
+        // CDN 拉流失败（常见为限流后的 "Unable to download video data:
+        // HTTP Error 403/4xx"，无登录语境）：可重试，不应判 Fatal
+        || c.contains("unable to download video data")
     {
         return DownloadErrorKind::TransientNetwork;
     }
@@ -221,6 +224,19 @@ mod tests {
         assert_eq!(
             classify_download_error("", "ERROR: cookies expired", false),
             DownloadErrorKind::CookieInvalid
+        );
+    }
+
+    #[test]
+    fn cdn_403_without_signin_is_retryable_network() {
+        // Throttled CDN failure: no sign-in context, must retry (not Fatal)
+        assert_eq!(
+            classify_download_error(
+                "",
+                "ERROR: unable to download video data: HTTP Error 403: Forbidden",
+                false
+            ),
+            DownloadErrorKind::TransientNetwork
         );
     }
 }

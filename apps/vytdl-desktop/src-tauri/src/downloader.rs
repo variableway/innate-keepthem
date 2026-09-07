@@ -531,15 +531,22 @@ impl Downloader {
                 level: "error".to_string(),
                 message: format!("yt-dlp exited with status: {:?}", status.code()),
             });
-            // 韧性引擎：分类失败原因，错误消息带类别与提示（前端徽章/按钮用）
+            // 韧性引擎：分类失败原因，错误消息带类别与提示（前端徽章/按钮用），
+            // 并附带 yt-dlp 的原始错误行——只有 "致命错误" 分类本身无可操作性
             let kind = crate::resilience::classify_download_error(&stdout_all, &stderr_all, false);
             let _ = tokio::fs::remove_file(&path_tmp).await;
-            return Err(format!(
+            let detail = extract_error_detail(&stdout_all, &stderr_all);
+            let mut msg = format!(
                 "[{}] {} | {}",
                 serde_json::to_string(&kind).unwrap_or_default(),
                 kind.label(),
                 kind.hint()
-            ));
+            );
+            if !detail.is_empty() {
+                msg.push('\n');
+                msg.push_str(&detail);
+            }
+            return Err(msg);
         }
 
         on_log(DownloadLog {
@@ -892,6 +899,28 @@ fn is_twitter_url(url: &str) -> bool {
 fn is_youtube_entry(ie_key: Option<&str>) -> bool {
     let key = ie_key.unwrap_or("").trim().to_ascii_lowercase();
     key.is_empty() || key.starts_with("youtube")
+}
+
+/// Last few yt-dlp ERROR lines, deduplicated and length-capped — appended to
+/// the classified failure message so users see the actual cause.
+fn extract_error_detail(stdout: &str, stderr: &str) -> String {
+    let mut lines: Vec<String> = stderr
+        .lines()
+        .chain(stdout.lines())
+        .map(str::trim)
+        .filter(|l| {
+            !l.is_empty() && l.to_lowercase().contains("error")
+                && !l.starts_with("download:VYTDL_PROG")
+        })
+        .map(|l| l.chars().take(300).collect::<String>())
+        .collect();
+    lines.dedup();
+    if lines.is_empty() {
+        return String::new();
+    }
+    let mut tail: Vec<String> = lines.into_iter().rev().take(3).collect();
+    tail.reverse();
+    tail.join("\n")
 }
 
 /// Parse `yt-dlp --dump-single-json --flat-playlist` output. Flat-playlist

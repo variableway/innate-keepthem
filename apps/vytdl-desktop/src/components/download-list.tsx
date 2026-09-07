@@ -570,7 +570,9 @@ export function DownloadList() {
           if (ra !== rb) return ra - rb;
           if (a.status === "pending" && b.status === "pending")
             return (a.queue_position ?? 0) - (b.queue_position ?? 0);
-          return b.updated_at.localeCompare(a.updated_at);
+          // Stable tie-break: updated_at changes on every progress tick and
+          // would reshuffle rows on each poll (visible flicker)
+          return a.created_at.localeCompare(b.created_at);
         }),
     [downloads]
   );

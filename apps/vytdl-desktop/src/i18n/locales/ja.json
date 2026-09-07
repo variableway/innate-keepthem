@@ -250,7 +250,9 @@
     "pageOf": "{{page}}/{{total}} ページ · 全{{count}}件",
     "emptyActiveTitle": "アクティブなダウンロードはありません",
     "emptyCompletedTitle": "完了したダウンロードはまだありません",
-    "nowDownloading": "ダウンロード中"
+    "nowDownloading": "ダウンロード中",
+    "retryAll": "失敗をすべて再試行",
+    "groupRetryFailed": "失敗を再試行"
   },
   "settings": {
     "title": "設定",

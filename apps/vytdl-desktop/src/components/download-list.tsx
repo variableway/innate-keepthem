@@ -375,19 +375,40 @@ function CollectionGroup({
   pendingQueuePositions: Map<string, number | undefined>;
 }) {
   const { t } = useTranslation();
-  const { fetchDownloads } = useDownloadStore();
+  const { fetchDownloads, retryDownload } = useDownloadStore();
   // Batches with in-flight work start expanded so the active item and its
   // progress are visible without clicking
   const [expanded, setExpanded] = useState(() =>
     items.some((d) => d.status === "downloading" || d.status === "pending")
   );
   const [cancelling, setCancelling] = useState(false);
+  const [retrying, setRetrying] = useState(false);
 
   const completed = items.filter((d) => d.status === "completed").length;
   const hasActive = items.some(
     (d) => d.status === "downloading" || d.status === "pending"
   );
   const current = items.find((d) => d.status === "downloading");
+  const failedItems = items.filter(
+    (d) => d.status === "failed" || d.status === "cancelled"
+  );
+
+  const retryGroupFailed = async () => {
+    if (retrying) return;
+    setRetrying(true);
+    try {
+      for (const d of failedItems) {
+        try {
+          await retryDownload(d.id);
+        } catch (e) {
+          console.error("retry failed:", e);
+        }
+      }
+      await fetchDownloads();
+    } finally {
+      setRetrying(false);
+    }
+  };
   const avgProgress =
     items.reduce((s, d) => s + (d.progress ?? 0), 0) / (items.length || 1);
   const groupFolder = items.find((d) => folderOfDownload(d))?.output_dir ?? null;
@@ -457,6 +478,23 @@ function CollectionGroup({
             {t("downloadList.cancelAll")}
           </Button>
         )}
+        {failedItems.length > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={retryGroupFailed}
+            disabled={retrying}
+            className="h-7 text-xs shrink-0"
+            title={t("downloadList.groupRetryFailed")}
+          >
+            {retrying ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <RotateCcw className="h-3.5 w-3.5" />
+            )}
+            {t("downloadList.groupRetryFailed")} ({failedItems.length})
+          </Button>
+        )}
         {groupFolder && (
           <Button
             variant="ghost"
@@ -493,9 +531,10 @@ function CollectionGroup({
 const PAGE_SIZE = 10;
 
 export function DownloadList() {
-  const { downloads, isLoading, fetchDownloads } = useDownloadStore();
+  const { downloads, isLoading, fetchDownloads, retryDownload } = useDownloadStore();
   const [tab, setTab] = useState<"active" | "completed">("active");
   const [page, setPage] = useState(1);
+  const [retryingAll, setRetryingAll] = useState(false);
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -566,6 +605,31 @@ export function DownloadList() {
     return { groups: [...groupMap.entries()], standalone };
   }, [listForTab]);
 
+  const failedCount = activeDownloads.filter(
+    (d) => d.status === "failed" || d.status === "cancelled"
+  ).length;
+
+  // One click re-enqueues every failed/cancelled download
+  const retryAllFailed = async () => {
+    if (retryingAll) return;
+    setRetryingAll(true);
+    try {
+      const targets = downloads.filter(
+        (d) => d.status === "failed" || d.status === "cancelled"
+      );
+      for (const d of targets) {
+        try {
+          await retryDownload(d.id);
+        } catch (e) {
+          console.error("retry failed:", e);
+        }
+      }
+      await fetchDownloads();
+    } finally {
+      setRetryingAll(false);
+    }
+  };
+
   const pendingQueuePositions = useMemo(() => {
     const positions = new Map<string, number>();
     const sortedPending = [...downloads]
@@ -596,7 +660,24 @@ export function DownloadList() {
             <DownloadIcon className="h-5 w-5" />
             {t("common.downloads")}
           </CardTitle>
-          <div className="flex gap-1">
+          <div className="flex items-center gap-1">
+            {failedCount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={retryAllFailed}
+                disabled={retryingAll}
+                className="h-7 text-xs shrink-0"
+                title={t("downloadList.retryAll")}
+              >
+                {retryingAll ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <RotateCcw className="h-3.5 w-3.5" />
+                )}
+                {t("downloadList.retryAll")} ({failedCount})
+              </Button>
+            )}
             <Badge
               variant={tab === "active" ? "default" : "outline"}
               className="cursor-pointer"

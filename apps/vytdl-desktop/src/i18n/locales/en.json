@@ -250,7 +250,9 @@
     "pageOf": "Page {{page}}/{{total}} · {{count}} items",
     "emptyActiveTitle": "No active downloads",
     "emptyCompletedTitle": "No completed downloads yet",
-    "nowDownloading": "Downloading"
+    "nowDownloading": "Downloading",
+    "retryAll": "Retry all failed",
+    "groupRetryFailed": "Retry failed"
   },
   "settings": {
     "title": "Settings",

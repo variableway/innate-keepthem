@@ -249,7 +249,8 @@
     "nextPage": "Next",
     "pageOf": "Page {{page}}/{{total}} · {{count}} items",
     "emptyActiveTitle": "No active downloads",
-    "emptyCompletedTitle": "No completed downloads yet"
+    "emptyCompletedTitle": "No completed downloads yet",
+    "nowDownloading": "Downloading"
   },
   "settings": {
     "title": "Settings",

@@ -376,13 +376,18 @@ function CollectionGroup({
 }) {
   const { t } = useTranslation();
   const { fetchDownloads } = useDownloadStore();
-  const [expanded, setExpanded] = useState(false);
+  // Batches with in-flight work start expanded so the active item and its
+  // progress are visible without clicking
+  const [expanded, setExpanded] = useState(() =>
+    items.some((d) => d.status === "downloading" || d.status === "pending")
+  );
   const [cancelling, setCancelling] = useState(false);
 
   const completed = items.filter((d) => d.status === "completed").length;
   const hasActive = items.some(
     (d) => d.status === "downloading" || d.status === "pending"
   );
+  const current = items.find((d) => d.status === "downloading");
   const avgProgress =
     items.reduce((s, d) => s + (d.progress ?? 0), 0) / (items.length || 1);
   const groupFolder = items.find((d) => folderOfDownload(d))?.output_dir ?? null;
@@ -420,6 +425,14 @@ function CollectionGroup({
           <p className="text-sm font-medium truncate" title={title}>
             {title}
           </p>
+          {current ? (
+            <p className="text-xs text-muted-foreground truncate mt-0.5">
+              {t("downloadList.nowDownloading")}: {current.title || current.url} ·{" "}
+              {Math.round(current.progress)}%
+              {current.speed ? ` · ${current.speed}` : ""}
+              {current.eta ? ` · ETA ${current.eta}` : ""}
+            </p>
+          ) : null}
           <div className="flex items-center gap-2 mt-1.5">
             <Progress value={avgProgress} className="h-1.5 flex-1" />
             <span className="text-xs text-muted-foreground shrink-0 tabular-nums">

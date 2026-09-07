@@ -249,7 +249,8 @@
     "nextPage": "次へ",
     "pageOf": "{{page}}/{{total}} ページ · 全{{count}}件",
     "emptyActiveTitle": "アクティブなダウンロードはありません",
-    "emptyCompletedTitle": "完了したダウンロードはまだありません"
+    "emptyCompletedTitle": "完了したダウンロードはまだありません",
+    "nowDownloading": "ダウンロード中"
   },
   "settings": {
     "title": "設定",

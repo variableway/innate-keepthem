@@ -714,60 +714,7 @@ impl Downloader {
             ));
         }
 
-        #[derive(Debug, Deserialize)]
-        struct YtdlpPlaylist {
-            id: String,
-            title: String,
-            uploader: Option<String>,
-            description: Option<String>,
-            thumbnail: Option<String>,
-            webpage_url: String,
-            entries: Vec<YtdlpEntry>,
-        }
-
-        #[derive(Debug, Deserialize)]
-        struct YtdlpEntry {
-            id: String,
-            title: String,
-            duration: Option<f64>,
-            thumbnail: Option<String>,
-            uploader: Option<String>,
-            #[serde(default)]
-            webpage_url: Option<String>,
-            #[serde(default)]
-            url: Option<String>,
-            #[serde(default)]
-            ie_key: Option<String>,
-        }
-
-        let info: YtdlpPlaylist = serde_json::from_slice(&output.stdout)
-            .map_err(|e| format!("Failed to parse playlist info: {}", e))?;
-
-        let entries: Vec<PlaylistVideo> = info.entries.into_iter()
-            .map(|e| PlaylistVideo {
-                id: e.id.clone(),
-                duration: e.duration.map(|d| d as i64),
-                title: e.title,
-                thumbnail: e.thumbnail,
-                uploader: e.uploader,
-                webpage_url: playlist_entry_url(
-                    e.ie_key.as_deref(),
-                    &e.id,
-                    e.url.as_deref(),
-                    e.webpage_url.as_deref(),
-                ),
-            })
-            .collect();
-
-        Ok(PlaylistInfo {
-            id: info.id,
-            title: info.title,
-            uploader: info.uploader,
-            description: info.description,
-            thumbnail: info.thumbnail,
-            entries,
-            webpage_url: info.webpage_url,
-        })
+        parse_flat_playlist_json(&output.stdout, url)
     }
 
     async fn find_yt_dlp(&self) -> Result<String, String> {
@@ -947,6 +894,92 @@ fn is_youtube_entry(ie_key: Option<&str>) -> bool {
     key.is_empty() || key.starts_with("youtube")
 }
 
+/// Parse `yt-dlp --dump-single-json --flat-playlist` output. Flat-playlist
+/// JSON is full of nulls (private/deleted videos report a null title, some
+/// extractors omit ids/thumbnails), so every field is parsed tolerantly
+/// instead of failing the whole playlist.
+fn parse_flat_playlist_json(
+    stdout: &[u8],
+    url: &str,
+) -> Result<crate::commands::PlaylistInfo, String> {
+    use crate::commands::{PlaylistInfo, PlaylistVideo};
+
+    #[derive(Debug, Deserialize)]
+    struct YtdlpPlaylist {
+        #[serde(default)]
+        id: Option<String>,
+        #[serde(default)]
+        title: Option<String>,
+        #[serde(default)]
+        uploader: Option<String>,
+        #[serde(default)]
+        description: Option<String>,
+        #[serde(default)]
+        thumbnail: Option<String>,
+        #[serde(default)]
+        webpage_url: Option<String>,
+        #[serde(default)]
+        entries: Vec<YtdlpEntry>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct YtdlpEntry {
+        #[serde(default)]
+        id: Option<String>,
+        #[serde(default)]
+        title: Option<String>,
+        duration: Option<f64>,
+        thumbnail: Option<String>,
+        uploader: Option<String>,
+        #[serde(default)]
+        webpage_url: Option<String>,
+        #[serde(default)]
+        url: Option<String>,
+        #[serde(default)]
+        ie_key: Option<String>,
+    }
+
+    let info: YtdlpPlaylist =
+        serde_json::from_slice(stdout).map_err(|e| format!("Failed to parse playlist info: {e}"))?;
+
+    let entries: Vec<PlaylistVideo> = info
+        .entries
+        .into_iter()
+        .map(|e| {
+            let id = e.id.unwrap_or_default();
+            PlaylistVideo {
+                duration: e.duration.map(|d| d as i64),
+                title: e
+                    .title
+                    .filter(|t| !t.trim().is_empty())
+                    .unwrap_or_else(|| id.clone()),
+                thumbnail: e.thumbnail,
+                uploader: e.uploader,
+                webpage_url: playlist_entry_url(
+                    e.ie_key.as_deref(),
+                    &id,
+                    e.url.as_deref(),
+                    e.webpage_url.as_deref(),
+                ),
+                id,
+            }
+        })
+        .collect();
+
+    Ok(PlaylistInfo {
+        id: info.id.unwrap_or_default(),
+        title: info
+            .title
+            .filter(|t| !t.trim().is_empty())
+            .unwrap_or_else(|| "Playlist".to_string()),
+        uploader: info.uploader,
+        description: info.description,
+        thumbnail: info.thumbnail,
+        entries,
+        webpage_url: info.webpage_url.unwrap_or_else(|| url.to_string()),
+    })
+}
+
 /// Resolve a flat-playlist entry's page URL across sites. Prefer the entry's
 /// own URLs; only reconstruct a YouTube watch URL for YouTube entries, so
 /// Bilibili/XHS/etc. entries never receive an invented youtube.com link.
@@ -1069,6 +1102,37 @@ mod tests {
             ""
         );
         assert_eq!(playlist_entry_url(Some("XiaoHongShu"), "note1", None, None), "");
+    }
+
+    #[test]
+    fn playlist_json_with_null_fields_parses() {
+        // Real-world shape: private/deleted videos report a null title and
+        // the playlist itself may have a null thumbnail/webpage_url.
+        let json = r#"{
+            "id": "PL123",
+            "title": "Sample playlist",
+            "thumbnail": null,
+            "webpage_url": null,
+            "entries": [
+                {"id": "ok1", "title": "Video 1", "duration": 42.0,
+                 "url": "https://www.youtube.com/watch?v=ok1", "ie_key": "Youtube"},
+                {"id": "gone1", "title": null, "duration": null,
+                 "url": "gone1", "ie_key": "Youtube"}
+            ]
+        }"#;
+        let info =
+            parse_flat_playlist_json(json.as_bytes(), "https://example.com/list").unwrap();
+        assert_eq!(info.entries.len(), 2);
+        assert_eq!(info.entries[0].title, "Video 1");
+        assert_eq!(info.entries[0].duration, Some(42));
+        // null title falls back to the entry id
+        assert_eq!(info.entries[1].title, "gone1");
+        assert_eq!(
+            info.entries[1].webpage_url,
+            "https://www.youtube.com/watch?v=gone1"
+        );
+        // null playlist webpage_url falls back to the request url
+        assert_eq!(info.webpage_url, "https://example.com/list");
     }
 
     #[test]

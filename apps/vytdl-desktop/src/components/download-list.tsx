@@ -95,7 +95,17 @@ function LogViewer({ logs }: { logs: DownloadLog[] }) {
   );
 }
 
-function DownloadItem({ download, queuePosition }: { download: DownloadItemType; queuePosition?: number }) {
+function DownloadItem({
+  download,
+  queuePosition,
+  selected,
+  onToggleSelect,
+}: {
+  download: DownloadItemType;
+  queuePosition?: number;
+  selected?: boolean;
+  onToggleSelect?: (id: string) => void;
+}) {
   const { deleteDownload, retryDownload, activeDownloads, downloadLogs, subscribeToProgress, subscribeToLogs } = useDownloadStore();
   const [progress, setProgress] = useState<DownloadProgress | null>(null);
   const [showLogs, setShowLogs] = useState(false);
@@ -166,6 +176,14 @@ function DownloadItem({ download, queuePosition }: { download: DownloadItemType;
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
+            {onToggleSelect && (
+              <input
+                type="checkbox"
+                checked={!!selected}
+                onChange={() => onToggleSelect(download.id)}
+                className="rounded border-gray-300 shrink-0"
+              />
+            )}
             <h4 className="font-medium truncate">
               {download.title || t("downloadList.unknownTitle")}
             </h4>
@@ -369,10 +387,16 @@ function CollectionGroup({
   title,
   items,
   pendingQueuePositions,
+  selectedIds,
+  onToggleSelect,
+  onToggleSelectAll,
 }: {
   title: string;
   items: Download[];
   pendingQueuePositions: Map<string, number | undefined>;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
+  onToggleSelectAll?: (ids: string[], select: boolean) => void;
 }) {
   const { t } = useTranslation();
   const { fetchDownloads, retryDownload } = useDownloadStore();
@@ -392,6 +416,7 @@ function CollectionGroup({
   const failedItems = items.filter(
     (d) => d.status === "failed" || d.status === "cancelled"
   );
+  const childIds = items.map((d) => d.id);
 
   const retryGroupFailed = async () => {
     if (retrying) return;
@@ -434,6 +459,15 @@ function CollectionGroup({
   return (
     <div>
       <div className="flex items-center gap-3 px-4 py-3 bg-muted/40">
+        {onToggleSelectAll && (
+          <input
+            type="checkbox"
+            checked={childIds.length > 0 && childIds.every((id) => selectedIds?.has(id))}
+            onChange={() => onToggleSelectAll(childIds, !childIds.every((id) => selectedIds?.has(id)))}
+            className="rounded border-gray-300 shrink-0"
+            title={t("downloadList.selectAllGroup")}
+          />
+        )}
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
@@ -520,6 +554,8 @@ function CollectionGroup({
               key={d.id}
               download={d}
               queuePosition={pendingQueuePositions.get(d.id)}
+              selected={selectedIds?.has(d.id)}
+              onToggleSelect={onToggleSelect}
             />
           ))}
         </div>
@@ -531,11 +567,53 @@ function CollectionGroup({
 const PAGE_SIZE = 10;
 
 export function DownloadList() {
-  const { downloads, isLoading, fetchDownloads, retryDownload } = useDownloadStore();
+  const { downloads, isLoading, fetchDownloads, retryDownload, deleteDownload } = useDownloadStore();
   const [tab, setTab] = useState<"active" | "completed">("active");
   const [page, setPage] = useState(1);
   const [retryingAll, setRetryingAll] = useState(false);
+  const [deletingSelected, setDeletingSelected] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const { t } = useTranslation();
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const setManySelected = (ids: string[], select: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => (select ? next.add(id) : next.delete(id)));
+      return next;
+    });
+  };
+
+  const deleteSelected = async () => {
+    if (selectedIds.size === 0 || deletingSelected) return;
+    const confirmed = await apiConfirm(
+      t("downloadList.deleteSelectedConfirm", { count: String(selectedIds.size) }),
+      { title: t("common.confirm"), kind: "warning" }
+    );
+    if (!confirmed) return;
+    setDeletingSelected(true);
+    try {
+      for (const id of selectedIds) {
+        try {
+          await deleteDownload(id);
+        } catch (e) {
+          console.error("delete failed:", e);
+        }
+      }
+      setSelectedIds(new Set());
+      await fetchDownloads(true);
+    } finally {
+      setDeletingSelected(false);
+    }
+  };
 
   useEffect(() => {
     fetchDownloads();
@@ -663,6 +741,32 @@ export function DownloadList() {
             {t("common.downloads")}
           </CardTitle>
           <div className="flex items-center gap-1">
+            {selectedIds.size > 0 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedIds(new Set())}
+                  className="h-7 text-xs shrink-0"
+                >
+                  {t("downloadList.cancelSelection")}
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={deleteSelected}
+                  disabled={deletingSelected}
+                  className="h-7 text-xs shrink-0"
+                >
+                  {deletingSelected ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-3.5 w-3.5" />
+                  )}
+                  {t("downloadList.deleteSelected", { count: String(selectedIds.size) })}
+                </Button>
+              </>
+            )}
             {failedCount > 0 && (
               <Button
                 variant="outline"
@@ -728,12 +832,17 @@ export function DownloadList() {
                     title={row.g.title}
                     items={row.g.items}
                     pendingQueuePositions={pendingQueuePositions}
+                    selectedIds={selectedIds}
+                    onToggleSelect={toggleSelect}
+                    onToggleSelectAll={setManySelected}
                   />
                 ) : (
                   <DownloadItem
                     key={row.d.id}
                     download={row.d}
                     queuePosition={pendingQueuePositions.get(row.d.id)}
+                    selected={selectedIds.has(row.d.id)}
+                    onToggleSelect={toggleSelect}
                   />
                 )
               )}

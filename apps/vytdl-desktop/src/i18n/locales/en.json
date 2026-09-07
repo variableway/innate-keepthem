@@ -252,7 +252,11 @@
     "emptyCompletedTitle": "No completed downloads yet",
     "nowDownloading": "Downloading",
     "retryAll": "Retry all failed",
-    "groupRetryFailed": "Retry failed"
+    "groupRetryFailed": "Retry failed",
+    "deleteSelected": "Delete selected ({{count}})",
+    "cancelSelection": "Clear selection",
+    "deleteSelectedConfirm": "Delete {{count}} selected download entries? Local files are kept.",
+    "selectAllGroup": "Select all in this collection"
   },
   "settings": {
     "title": "Settings",

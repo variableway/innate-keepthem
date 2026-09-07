@@ -139,7 +139,12 @@
     "downloadSelected": "Download selected ({{count}})",
     "submitting": "Submitting...",
     "unavailable": "[Unavailable video]",
-    "totalEstimate": "{{count}} selected · estimated {{size}} total"
+    "totalEstimate": "{{count}} selected · estimated {{size}} total",
+    "downloadSubs": "Download subtitles",
+    "skippedUnavailable": "unavailable",
+    "skippedDownloaded": "already downloaded",
+    "allSkipped": "Nothing to download — every selected item is unavailable or already downloaded",
+    "skippedSummary": "{{count}} item(s) skipped (unavailable or already downloaded)"
   },
   "analyze": {
     "nav": "Analyze",

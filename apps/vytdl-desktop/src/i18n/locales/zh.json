@@ -139,7 +139,12 @@
     "downloadSelected": "下载选中 ({{count}})",
     "submitting": "提交中...",
     "unavailable": "[不可用视频]",
-    "totalEstimate": "已选 {{count}} 项 · 预计共 {{size}}"
+    "totalEstimate": "已选 {{count}} 项 · 预计共 {{size}}",
+    "downloadSubs": "下载字幕",
+    "skippedUnavailable": "不可用",
+    "skippedDownloaded": "已下载过",
+    "allSkipped": "没有可下载项——选中的条目全部不可用或已下载过",
+    "skippedSummary": "已跳过 {{count}} 项（不可用或已下载过）"
   },
   "analyze": {
     "nav": "字幕分析",

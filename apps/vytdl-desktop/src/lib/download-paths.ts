@@ -25,3 +25,28 @@ export function sanitizeFolderName(title: string): string {
     .trim();
   return cleaned || "Collection";
 }
+
+// YouTube video id from a watch/shorts URL (handles watch?v=X&list=Y where
+// the entry url and a previously-submitted url differ by the list param).
+export function youtubeVideoIdOf(url: string): string | null {
+  const m = url.match(/[?&]v=([a-zA-Z0-9_-]{6,})/) || url.match(/youtu\.be\/([a-zA-Z0-9_-]{6,})/);
+  return m ? m[1] : null;
+}
+
+// True when this URL was already downloaded (completed) — used to skip
+// duplicates when expanding a collection.
+export function isAlreadyDownloaded(
+  url: string,
+  existing: { url: string; status: string; filename?: string | null }[]
+): boolean {
+  const vid = youtubeVideoIdOf(url);
+  return existing.some((d) => {
+    if (d.status !== "completed") return false;
+    if (d.url === url) return true;
+    const other = youtubeVideoIdOf(d.url);
+    if (vid && other && vid === other) return true;
+    // Fallback: the output filename embeds [VIDEOID] per the output template
+    if (vid && d.filename && d.filename.includes(`[${vid}]`)) return true;
+    return false;
+  });
+}

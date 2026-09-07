@@ -139,7 +139,12 @@
     "downloadSelected": "選択をダウンロード ({{count}})",
     "submitting": "送信中...",
     "unavailable": "[視聴不可の動画]",
-    "totalEstimate": "{{count}} 件選択 · 合計約 {{size}}"
+    "totalEstimate": "{{count}} 件選択 · 合計約 {{size}}",
+    "downloadSubs": "字幕をダウンロード",
+    "skippedUnavailable": "視聴不可",
+    "skippedDownloaded": "ダウンロード済み",
+    "allSkipped": "ダウンロード対象がありません——選択項目はすべて視聴不可またはダウンロード済みです",
+    "skippedSummary": "{{count}} 件をスキップ（視聴不可またはダウンロード済み）"
   },
   "analyze": {
     "nav": "分析",

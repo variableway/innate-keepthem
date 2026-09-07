@@ -13,7 +13,7 @@ import { useDownloadStore } from "@/store/downloadStore";
 import { useTranslation } from "@/i18n";
 import type { DownloadOptions, PlaylistInfo, ApiResponse } from "@/types";
 import { apiInvoke } from "@/lib/api-client";
-import { sanitizeFolderName } from "@/lib/download-paths";
+import { sanitizeFolderName, isAlreadyDownloaded } from "@/lib/download-paths";
 import { estimateFileSizeMb, formatSizeMb } from "@/lib/size-estimate";
 
 const QUALITY_OPTIONS = [
@@ -35,9 +35,11 @@ export function CollectionTab() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [progress, setProgress] = useState({ submitted: 0, total: 0, failed: 0 });
   const [quality, setQuality] = useState("best");
+  const [writeSubs, setWriteSubs] = useState(true);
+  const [skippedCount, setSkippedCount] = useState(0);
 
   const settings = useSettingsStore((s) => s.settings);
-  const { startDownload, clearError } = useDownloadStore();
+  const { startDownload, clearError, downloads } = useDownloadStore();
   const { t } = useTranslation();
 
   const downloadable = (info?.entries ?? []).filter((e) => e.webpage_url);
@@ -71,6 +73,7 @@ export function CollectionTab() {
     setError(null);
     setInfo(null);
     setSelected(new Set());
+    setSkippedCount(0);
 
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
     const timeoutPromise = new Promise<never>((_, reject) => {
@@ -134,9 +137,31 @@ export function CollectionTab() {
   const downloadSelected = async () => {
     if (selected.size === 0 || isSubmitting || !info) return;
 
+    // Skip entries that were already downloaded or are unavailable
+    const skipped: string[] = [];
+    const toSubmit = [...selected].filter((u) => {
+      const entry = downloadable.find((e) => e.webpage_url === u);
+      if (!entry) return false;
+      if (!(entry.title || "").trim()) {
+        skipped.push(t("collectionTab.skippedUnavailable"));
+        return false;
+      }
+      if (isAlreadyDownloaded(u, downloads)) {
+        skipped.push(t("collectionTab.skippedDownloaded"));
+        return false;
+      }
+      return true;
+    });
+
+    if (toSubmit.length === 0) {
+      setError(t("collectionTab.allSkipped"));
+      return;
+    }
+
     clearError();
     setIsSubmitting(true);
-    setProgress({ submitted: 0, total: selected.size, failed: 0 });
+    setSkippedCount(skipped.length);
+    setProgress({ submitted: 0, total: toSubmit.length, failed: 0 });
 
     // Group the whole batch under <base download dir>/<collection title>/
     let collectionDir: string | undefined;
@@ -156,11 +181,10 @@ export function CollectionTab() {
         : `col-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
     let failed = 0;
-    const urls = [...selected];
-    for (let i = 0; i < urls.length; i++) {
-      const entry = downloadable.find((e) => e.webpage_url === urls[i]);
+    for (let i = 0; i < toSubmit.length; i++) {
+      const entry = downloadable.find((e) => e.webpage_url === toSubmit[i]);
       const options: DownloadOptions = {
-        url: urls[i],
+        url: toSubmit[i],
         title: entry?.title,
         collection_id: collectionId,
         collection_title: info.title,
@@ -168,9 +192,9 @@ export function CollectionTab() {
         output_dir: collectionDir,
         quality,
         format: "mp4",
-        sub_langs: ["en", "zh"],
-        write_subs: true,
-        write_auto_subs: true,
+        sub_langs: writeSubs ? ["en", "zh"] : undefined,
+        write_subs: writeSubs,
+        write_auto_subs: writeSubs,
         cookie: settings?.cookie ?? undefined,
         proxy: settings?.proxy ?? undefined,
         concurrent_fragments: settings?.concurrent_fragments ?? undefined,
@@ -179,7 +203,7 @@ export function CollectionTab() {
       };
       const downloadId = await startDownload(options);
       if (!downloadId) failed++;
-      setProgress({ submitted: i + 1, total: urls.length, failed });
+      setProgress({ submitted: i + 1, total: toSubmit.length, failed });
     }
 
     setIsSubmitting(false);
@@ -339,6 +363,24 @@ export function CollectionTab() {
                   count: String(selected.size),
                   size: `≈ ${formatSizeMb(selectedTotalMb)}`,
                 })}
+              </p>
+            )}
+
+            <label className="flex items-center gap-2 cursor-pointer text-sm">
+              <input
+                type="checkbox"
+                checked={writeSubs}
+                onChange={(e) => setWriteSubs(e.target.checked)}
+                disabled={isSubmitting}
+                className="rounded border-gray-300"
+              />
+              {t("collectionTab.downloadSubs")}
+              <span className="text-xs text-muted-foreground">EN / ZH (VTT)</span>
+            </label>
+
+            {skippedCount > 0 && !isSubmitting && progress.total > 0 && (
+              <p className="text-xs text-muted-foreground text-center">
+                {t("collectionTab.skippedSummary", { count: String(skippedCount) })}
               </p>
             )}
 

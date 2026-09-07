@@ -31,7 +31,7 @@ const FORMAT_OPTIONS = [
 ];
 
 import { apiInvoke } from "@/lib/api-client";
-import { sanitizeFolderName } from "@/lib/download-paths";
+import { sanitizeFolderName, isAlreadyDownloaded } from "@/lib/download-paths";
 
 // Supported platforms, shared by URL validation and the platform badge UI.
 const PLATFORM_PATTERNS: { key: string; labelKey: string; pattern: RegExp }[] = [
@@ -474,7 +474,14 @@ export function DownloadForm({ mode }: DownloadFormProps) {
           entries = null;
         }
       }
-      const downloadable = (entries ?? []).filter((e) => e.webpage_url);
+      // Skip unavailable entries and ones already downloaded (completed)
+      const { downloads: existing } = useDownloadStore.getState();
+      const downloadable = (entries ?? []).filter(
+        (e) =>
+          e.webpage_url &&
+          (e.title || "").trim() &&
+          !isAlreadyDownloaded(e.webpage_url, existing)
+      );
 
       if (downloadable.length > 0) {
         // Group the whole batch under <base download dir>/<playlist title>/

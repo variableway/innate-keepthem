@@ -484,9 +484,18 @@ export function DownloadList() {
 
   useEffect(() => {
     fetchDownloads();
-    const interval = setInterval(fetchDownloads, 5000);
-    return () => clearInterval(interval);
   }, [fetchDownloads]);
+
+  // Refresh only while work is in flight — no idle background polling that
+  // would re-render the whole list when nothing is happening.
+  const hasActive = downloads.some(
+    (d) => d.status === "downloading" || d.status === "pending"
+  );
+  useEffect(() => {
+    if (!hasActive) return;
+    const interval = setInterval(fetchDownloads, 4000);
+    return () => clearInterval(interval);
+  }, [hasActive, fetchDownloads]);
 
   const filteredDownloads = downloads.filter(
     (d) => filter === "all" || d.status === filter

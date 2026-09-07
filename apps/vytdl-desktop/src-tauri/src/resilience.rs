@@ -58,7 +58,7 @@ impl DownloadErrorKind {
             DownloadErrorKind::ThumbnailPostProcess => "已自动降级：可在设置中关闭缩略图嵌入",
             DownloadErrorKind::MetadataPostProcess => "主文件已保留；可在设置中关闭元数据嵌入",
             DownloadErrorKind::FragmentFailure => "网络不稳：重试，或降低并发分片数",
-            DownloadErrorKind::TransientNetwork => "直接重试通常可恢复",
+            DownloadErrorKind::TransientNetwork => "直接重试通常可恢复；若反复出现 SSL/EOF 或网页拉取失败，请检查或配置代理（设置 → 网络与访问）",
             DownloadErrorKind::Fatal => "查看日志定位；常见为站点改版，更新 yt-dlp 可解决",
         }
     }
@@ -127,6 +127,9 @@ pub fn classify_download_error(stdout: &str, stderr: &str, cancelled: bool) -> D
         // CDN 拉流失败（常见为限流后的 "Unable to download video data:
         // HTTP Error 403/4xx"，无登录语境）：可重试，不应判 Fatal
         || c.contains("unable to download video data")
+        // 网页/API 拉取失败与 TLS 中断（代理不稳或链路被重置的典型表现）
+        || c.contains("unable to download webpage") || c.contains("unable to download api page")
+        || (c.contains("ssl") && c.contains("eof"))
     {
         return DownloadErrorKind::TransientNetwork;
     }
@@ -234,6 +237,28 @@ mod tests {
             classify_download_error(
                 "",
                 "ERROR: unable to download video data: HTTP Error 403: Forbidden",
+                false
+            ),
+            DownloadErrorKind::TransientNetwork
+        );
+    }
+
+    #[test]
+    fn ssl_eof_and_webpage_failures_are_retryable_network() {
+        // TLS reset mid-connection (unstable proxy / blocked route)
+        assert_eq!(
+            classify_download_error(
+                "",
+                "ERROR: [youtube] VWmPHHnZuiw: Unable to download API page: \
+                 [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol",
+                false
+            ),
+            DownloadErrorKind::TransientNetwork
+        );
+        assert_eq!(
+            classify_download_error(
+                "",
+                "WARNING: [youtube] xyz: Unable to download webpage: HTTP Error 503",
                 false
             ),
             DownloadErrorKind::TransientNetwork

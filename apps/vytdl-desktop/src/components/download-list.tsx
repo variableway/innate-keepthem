@@ -404,7 +404,7 @@ function CollectionGroup({
           console.error("retry failed:", e);
         }
       }
-      await fetchDownloads();
+      await fetchDownloads(true);
     } finally {
       setRetrying(false);
     }
@@ -425,7 +425,7 @@ function CollectionGroup({
           }
         }
       }
-      await fetchDownloads();
+      await fetchDownloads(true);
     } finally {
       setCancelling(false);
     }
@@ -548,7 +548,7 @@ export function DownloadList() {
   );
   useEffect(() => {
     if (!hasActive) return;
-    const interval = setInterval(fetchDownloads, 4000);
+    const interval = setInterval(() => fetchDownloads(true), 4000);
     return () => clearInterval(interval);
   }, [hasActive, fetchDownloads]);
 
@@ -624,7 +624,7 @@ export function DownloadList() {
           console.error("retry failed:", e);
         }
       }
-      await fetchDownloads();
+      await fetchDownloads(true);
     } finally {
       setRetryingAll(false);
     }

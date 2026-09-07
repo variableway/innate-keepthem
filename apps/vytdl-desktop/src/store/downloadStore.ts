@@ -13,7 +13,7 @@ interface DownloadState {
   isLoading: boolean;
   error: string | null;
 
-  fetchDownloads: () => Promise<void>;
+  fetchDownloads: (silent?: boolean) => Promise<void>;
   startDownload: (options: DownloadOptions) => Promise<string | null>;
   cancelDownload: (id: string) => Promise<void>;
   retryDownload: (id: string) => Promise<string | null>;
@@ -34,19 +34,21 @@ export const useDownloadStore = create<DownloadState>()(
       isLoading: false,
       error: null,
 
-      fetchDownloads: async () => {
-        set({ isLoading: true, error: null });
+      // silent=true 用于轮询：不切换 isLoading（避免整个列表闪加载动画）、
+      // 不清空 error，仅静默替换数据；单项进度由事件驱动，不依赖这里
+      fetchDownloads: async (silent = false) => {
+        if (!silent) set({ isLoading: true, error: null });
         try {
           const response = await apiInvoke<ApiResponse<Download[]>>("get_downloads");
           if (response.success && response.data) {
             set({ downloads: response.data });
-          } else {
+          } else if (!silent) {
             set({ downloads: [], error: response.error || "Failed to fetch downloads" });
           }
         } catch (err) {
-          set({ downloads: [], error: String(err) });
+          if (!silent) set({ downloads: [], error: String(err) });
         } finally {
-          set({ isLoading: false });
+          if (!silent) set({ isLoading: false });
         }
       },
 

@@ -20,6 +20,7 @@
 | [modules/scripts.md](./modules/scripts.md) | 根目录构建 / 启动脚本 |
 | [use-cases/cli-multi-platform-downloads.zh.md](./use-cases/cli-multi-platform-downloads.zh.md) | 用例：vYtDL CLI 多平台下载（中文） |
 | [use-cases/cli-multi-platform-downloads.en.md](./use-cases/cli-multi-platform-downloads.en.md) | Use case: vYtDL CLI multi-platform downloads (English) |
+| [research/wechat-content-acquisition-repos.md](./research/wechat-content-acquisition-repos.md) | 调研：微信视频号 / 公众号内容获取 GitHub Top 10 与技术路线 |
 
 ## 快速开始（最短路径）
 

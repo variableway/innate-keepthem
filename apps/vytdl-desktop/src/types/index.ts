@@ -19,6 +19,9 @@ export interface Download {
   subtitles: string[];
   error: string | null;
   queue_position: number;
+  /** Shared by every entry of one collection batch — the list groups them */
+  collection_id?: string | null;
+  collection_title?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -67,6 +70,9 @@ export interface DownloadOptions {
   url: string;
   /** Pre-fetched title (e.g. playlist entry) shown in the list before download starts */
   title?: string;
+  /** Shared by every entry of one collection batch — groups them in the list */
+  collection_id?: string;
+  collection_title?: string;
   is_playlist: boolean;
   quality?: string;
   /** 精确 format_id（Format Picker） */

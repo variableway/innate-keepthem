@@ -149,6 +149,12 @@ export function CollectionTab() {
       // Fall back to the default download dir
     }
 
+    // One shared id groups the whole batch in the download list
+    const collectionId =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `col-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
     let failed = 0;
     const urls = [...selected];
     for (let i = 0; i < urls.length; i++) {
@@ -156,6 +162,8 @@ export function CollectionTab() {
       const options: DownloadOptions = {
         url: urls[i],
         title: entry?.title,
+        collection_id: collectionId,
+        collection_title: info.title,
         is_playlist: false,
         output_dir: collectionDir,
         quality,

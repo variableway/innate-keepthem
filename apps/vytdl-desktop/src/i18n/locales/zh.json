@@ -242,7 +242,10 @@
     "extractingAudio": "提取音频中...",
     "extractAudioSuccess": "音频提取成功，保存至: {{path}}",
     "extractAudioFailed": "音频提取失败",
-    "noVideoFile": "视频文件路径不可用"
+    "noVideoFile": "视频文件路径不可用",
+    "cancelAll": "全部停止",
+    "expand": "展开",
+    "collapse": "收起"
   },
   "settings": {
     "title": "设置",

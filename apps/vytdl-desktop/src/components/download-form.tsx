@@ -491,6 +491,12 @@ export function DownloadForm({ mode }: DownloadFormProps) {
           // Fall back to the default download dir
         }
 
+        // One shared id groups the whole batch in the download list
+        const collectionId =
+          typeof crypto !== "undefined" && "randomUUID" in crypto
+            ? crypto.randomUUID()
+            : `col-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
         setBatchProgress({ submitted: 0, total: downloadable.length, failed: 0 });
         let failed = 0;
         for (let i = 0; i < downloadable.length; i++) {
@@ -498,6 +504,8 @@ export function DownloadForm({ mode }: DownloadFormProps) {
             ...baseOptions,
             url: downloadable[i].webpage_url!,
             title: downloadable[i].title || undefined,
+            collection_id: collectionId,
+            collection_title: collectionTitle || undefined,
             is_playlist: false,
             output_dir: collectionDir,
           });

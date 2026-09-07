@@ -47,6 +47,9 @@ pub struct DownloadRecord {
     pub error: Option<String>,
     pub queue_position: i64,
     pub options: Option<String>,
+    /// Grouping: downloads submitted as one collection batch share these
+    pub collection_id: Option<String>,
+    pub collection_title: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -159,6 +162,23 @@ impl Database {
         .execute(&self.pool)
         .await;
 
+        // Migration: collection grouping (batch submissions share an id/title)
+        let _ = sqlx::query(
+            r#"
+            ALTER TABLE downloads ADD COLUMN collection_id TEXT
+            "#,
+        )
+        .execute(&self.pool)
+        .await;
+
+        let _ = sqlx::query(
+            r#"
+            ALTER TABLE downloads ADD COLUMN collection_title TEXT
+            "#,
+        )
+        .execute(&self.pool)
+        .await;
+
         sqlx::query(
             r#"
             CREATE TABLE IF NOT EXISTS vtt_reports (
@@ -185,8 +205,8 @@ impl Database {
     pub async fn create_download(&self, record: DownloadRecord) -> Result<(), sqlx::Error> {
         sqlx::query(
             r#"
-            INSERT INTO downloads (id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, options, created_at, updated_at)
-            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)
+            INSERT INTO downloads (id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, options, collection_id, collection_title, created_at, updated_at)
+            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)
             "#,
         )
         .bind(&record.id)
@@ -202,6 +222,8 @@ impl Database {
         .bind(&record.error)
         .bind(record.queue_position)
         .bind(&record.options)
+        .bind(&record.collection_id)
+        .bind(&record.collection_title)
         .bind(record.created_at)
         .bind(record.updated_at)
         .execute(&self.pool)
@@ -213,7 +235,7 @@ impl Database {
     pub async fn get_all_downloads(&self) -> Result<Vec<DownloadRecord>, sqlx::Error> {
         let rows = sqlx::query_as::<_, DownloadRow>(
             r#"
-            SELECT id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, options, created_at, updated_at
+            SELECT id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, options, collection_id, collection_title, created_at, updated_at
             FROM downloads
             ORDER BY created_at DESC
             "#,
@@ -227,7 +249,7 @@ impl Database {
     pub async fn get_download_by_id(&self, id: &str) -> Result<Option<DownloadRecord>, sqlx::Error> {
         let row = sqlx::query_as::<_, DownloadRow>(
             r#"
-            SELECT id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, options, created_at, updated_at
+            SELECT id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, options, collection_id, collection_title, created_at, updated_at
             FROM downloads
             WHERE id = ?1
             "#,
@@ -358,7 +380,7 @@ impl Database {
     pub async fn get_incomplete_downloads(&self) -> Result<Vec<DownloadRecord>, sqlx::Error> {
         let rows = sqlx::query_as::<_, DownloadRow>(
             r#"
-            SELECT id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, options, created_at, updated_at
+            SELECT id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, options, collection_id, collection_title, created_at, updated_at
             FROM downloads
             WHERE status IN ('pending', 'downloading')
             ORDER BY created_at ASC
@@ -578,6 +600,8 @@ struct DownloadRow {
     error: Option<String>,
     queue_position: i64,
     options: Option<String>,
+    collection_id: Option<String>,
+    collection_title: Option<String>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
 }
@@ -598,6 +622,8 @@ impl From<DownloadRow> for DownloadRecord {
             error: row.error,
             queue_position: row.queue_position,
             options: row.options,
+            collection_id: row.collection_id,
+            collection_title: row.collection_title,
             created_at: row.created_at,
             updated_at: row.updated_at,
         }

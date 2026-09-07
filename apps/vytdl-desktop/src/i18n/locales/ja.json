@@ -242,7 +242,10 @@
     "extractingAudio": "音声抽出中...",
     "extractAudioSuccess": "音声の抽出に成功しました: {{path}}",
     "extractAudioFailed": "音声の抽出に失敗しました",
-    "noVideoFile": "動画ファイルのパスが利用できません"
+    "noVideoFile": "動画ファイルのパスが利用できません",
+    "cancelAll": "すべて停止",
+    "expand": "展開",
+    "collapse": "折りたたむ"
   },
   "settings": {
     "title": "設定",

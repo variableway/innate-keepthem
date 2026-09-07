@@ -8,6 +8,7 @@ import {
   FolderSearch,
   ExternalLink,
   MapPin,
+  Square,
   AlertCircle,
   CheckCircle,
   Download as DownloadIcon,
@@ -364,6 +365,118 @@ function DownloadItem({ download, queuePosition }: { download: DownloadItemType;
   );
 }
 
+function CollectionGroup({
+  title,
+  items,
+  pendingQueuePositions,
+}: {
+  title: string;
+  items: Download[];
+  pendingQueuePositions: Map<string, number | undefined>;
+}) {
+  const { t } = useTranslation();
+  const { fetchDownloads } = useDownloadStore();
+  const [expanded, setExpanded] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
+  const completed = items.filter((d) => d.status === "completed").length;
+  const hasActive = items.some(
+    (d) => d.status === "downloading" || d.status === "pending"
+  );
+  const avgProgress =
+    items.reduce((s, d) => s + (d.progress ?? 0), 0) / (items.length || 1);
+  const groupFolder = items.find((d) => folderOfDownload(d))?.output_dir ?? null;
+
+  const cancelAll = async () => {
+    setCancelling(true);
+    try {
+      for (const d of items) {
+        if (d.status === "downloading" || d.status === "pending") {
+          try {
+            await apiInvoke("cancel_download", { downloadId: d.id });
+          } catch (e) {
+            console.error("cancel failed:", e);
+          }
+        }
+      }
+      await fetchDownloads();
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex items-center gap-3 px-4 py-3 bg-muted/40">
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="text-muted-foreground hover:text-foreground shrink-0"
+          title={expanded ? t("downloadList.collapse") : t("downloadList.expand")}
+        >
+          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </button>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate" title={title}>
+            {title}
+          </p>
+          <div className="flex items-center gap-2 mt-1.5">
+            <Progress value={avgProgress} className="h-1.5 flex-1" />
+            <span className="text-xs text-muted-foreground shrink-0 tabular-nums">
+              {completed}/{items.length} · {Math.round(avgProgress)}%
+            </span>
+          </div>
+        </div>
+        {hasActive && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={cancelAll}
+            disabled={cancelling}
+            className="h-7 text-xs shrink-0 text-destructive hover:text-destructive"
+            title={t("downloadList.cancelAll")}
+          >
+            {cancelling ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Square className="h-3.5 w-3.5" />
+            )}
+            {t("downloadList.cancelAll")}
+          </Button>
+        )}
+        {groupFolder && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={async () => {
+              try {
+                await apiInvoke("reveal_in_folder", { path: groupFolder });
+              } catch (e) {
+                console.error("Failed to reveal folder:", e);
+              }
+            }}
+            title={t("downloadList.revealInFolder")}
+            className="shrink-0"
+          >
+            <FolderSearch className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+      {expanded && (
+        <div className="divide-y border-t">
+          {items.map((d) => (
+            <DownloadItem
+              key={d.id}
+              download={d}
+              queuePosition={pendingQueuePositions.get(d.id)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function DownloadList() {
   const { downloads, isLoading, fetchDownloads } = useDownloadStore();
   const [filter, setFilter] = useState<Download["status"] | "all">("all");
@@ -378,6 +491,26 @@ export function DownloadList() {
   const filteredDownloads = downloads.filter(
     (d) => filter === "all" || d.status === filter
   );
+
+  // Collection batches collapse into one row; standalone downloads stay as-is
+  const { groups, standalone } = useMemo(() => {
+    const standalone: Download[] = [];
+    const groupMap = new Map<string, { title: string; items: Download[] }>();
+    for (const d of filteredDownloads) {
+      const cid = d.collection_id?.trim();
+      if (!cid) {
+        standalone.push(d);
+        continue;
+      }
+      let g = groupMap.get(cid);
+      if (!g) {
+        g = { title: d.collection_title?.trim() || cid, items: [] };
+        groupMap.set(cid, g);
+      }
+      g.items.push(d);
+    }
+    return { groups: [...groupMap.entries()], standalone };
+  }, [filteredDownloads]);
 
   const pendingQueuePositions = useMemo(() => {
     const positions = new Map<string, number>();
@@ -430,7 +563,15 @@ export function DownloadList() {
           </div>
         ) : (
           <div className="divide-y">
-            {filteredDownloads.map((download) => (
+            {groups.map(([cid, g]) => (
+              <CollectionGroup
+                key={cid}
+                title={g.title}
+                items={g.items}
+                pendingQueuePositions={pendingQueuePositions}
+              />
+            ))}
+            {standalone.map((download) => (
               <DownloadItem
                 key={download.id}
                 download={download}

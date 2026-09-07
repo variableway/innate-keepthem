@@ -242,7 +242,10 @@
     "extractingAudio": "Extracting audio...",
     "extractAudioSuccess": "Audio extracted successfully to: {{path}}",
     "extractAudioFailed": "Failed to extract audio",
-    "noVideoFile": "Video file path is not available"
+    "noVideoFile": "Video file path is not available",
+    "cancelAll": "Stop all",
+    "expand": "Expand",
+    "collapse": "Collapse"
   },
   "settings": {
     "title": "Settings",

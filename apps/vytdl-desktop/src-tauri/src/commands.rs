@@ -97,6 +97,10 @@ pub struct StartDownloadRequest {
     /// Pre-fetched title (e.g. from playlist expansion) so the download list
     /// shows a meaningful name before yt-dlp reports the real one
     pub title: Option<String>,
+    /// Shared by every entry of one collection batch — the download list
+    /// groups children under the collection title
+    pub collection_id: Option<String>,
+    pub collection_title: Option<String>,
     pub is_playlist: bool,
     pub quality: Option<String>,
     pub format: Option<String>,
@@ -140,6 +144,13 @@ pub async fn start_download(
         url: request.url.clone(),
         title: request
             .title
+            .as_deref()
+            .map(str::trim)
+            .filter(|t| !t.is_empty())
+            .map(str::to_string),
+        collection_id: request.collection_id.filter(|v| !v.trim().is_empty()),
+        collection_title: request
+            .collection_title
             .as_deref()
             .map(str::trim)
             .filter(|t| !t.is_empty())
@@ -303,6 +314,8 @@ pub async fn retry_download(
         id: download_id.clone(),
         url: original.url.clone(),
         title: None,
+        collection_id: original.collection_id.clone(),
+        collection_title: original.collection_title.clone(),
         status: DownloadStatus::Pending,
         progress: 0.0,
         speed: None,

@@ -38,6 +38,8 @@ export interface DownloadRecord {
   subtitles: string;
   error: string | null;
   queue_position: number;
+  collection_id?: string | null;
+  collection_title?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -66,6 +68,8 @@ export class Database {
         subtitles TEXT DEFAULT '[]',
         error TEXT,
         queue_position INTEGER DEFAULT 0,
+        collection_id TEXT,
+        collection_title TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
@@ -90,13 +94,22 @@ export class Database {
         error TEXT
       );
     `);
+
+    // Migration: collection grouping for existing databases
+    for (const col of ["collection_id TEXT", "collection_title TEXT"]) {
+      try {
+        this.db.exec(`ALTER TABLE downloads ADD COLUMN ${col}`);
+      } catch {
+        // column already exists
+      }
+    }
   }
 
   createDownload(record: DownloadRecord): void {
     this.db
       .prepare(
-        `INSERT INTO downloads (id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO downloads (id, url, title, status, progress, speed, eta, output_dir, filename, subtitles, error, queue_position, collection_id, collection_title, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         record.id,
@@ -111,6 +124,8 @@ export class Database {
         record.subtitles,
         record.error,
         record.queue_position,
+        record.collection_id ?? null,
+        record.collection_title ?? null,
         record.created_at,
         record.updated_at
       );

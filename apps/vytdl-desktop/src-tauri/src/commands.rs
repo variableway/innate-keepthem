@@ -313,7 +313,9 @@ pub async fn retry_download(
     let record = DownloadRecord {
         id: download_id.clone(),
         url: original.url.clone(),
-        title: None,
+        // Keep the pre-fetched title so retried items don't show as untitled
+        // while waiting in the queue
+        title: original.title.clone(),
         collection_id: original.collection_id.clone(),
         collection_title: original.collection_title.clone(),
         status: DownloadStatus::Pending,

@@ -125,7 +125,8 @@ app.post("/api/retry-download", async (c) => {
   const record = {
     id: newId,
     url: original.url,
-    title: null,
+    // Keep the pre-fetched title so retried items don't show as untitled
+    title: original.title ?? null,
     collection_id: original.collection_id ?? null,
     collection_title: original.collection_title ?? null,
     status: "pending" as const,

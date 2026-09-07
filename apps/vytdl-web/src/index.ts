@@ -295,9 +295,14 @@ function openPathLocally(target: string, reveal: boolean): Promise<void> {
       : { bin: "xdg-open", args: [target] };
     const child = spawn(cmd.bin, cmd.args, { stdio: "ignore" });
     child.on("error", (err) => reject(err));
-    child.on("exit", (code) =>
-      code === 0 ? resolve() : reject(new Error(`${cmd.bin} exited with code ${code}`))
-    );
+    child.on("exit", (code) => {
+      // explorer.exe exits with code 1 even when it succeeds
+      if (code === 0 || (isWin && cmd.bin === "explorer" && code === 1)) {
+        resolve();
+      } else {
+        reject(new Error(`${cmd.bin} exited with code ${code}`));
+      }
+    });
   });
 }
 

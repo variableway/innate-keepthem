@@ -11,7 +11,7 @@ import { formatDuration } from "@vytdl/utils";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useDownloadStore } from "@/store/downloadStore";
 import { useTranslation } from "@/i18n";
-import type { DownloadOptions, PlaylistInfo, ApiResponse } from "@/types";
+import type { DownloadOptions, PlaylistInfo, ApiResponse, CookieConfig } from "@/types";
 import { apiInvoke } from "@/lib/api-client";
 import { sanitizeFolderName, isAlreadyDownloaded } from "@/lib/download-paths";
 import { estimateFileSizeMb, formatSizeMb } from "@/lib/size-estimate";
@@ -37,6 +37,9 @@ export function CollectionTab() {
   const [quality, setQuality] = useState("best");
   const [writeSubs, setWriteSubs] = useState(true);
   const [skippedCount, setSkippedCount] = useState(0);
+  // Per-download overrides (fall back to global settings when empty)
+  const [advCookieBrowser, setAdvCookieBrowser] = useState("");
+  const [advExtractorArgs, setAdvExtractorArgs] = useState("");
 
   const settings = useSettingsStore((s) => s.settings);
   const { startDownload, clearError, downloads } = useDownloadStore();
@@ -195,11 +198,13 @@ export function CollectionTab() {
         sub_langs: writeSubs ? ["en", "zh"] : undefined,
         write_subs: writeSubs,
         write_auto_subs: writeSubs,
-        cookie: settings?.cookie ?? undefined,
+        cookie: advCookieBrowser
+          ? ({ mode: "browser", browser: advCookieBrowser } as CookieConfig)
+          : settings?.cookie ?? undefined,
         proxy: settings?.proxy ?? undefined,
         concurrent_fragments: settings?.concurrent_fragments ?? undefined,
         po_token: settings?.po_token ?? undefined,
-        extractor_args: settings?.extractor_args ?? undefined,
+        extractor_args: advExtractorArgs.trim() || (settings?.extractor_args ?? undefined),
       };
       const downloadId = await startDownload(options);
       if (!downloadId) failed++;
@@ -377,6 +382,35 @@ export function CollectionTab() {
               {t("collectionTab.downloadSubs")}
               <span className="text-xs text-muted-foreground">EN / ZH (VTT)</span>
             </label>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label className="text-xs flex items-center gap-2">
+                <span className="shrink-0">{t("downloadForm.cookieThisTime")}</span>
+                <select
+                  className="flex-1 min-w-0 rounded-md border border-input bg-background px-2 h-8"
+                  value={advCookieBrowser}
+                  onChange={(e) => setAdvCookieBrowser(e.target.value)}
+                  disabled={isSubmitting}
+                >
+                  <option value="">{t("downloadForm.followGlobal")}</option>
+                  <option value="chrome">Chrome</option>
+                  <option value="safari">Safari</option>
+                  <option value="edge">Edge</option>
+                  <option value="firefox">Firefox</option>
+                  <option value="arc">Arc</option>
+                </select>
+              </label>
+              <label className="text-xs flex items-center gap-2">
+                <span className="shrink-0">{t("downloadForm.extractorArgsThisTime")}</span>
+                <input
+                  className="flex-1 min-w-0 rounded-md border border-input bg-background px-2 h-8"
+                  placeholder="twitter:api=graphql"
+                  value={advExtractorArgs}
+                  onChange={(e) => setAdvExtractorArgs(e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </label>
+            </div>
 
             {skippedCount > 0 && !isSubmitting && progress.total > 0 && (
               <p className="text-xs text-muted-foreground text-center">

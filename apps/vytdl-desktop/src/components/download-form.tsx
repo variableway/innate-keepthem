@@ -11,7 +11,7 @@ import { useSettingsStore } from "@/store/settingsStore";
 import { useDownloadStore } from "@/store/downloadStore";
 import { formatDuration } from "@vytdl/utils";
 import { useTranslation } from "@/i18n";
-import type { DownloadOptions, VideoInfo, PlaylistInfo, ApiResponse } from "@/types";
+import type { DownloadOptions, VideoInfo, PlaylistInfo, ApiResponse, CookieConfig } from "@/types";
 
 const QUALITY_OPTIONS = [
   { value: "best", labelKey: "downloadForm.bestQuality" },
@@ -113,6 +113,10 @@ export function DownloadForm({ mode }: DownloadFormProps) {
   const [embedChapters, setEmbedChapters] = useState(false);
   const [sponsorblock, setSponsorblock] = useState(false);
   const [rateLimit, setRateLimit] = useState("");
+  // Per-download overrides (fall back to global settings when empty)
+  const [advCookieBrowser, setAdvCookieBrowser] = useState("");
+  const [advExtractorArgs, setAdvExtractorArgs] = useState("");
+  const [showPerDownload, setShowPerDownload] = useState(false);
   const settings = useSettingsStore((s) => s.settings);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [batchProgress, setBatchProgress] = useState({ submitted: 0, total: 0, failed: 0 });
@@ -415,11 +419,13 @@ export function DownloadForm({ mode }: DownloadFormProps) {
           embed_chapters: embedChapters || undefined,
           sponsorblock_remove: sponsorblock || undefined,
           rate_limit: rateLimit || undefined,
-          cookie: settings?.cookie ?? undefined,
+          cookie: advCookieBrowser
+          ? ({ mode: "browser", browser: advCookieBrowser } as CookieConfig)
+          : settings?.cookie ?? undefined,
           proxy: settings?.proxy ?? undefined,
           concurrent_fragments: settings?.concurrent_fragments ?? undefined,
           po_token: settings?.po_token ?? undefined,
-          extractor_args: settings?.extractor_args ?? undefined,
+          extractor_args: advExtractorArgs.trim() || (settings?.extractor_args ?? undefined),
         };
         const downloadId = await startDownload(options);
         if (!downloadId) failed++;
@@ -448,11 +454,13 @@ export function DownloadForm({ mode }: DownloadFormProps) {
       embed_chapters: embedChapters || undefined,
       sponsorblock_remove: sponsorblock || undefined,
       rate_limit: rateLimit || undefined,
-      cookie: settings?.cookie ?? undefined,
+      cookie: advCookieBrowser
+        ? ({ mode: "browser", browser: advCookieBrowser } as CookieConfig)
+        : settings?.cookie ?? undefined,
       proxy: settings?.proxy ?? undefined,
       concurrent_fragments: settings?.concurrent_fragments ?? undefined,
       po_token: settings?.po_token ?? undefined,
-      extractor_args: settings?.extractor_args ?? undefined,
+      extractor_args: advExtractorArgs.trim() || (settings?.extractor_args ?? undefined),
     };
 
     // Playlist submit: expand into one queue item per entry so every video
@@ -883,8 +891,14 @@ export function DownloadForm({ mode }: DownloadFormProps) {
                         onChange={(e) => setRateLimit(e.target.value)}
                       />
                     </label>
+                    <PerDownloadAdvanced
+                      cookieBrowser={advCookieBrowser}
+                      setCookieBrowser={setAdvCookieBrowser}
+                      extractorArgs={advExtractorArgs}
+                      setExtractorArgs={setAdvExtractorArgs}
+                    />
                     <p className="col-span-2 text-[11px] text-muted-foreground">
-                      Cookie / 代理 / 并发分片等全局项在 设置 → 网络与高级 中配置
+                      代理 / 并发分片等其余全局项在 设置 → 网络与高级 中配置
                     </p>
                   </div>
                 )}
@@ -904,6 +918,28 @@ export function DownloadForm({ mode }: DownloadFormProps) {
               <span className="text-sm">{t("downloadForm.playlistCheckbox")}</span>
             </label>
           </div>
+
+          {mode === "batch" && (
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowPerDownload((v) => !v)}
+                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+              >
+                {showPerDownload ? "▼" : "▶"} {t("downloadForm.perDownloadOptions")}
+              </button>
+              {showPerDownload && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <PerDownloadAdvanced
+                    cookieBrowser={advCookieBrowser}
+                    setCookieBrowser={setAdvCookieBrowser}
+                    extractorArgs={advExtractorArgs}
+                    setExtractorArgs={setAdvExtractorArgs}
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -1027,6 +1063,49 @@ export function DownloadForm({ mode }: DownloadFormProps) {
         </form>
       </CardContent>
     </Card>
+  );
+}
+
+// ── 按次覆盖：Cookie 浏览器选择 + extractor-args（留空跟随全局设置）──
+function PerDownloadAdvanced({
+  cookieBrowser,
+  setCookieBrowser,
+  extractorArgs,
+  setExtractorArgs,
+}: {
+  cookieBrowser: string;
+  setCookieBrowser: (v: string) => void;
+  extractorArgs: string;
+  setExtractorArgs: (v: string) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <label className="col-span-2 text-xs flex items-center gap-2">
+        <span className="shrink-0">{t("downloadForm.cookieThisTime")}</span>
+        <select
+          className="flex-1 min-w-0 rounded border bg-transparent px-2 py-1"
+          value={cookieBrowser}
+          onChange={(e) => setCookieBrowser(e.target.value)}
+        >
+          <option value="">{t("downloadForm.followGlobal")}</option>
+          <option value="chrome">Chrome</option>
+          <option value="safari">Safari</option>
+          <option value="edge">Edge</option>
+          <option value="firefox">Firefox</option>
+          <option value="arc">Arc</option>
+        </select>
+      </label>
+      <label className="col-span-2 text-xs flex items-center gap-2">
+        <span className="shrink-0">{t("downloadForm.extractorArgsThisTime")}</span>
+        <input
+          className="flex-1 min-w-0 rounded border bg-transparent px-2 py-1"
+          placeholder="twitter:api=graphql"
+          value={extractorArgs}
+          onChange={(e) => setExtractorArgs(e.target.value)}
+        />
+      </label>
+    </>
   );
 }
 

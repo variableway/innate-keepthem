@@ -211,7 +211,11 @@
     "formatMkv": "MKV",
     "formatMov": "MOV",
     "recentUrls": "最近のURL",
-    "eta": "残り時間"
+    "eta": "残り時間",
+    "cookieThisTime": "Cookie（今回のみ）",
+    "followGlobal": "グローバル設定に従う",
+    "extractorArgsThisTime": "extractor-args（今回のみ）",
+    "perDownloadOptions": "今回のダウンロードオプション"
   },
   "downloadList": {
     "title": "ダウンロード一覧",

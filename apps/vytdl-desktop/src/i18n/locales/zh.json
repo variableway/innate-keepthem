@@ -211,7 +211,11 @@
     "formatMkv": "MKV",
     "formatMov": "MOV",
     "recentUrls": "最近链接",
-    "eta": "预计完成时间"
+    "eta": "预计完成时间",
+    "cookieThisTime": "Cookie（本次下载）",
+    "followGlobal": "跟随全局设置",
+    "extractorArgsThisTime": "extractor-args（本次下载）",
+    "perDownloadOptions": "本次下载选项"
   },
   "downloadList": {
     "title": "下载任务",

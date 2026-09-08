@@ -211,7 +211,11 @@
     "formatMkv": "MKV",
     "formatMov": "MOV",
     "recentUrls": "Recent URLs",
-    "eta": "ETA"
+    "eta": "ETA",
+    "cookieThisTime": "Cookie (this batch)",
+    "followGlobal": "Follow global settings",
+    "extractorArgsThisTime": "extractor-args (this batch)",
+    "perDownloadOptions": "Per-download options"
   },
   "downloadList": {
     "title": "Downloads",

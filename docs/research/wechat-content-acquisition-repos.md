@@ -42,7 +42,7 @@
 | 3 | [qiye45/wechatDownload](https://github.com/qiye45/wechatDownload) | 9.3k | 把文章链接发到微信内打开以抓取 key（无需装证书），批量下载 html/mhtml/md/pdf/docx/csv + 评论/合集/阅读量；**v4.4 起内置 MCP/Skill 调用**（仓库含 `skills/wechat-article-downloader`） | 活跃（v4.7，适配微信 4.0），闭源发布，Win/macOS |
 | 4 | [rachelos/we-mp-rss](https://github.com/rachelos/we-mp-rss) | 4.5k | wewe-rss 的活跃后继：扫码授权 + 多采集模式（默认 app 列表 + web 正文校正，微信读书为可选模式），导出 md/docx/pdf/json，REST API + Webhook | 活跃（994 commits），Python FastAPI + Vue3 |
 | 5 | [wnma3mz/wechat_articles_spider](https://github.com/wnma3mz/wechat_articles_spider) | 3.5k | 经典 Python 库（`pip install wechatarticles`）：手动 Fiddler 抓包取 cookie/token/appmsg_token，可爬全量文章 URL、阅读量、评论 | ⚠️ 2023 年后停更，参数易过期 |
-| 6 | [tmwgsicp/wechat-download-api](https://github.com/tmwgsicp/wechat-download-api) | 1.1k | 公众平台管理员扫码（凭证约 4 天），可取任意公众号；整号导出 7 种格式（MD/HTML/Word/PDF/EPUB/Excel/JSON）+ 全文 RSS；**`/mcp` 挂载 6 个工具**（search_accounts、read_article 等）；curl_cffi TLS 指纹 + SOCKS5 代理池 + 三层限频反风控 | 活跃，AGPL-3.0 |
+| 6 | [tmwgsicp/wechat-download-api](https://github.com/tmwgsicp/wechat-download-api) | 1.1k | 公众平台管理员扫码（凭证约 4 天），可取任意公众号；整号导出 7 种格式（MD/HTML/Word/PDF/EPUB/Excel/JSON）+ 全文 RSS；**`/mcp` 挂载 6 个工具**（search_accounts、read_article 等）；curl_cffi TLS 指纹 + SOCKS5 代理池 + 三层限频反风控 | ⚠️ **2026-07-30 起核心功能瘫痪**：微信关闭公众平台"获取文章列表"接口（issue #21/#22，ret=200013 freq control），作者在 #23 提出微信读书 Web 端替代路径但社区实测 errCode -2041 仍被风控；单篇获取/搜索暂可用，整号订阅/批量导出待新方案，AGPL-3.0 |
 | 7 | [1061700625/WeChat_Article](https://github.com/1061700625/WeChat_Article) | 1.1k | Selenium 自动登录公众平台取 token/cookie，爬取下载 txt/HTML（图片本地化）/PDF，支持时间/关键词筛选 | 可用，限流需换号 |
 | 8 | [jackwener/wechat-article-to-markdown](https://github.com/jackwener/wechat-article-to-markdown) | 1.0k | 单篇文章 URL 抓取转 Markdown | 低频维护 |
 | 9 | [pudongping/mp-vx-insight](https://github.com/pudongping/mp-vx-insight) | 586 | 浏览器扩展：一键取公众号封面图、全部文章列表、正文采集 | 可用 |
@@ -56,6 +56,56 @@
 2. **微信读书接口**（wewe-rss 系）
 3. **PC 微信抓 key**（qiye45/wechatDownload）
 4. **单篇直抓过反爬**（wexin-read-mcp，免凭证）
+
+## 附：懒猫微服「微信公众号 MCP」（LazyCat MCP Provider）
+
+> 2026-09-09 补充调研。
+
+- **是什么**：懒猫微服应用商店的第三方应用 `cloud.lazycat.app.wechat-official-mcp`（开发者 nierenjun，v0.2.0，约 69MB，需 LzcOS ≥1.5.2，仅桌面端）。通过 MCP 接口向懒猫微服内置 AI Agent（小龙猫）提供公众号文章检索、按号浏览、全文搜索、Markdown 正文读取、AI 总结能力。
+- **开源状态**：❌ **闭源**。应用商店「来源」栏为空，GitHub 无 nierenjun 账号/仓库，未发现任何源码发布。
+- **技术路线**：微信读书扫码登录（不要求公众号管理员权限）→ 粘贴一篇公众号文章链接订阅该号 → 优先导入微信读书可见文章；历史回溯靠微信读书已知文章 + 公开搜索索引 + 文内链接扩展，必要时弹验证页人工完成后断点续传；公众号后台接口仅兜底。全部运行在懒猫微服内，不连本地电脑微信、不用付费 API。
+- **懒猫外等效替代**：闭源无法自托管——同路线可自建 we-mp-rss（微信读书模式 + 公众平台兜底，MIT）或 wechat-download-api（公众平台扫码，自带 `/mcp` 六工具，AGPL）；两者本地已 clone 至 `references/`。
+
+## 附 2：GitHub 上的公众号 MCP 服务器盘点（2026-09-09）
+
+> 结论先行：**GitHub 上叫「公众号 MCP」的项目绝大多数是运营向**（管理自己的公众号、群发/草稿/素材，走官方 OpenAPI，需 AppID/AppSecret），**不是内容采集向**。真正的采集向 MCP 只有 tmwgsicp/wechat-download-api 和 Bwkyd/wexin-read-mcp 两个。
+
+### 运营向（走官方 OpenAPI，与采集无关）
+
+| 仓库 | Stars | 说明 |
+|------|-------|------|
+| [xwang152-jack/wechat-official-account-mcp](https://github.com/xwang152-jack/wechat-official-account-mcp) | 62 | 最全的运营 MCP：21 个工具覆盖用户/标签/菜单/素材/草稿/发布/消息/统计；MIT，npx 即用，活跃（v2.2.0） |
+| [BobGod/wechat-publisher-mcp](https://github.com/BobGod/wechat-publisher-mcp) | 55 | 发布向 2 工具（Markdown→微信 HTML 发布 + 数据查询）；MIT，成熟度低（模板未改完） |
+| [kakaxi3019/wechat_oa_mcp](https://github.com/kakaxi3019/wechat_oa_mcp) | 27 | 发布向 5 工具；⚠️ 托管模式 AppSecret 经作者服务器（106.15.125.133）中转，有信任风险；另有本地部署版 wechat_oa_api_mcp（11⭐） |
+| [tc6-01/weixin-mcp](https://github.com/tc6-01/weixin-mcp) | 9 | kakaxi 版的 Go 重写（宣称启动快 20-30 倍），仅 1 commit |
+| 其余 | ≤5 | HsiangNianian/wechat-publisher-mcp（远程发布）、vluma、xihe-lab 等同质化小项目；xyezir/falcon-wemp-mcp 是空仓库 |
+
+特殊：[zero-times/wechat-official-studio-mcp](https://github.com/zero-times/wechat-official-studio-mcp)（1⭐）用**已登录的公众平台网页会话**读自己账号的文章+存草稿，算半个"读取"，但只针对自己运营的号。
+
+### 微信读书向（不是公众号采集）
+
+| 仓库 | Stars | 说明 |
+|------|-------|------|
+| [freestylefly/mcp-server-weread](https://github.com/freestylefly/mcp-server-weread) | 575 | 只管**书架/笔记/划线/书评**（4 工具），README 里的"公众号"是作者自己的号；Cookie 认证（F12 手动复制或 CookieCloud 自动同步）；不能获取公众号文章 |
+
+### 采集向（真正的"获取公众号内容"MCP）
+
+| 仓库 | Stars | 说明 |
+|------|-------|------|
+| [tmwgsicp/wechat-download-api](https://github.com/tmwgsicp/wechat-download-api) | 1.1k | 唯一的开源整号采集 MCP（公众平台扫码，`/mcp` 六工具），见上文 Top 10 #6 |
+| [Bwkyd/wexin-read-mcp](https://github.com/Bwkyd/wexin-read-mcp) | 450 | 唯一的开源单篇阅读 MCP（URL→Markdown，免凭证），见上文 Top 10 #10 |
+
+**含义**：LazyCat 那个闭源应用（微信读书优先 + 公众平台兜底）在开源界没有等价物——把 we-mp-rss 的微信读书采集路线包一层 MCP 是目前开源社区缺失的一环，也正是自建 skill 的机会点。
+
+## 附 3：⚠️ 2026-07-30 微信接口封禁事件（2026-09-09 查证）
+
+2026-07-30 前后微信官方**关闭了公众平台"获取公众号文章列表"的内部接口**，同源方案连环受创：
+
+- **wechat-article-exporter**（12.9k⭐）：2026-07-30 公告停止维护并归档，"上游核心接口已被官方关闭，无法通过修改代码绕过"
+- **tmwgsicp/wechat-download-api**（1.1k⭐）：同日 issue #21「轮询器失效」、#22「获取文章列表失败」（ret=200013 freq control），作者确认接口被关；#23 提出微信读书 Web 端替代（`MP_WXS_` bookId + `addToShelf` + `WEREAD_COOKIE`），社区实测 errCode **-2041** 仍被风控。当前单篇获取/搜索暂可用，**整号订阅/批量导出基本瘫痪**
+- **rachelos/we-mp-rss**（4.5k⭐）：8-9 月也有「文章无法同步」（#463）、「还能不能获取文章」（#456）报告，但作者仍在积极对抗——9-04 合并 #462「公众号采集改为列表接口增量补抓多篇，cover 接口兜底」，是目前唯一持续更新采集方案的头部项目
+
+**选型提醒**：2026-07 之后所有公众号采集方案上线前必须小规模实测；"公众平台扫码"路线（借自己订阅号后台会话调内部搜索接口）已死，微信读书路线在被风控与对抗中摇摆，单篇直抓（wexin-read-mcp）暂不受影响。
 
 ## 三、对构建 Skill 的启示
 

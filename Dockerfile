@@ -1,4 +1,4 @@
-# ── Stage 1: Build frontend ──
+# ── Stage 1: Build frontend (static export) ─────────────────────────────────
 FROM node:20-slim AS frontend-builder
 WORKDIR /app
 
@@ -14,32 +14,24 @@ RUN pnpm install
 COPY apps/vytdl-desktop/ ./apps/vytdl-desktop/
 COPY packages/ ./packages/
 
+# output: "export" → static site in apps/vytdl-desktop/out
 RUN cd apps/vytdl-desktop && pnpm build
 
-# ── Stage 2: Build web server ──
-FROM node:20-slim AS server-builder
-WORKDIR /app
+# ── Stage 2: Build the Go daemon (services/vytdl, in-repo) ──────────────────
+FROM golang:1.24-alpine AS daemon-builder
+ARG GOPROXY=https://proxy.golang.org,direct
+ENV GOPROXY=${GOPROXY}
+WORKDIR /src/services/vytdl
 
-RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+COPY services/vytdl/go.mod services/vytdl/go.sum ./
+RUN go mod download
 
-COPY apps/vytdl-web/package.json ./
-RUN npm install
+COPY services/vytdl/ ./
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=$(go env GOARCH) \
+    go build -trimpath -ldflags="-s -w" -o /out/vytdl .
 
-COPY apps/vytdl-web/ ./
-RUN npm run build
-
-# ── Stage 3: Build Go CLI (canonical repo qdriven/innate-vytdl) ──
-FROM golang:1.24-alpine AS cli-builder
-WORKDIR /app
-
-RUN apk add --no-cache git
-RUN git clone --depth 1 https://github.com/qdriven/innate-vytdl.git /app/vYtDL-standalone
-WORKDIR /app/vYtDL-standalone
-ENV GOWORK=off
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=$(go env GOARCH) go build -ldflags="-s -w" -o vYtDL .
-
-# ── Stage 4: Production ──
-FROM node:20-slim
+# ── Stage 3: Production (daemon + static frontend) ──────────────────────────
+FROM debian:bookworm-slim
 
 RUN apt-get update && apt-get install -y \
     python3 \
@@ -47,26 +39,19 @@ RUN apt-get update && apt-get install -y \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --break-system-packages yt-dlp
+RUN pip3 install --break-system-packages --no-cache-dir yt-dlp
 
 WORKDIR /app
 
+COPY --from=daemon-builder /out/vytdl ./vytdl
 COPY --from=frontend-builder /app/apps/vytdl-desktop/out ./out
-
-COPY --from=server-builder /app/dist ./server
-COPY --from=server-builder /app/node_modules ./server/node_modules
-
-COPY --from=cli-builder /app/vYtDL-standalone/vYtDL ./cli/vYtDL
 
 RUN mkdir -p /app/data /app/downloads
 
-ENV NODE_ENV=production
-ENV VYTDL_DB_PATH=/app/data/vytdl.db
 ENV VYTDL_OUTPUT_DIR=/app/downloads
-ENV VYTDL_STATIC_DIR=/app/out
-ENV VYTDL_CLI_PATH=/app/cli/vYtDL
-ENV PORT=3000
-
 EXPOSE 3000
 
-CMD ["node", "server/index.js"]
+# Single process, single backend: the Go daemon serves both the API/WS and
+# the static frontend. Data lives under /app/data (vytdl.db), downloads in
+# /app/downloads — mount both as volumes.
+CMD ["/app/vytdl", "serve", "--host", "0.0.0.0", "--port", "3000", "--static", "/app/out", "--home", "/app/data"]

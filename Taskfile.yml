@@ -1,7 +1,7 @@
 version: "3"
 
 vars:
-  CLI_DIR: ./vYtDL-standalone
+  CLI_DIR: ./services/vytdl
   DESKTOP_APP_DIR: ./apps/vytdl-desktop
   CONTENTFORGE_DIR: ./tools/contentforge-cli
   CLI_BIN: vYtDL
@@ -41,7 +41,7 @@ tasks:
       - "**/*.go"
 
   cli:build:windows:
-    desc: Cross-compile Windows amd64 + arm64 (.exe → vYtDL-standalone/dist/)
+    desc: Cross-compile Windows amd64 + arm64 (.exe → services/vytdl/dist/)
     dir: "{{.CLI_DIR}}"
     env:
       GOWORK: "off"
@@ -116,6 +116,35 @@ tasks:
     cmds:
       - go install -trimpath -ldflags "-s -w" .
 
+  # ── Daemon (vytdl serve — refactor Sprint 1) ─────────────
+  daemon:dev:
+    desc: Run the vYtDL daemon locally (API+WS on a random loopback port)
+    dir: "{{.CLI_DIR}}"
+    env:
+      GOWORK: "off"
+    cmds:
+      - go run . serve --dev --home ./.daemon-home
+
+  daemon:build:
+    desc: Build the daemon binary (services/vytdl/dist/vytdl)
+    dir: "{{.CLI_DIR}}"
+    env:
+      GOWORK: "off"
+    cmds:
+      - go build -trimpath -ldflags "-s -w" -o dist/vytdl .
+    sources:
+      - "**/*.go"
+    generates:
+      - "dist/vytdl"
+
+  daemon:test:
+    desc: Run daemon + CLI Go tests
+    dir: "{{.CLI_DIR}}"
+    env:
+      GOWORK: "off"
+    cmds:
+      - go test ./...
+
   # ── Desktop App (Tauri, via Python scripts or direct pnpm) ─
   desktop:check:
     desc: Check desktop build dependencies (Node, pnpm, Rust)
@@ -136,7 +165,7 @@ tasks:
       - "{{.PYTHON}} scripts/download-yt-dlp-binaries.py"
 
   desktop:cli:
-    desc: Build vYtDL-standalone and stage it as the desktop sidecar binary (bin/vYtDL-<triple>)
+    desc: Build services/vytdl CLI and stage it as the desktop sidecar binary (bin/vYtDL-<triple>)
     dir: "."
     cmds:
       - "{{.PYTHON}} scripts/build-desktop.py cli"
@@ -274,8 +303,8 @@ tasks:
         echo ""
         echo "  Install Task:  brew install go-task"
         echo ""
-        echo "  vYtDL CLI (canonical checkout vYtDL-standalone/):"
-        echo "    git clone https://github.com/qdriven/innate-vytdl.git vYtDL-standalone"
+        echo "  vYtDL CLI (canonical source services/vytdl/):"
+        echo "    CLI source lives in services/vytdl (synced to qdriven/innate-vytdl via PR)"
         echo "    task cli:build"
         echo "    task cli:build:windows      # Windows amd64 + arm64"
         echo "    task cli:build:windows:amd64"
@@ -293,8 +322,8 @@ tasks:
         echo "    task contentforge:build"
         echo "    source packages/contentforge-core/scripts/cf-env.sh"
         echo ""
-        echo "  vYtDL CLI standalone repo (vYtDL-standalone/):"
-        echo "    cd vYtDL-standalone && task build"
+        echo "  vYtDL CLI source (services/vytdl/):"
+        echo "    cd services/vytdl && task build"
         echo ""
         echo "  Direct Python (still supported):"
         echo "    python3 scripts/build-desktop.py dev"

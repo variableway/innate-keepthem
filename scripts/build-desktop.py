@@ -78,8 +78,8 @@ def get_tauri_src_dir(project_dir: Path) -> Path:
 
 # ───────────────────── CLI sidecar (unified vYtDL binary) ─────────────────────
 # The desktop app bundles the vYtDL CLI as a Tauri sidecar (externalBin).
-# There is exactly ONE CLI source checkout: vYtDL-standalone/
-# (canonical https://github.com/qdriven/innate-vytdl). This script builds it
+# There is exactly ONE CLI source checkout: services/vytdl/
+# (synced one-way to https://github.com/qdriven/innate-vytdl). This script builds it
 # for the target platform and stages it as src-tauri/bin/vYtDL-<triple>,
 # which tauri.conf.json's externalBin expects.
 
@@ -105,7 +105,7 @@ def get_host_triple() -> str | None:
 
 
 def stage_cli_sidecar(project_dir: Path, target: str | None, verbose: bool = False) -> bool:
-    """Build vYtDL-standalone and stage it as the desktop sidecar binary."""
+    """Build the services/vytdl CLI and stage it as the desktop sidecar binary."""
     triple = target or get_host_triple()
     if not triple:
         error("Cannot determine Rust target triple (is rustc installed?)")
@@ -116,11 +116,11 @@ def stage_cli_sidecar(project_dir: Path, target: str | None, verbose: bool = Fal
         warn(f"Unknown target triple {triple}; building CLI for host platform")
         go_target = None
 
-    cli_dir = project_dir / "vYtDL-standalone"
+    cli_dir = project_dir / "services" / "vytdl"
     if not (cli_dir / "go.mod").is_file():
         error(
-            "vYtDL-standalone/ not found. Clone the canonical CLI repo:\n"
-            "  git clone https://github.com/qdriven/innate-vytdl.git vYtDL-standalone"
+            "services/vytdl/ not found. The CLI source is tracked in the monorepo:\n"
+            "  (qdriven/innate-vytdl receives one-way sync PRs from services/vytdl)"
         )
         return False
     bin_dir = get_tauri_src_dir(project_dir) / "bin"

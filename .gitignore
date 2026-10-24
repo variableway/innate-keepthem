@@ -54,11 +54,12 @@ downloadeds/*
 for_V/for_V/*
 */test_download/*
 
-# Nested canonical CLI checkout (separate git repo; not tracked here)
+# Legacy nested CLI checkout (superseded by services/vytdl in refactor Sprint 1;
+# kept gitignored so any stale local clone is never tracked)
 # Clone: git clone https://github.com/qdriven/innate-vytdl.git vYtDL-standalone
 vYtDL-standalone/
 
-# Desktop CLI sidecar (built from vYtDL-standalone, staged by scripts/build-desktop.py)
+# Desktop CLI sidecar (built from services/vytdl, staged by scripts/build-desktop.py)
 apps/vytdl-desktop/src-tauri/bin/vYtDL-*
 
 # contentforge Python venv (created via cf-env.sh workflow)

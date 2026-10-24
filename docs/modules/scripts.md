@@ -4,7 +4,7 @@
 
 | 脚本 | 作用 |
 |------|------|
-| `build-desktop.py` | 主入口：依赖检查、从 `vYtDL-standalone` 编 sidecar、`dev` / `build` / `bundle` |
+| `build-desktop.py` | 主入口：依赖检查、从 `services/vytdl` 编 sidecar、`dev` / `build` / `bundle` |
 | `vytdl-launcher.py` | 备选：`dev` / `build` / `clean` / `schedule` |
 | `start-desktop.sh` / `.ps1` / `.py` | 薄封装启动桌面 |
 | `bootstrap-ytdlp-dev.sh` | 将系统 yt-dlp 拷到 `src-tauri/resources/yt-dlp/` 供开发编译 |
@@ -22,4 +22,4 @@ task desktop:build
 task desktop:bundle
 ```
 
-缺少 `vYtDL-standalone/go.mod` 时，`build-desktop.py` 会提示先 clone 规范仓库。
+缺少 `services/vytdl/go.mod` 时，`build-desktop.py` 会报错（CLI 源码已随 monorepo 分发）。

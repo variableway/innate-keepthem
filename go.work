@@ -1,6 +1,6 @@
-go 1.24.2
+go 1.26.0
 
 use (
-	./vYtDL-standalone
+	./services/vytdl
 	./tools/contentforge-cli
 )

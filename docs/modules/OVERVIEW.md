@@ -4,7 +4,7 @@
 
 | 模块 | 路径 | 类型 | 一句话 |
 |------|------|------|--------|
-| vYtDL CLI | `vYtDL-standalone/` | Go | yt-dlp 包装 CLI / TUI |
+| vYtDL CLI | `services/vytdl/` | Go | yt-dlp 包装 CLI / TUI |
 | vYtDL Desktop | `apps/vytdl-desktop/` | Tauri + Next | 图形化下载队列与库管理 |
 | vYtDL Web | `apps/vytdl-web/` | Hono + WS | Docker 可部署的同一套下载 API |
 | ContentForge CLI | `tools/contentforge-cli/` | Go | scrape / process / publish / pipeline |
@@ -21,7 +21,7 @@
 ```
 extensions/url-extractor ──URL 列表──► vYtDL CLI / Desktop
 
-vYtDL-standalone ──sidecar──► vytdl-desktop
+services/vytdl ──sidecar──► vytdl-desktop
        │                           │ @vytdl/ui + @vytdl/utils
        │                           └── static out ──► vytdl-web
        └── Docker clone ─────────────────────────────►

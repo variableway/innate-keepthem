@@ -1,0 +1,20 @@
+{
+  "name": "@vytdl/shell",
+  "version": "0.1.0",
+  "private": true,
+  "description": "vYtDL desktop shell (Electron host — no business logic)",
+  "main": "dist/main/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json && electron .",
+    "start": "electron .",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5",
+    "vitest": "^3"
+  }
+}

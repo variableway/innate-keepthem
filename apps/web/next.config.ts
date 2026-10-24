@@ -1,0 +1,17 @@
+import type { NextConfig } from "next";
+
+// apps/web is the browser/Electron frontend: always a static export served by
+// the daemon (`vytdl serve --static ./out`). No server runtime.
+const nextConfig: NextConfig = {
+  output: "export",
+  distDir: "out",
+  images: {
+    unoptimized: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  transpilePackages: ["@vytdl/ui", "@vytdl/utils"],
+};
+
+export default nextConfig;

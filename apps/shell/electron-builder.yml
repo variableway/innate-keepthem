@@ -1,0 +1,28 @@
+# electron-builder config — daemon binary + web static export as resources.
+appId: app.vytdl.desktop
+productName: vYtDL
+directories:
+  output: release/${version}
+files:
+  - dist/**/*
+extraResources:
+  # Go daemon binaries (built by scripts/build-shell-resources.py)
+  - from: resources/daemon
+    to: daemon
+  # Static frontend export (apps/web/out)
+  - from: resources/web
+    to: web
+mac:
+  category: public.app-category.utilities
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+  identity: null # signing/notarization: see docs/refactor/sprint-0/04-roadmap.md Sprint 2
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+linux:
+  target:
+    - AppImage
+    - arch: [x64]

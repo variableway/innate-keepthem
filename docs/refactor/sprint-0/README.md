@@ -1,7 +1,7 @@
 # Sprint 0：项目总体架构重构规划（Refactor-1）
 
 > 对应 Issue：[variableway/innate-keepthem#12](https://github.com/variableway/innate-keepthem/issues/12) — Refactor-1: 构建项目总体架构
-> 状态：**规划评审中**（Sprint 0 只产出计划与决策，不写实现代码）
+> 状态：**已完成**（2026-10-24 维护者确认 Q1–Q5 后进入 Sprint 1）
 
 ## 为什么要重构
 
@@ -49,4 +49,4 @@
 - [x] 目录重构方案与迁移映射表成文
 - [x] Sprint 1–4 路线图与每阶段验收标准成文
 - [x] 风险与开放问题列出，给出倾向性结论
-- [ ] 开放问题（Q1–Q4）由维护者确认后进入 Sprint 1
+- [x] 开放问题（Q1–Q5）由维护者确认（2026-10-24，见 [05](./05-risks-open-questions.md) §3），已进入 Sprint 1

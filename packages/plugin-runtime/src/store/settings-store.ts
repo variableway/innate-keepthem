@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, type PersistStorage } from "zustand/middleware";
 import { webStorage } from "@vytdl/plugin-runtime/store";
 import { apiInvoke } from "@vytdl/plugin-runtime/client";
 import type { Settings, ApiResponse } from "@vytdl/plugin-runtime/types";
@@ -89,7 +89,9 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "vytdl-settings",
-      storage: webStorage,
+      // Known zustand v5 typing gap (StateStorage vs PersistStorage) — runtime identical
+      // to the desktop app; see AGENTS.md "Known Issues".
+      storage: webStorage as unknown as PersistStorage<any>,
       partialize: (state) => ({
         settings: state.settings,
       }),

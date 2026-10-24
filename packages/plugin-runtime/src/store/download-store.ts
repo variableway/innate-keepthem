@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, type PersistStorage } from "zustand/middleware";
 import { webStorage } from "@vytdl/plugin-runtime/store";
 import { apiInvoke, apiListen } from "@vytdl/plugin-runtime/client";
 import type { Download, DownloadLog, DownloadOptions, DownloadProgress, ApiResponse } from "@vytdl/plugin-runtime/types";
@@ -165,7 +165,9 @@ export const useDownloadStore = create<DownloadState>()(
     }),
     {
       name: "vytdl-downloads",
-      storage: webStorage,
+      // Known zustand v5 typing gap (StateStorage vs PersistStorage) — runtime identical
+      // to the desktop app; see AGENTS.md "Known Issues".
+      storage: webStorage as unknown as PersistStorage<any>,
       partialize: (state) => ({
         // Only persist minimal state; downloads come from DB
       }),

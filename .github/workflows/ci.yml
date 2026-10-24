@@ -87,6 +87,9 @@ jobs:
       - name: Build (turbo)
         run: pnpm run build
 
+      - name: Plugin runtime tests
+        run: pnpm --filter @vytdl/plugin-runtime test
+
   # ── Python: contentforge-core ─────────────────────────────────
   python:
     name: Python (contentforge-core)

@@ -60,12 +60,19 @@ export function scopedInvoke<T>(
 
 /** A minimal per-plugin client handed to activate(ctx). */
 export interface ScopedApiClient {
-  invoke: typeof scopedInvoke;
+  invoke: <T>(
+    command: string,
+    args?: Record<string, unknown>,
+    options?: { signal?: AbortSignal },
+  ) => Promise<T>;
 }
 
 export function createScopedClient(manifest: PluginManifest): ScopedApiClient {
   return {
-    invoke: <T,>(command: string, args?: Record<string, unknown>, options?: { signal?: AbortSignal }) =>
-      scopedInvoke<T>(manifest, command, args, options),
+    invoke: <T,>(
+      command: string,
+      args?: Record<string, unknown>,
+      options?: { signal?: AbortSignal },
+    ) => scopedInvoke<T>(manifest, command, args, options),
   };
 }

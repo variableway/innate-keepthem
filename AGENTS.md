@@ -20,14 +20,15 @@ vYtDL is a YouTube downloader suite with four components:
 - **Location**: `services/vytdl/` — canonical source, tracked in this monorepo (refactor Sprint 1); `qdriven/innate-vytdl` receives one-way sync PRs
 - **Background service**: `vYtDL serve` daemon (`cmd/serve.go`, `internal/server/`) — HTTP API + WS + queue + SQLite, single backend for the web UI (see `docs/refactor/sprint-0/`)
 
-### Desktop (apps/vytdl-desktop/)
-- **Frontend**: Next.js + React 19 + TypeScript + Tailwind CSS
-- **Desktop Shell**: Tauri v2 (Rust backend)
-- **Build**: pnpm monorepo (apps/vytdl-desktop, packages/ui, packages/utils)
+### Desktop (apps/web + apps/shell — refactor Sprint 2)
+- **Frontend**: `apps/web` — Next.js + React 19 + TypeScript + Tailwind, static export (`output: "export"`), pure HTTP/WS (`api-client.ts`, no Tauri branch); native-only actions go through the `window.vytdlShell` preload bridge and degrade/hide in plain browsers
+- **Desktop Shell**: `apps/shell` — Electron host (no business logic): spawns/guards the Go daemon, sandboxed BrowserWindow loads the daemon URL; preload bridge exposes reveal-folder/open-terminal/dialog/clipboard; AI agent terminal launcher ported from Tauri (`src/main/terminal-launcher.ts`)
+- **Legacy**: `apps/vytdl-desktop` — Tauri v2 shell, frozen during refactor (removed in Sprint 4)
+- **Build**: pnpm monorepo (apps/*, packages/*, services/vytdl)
 - **State**: Zustand stores (downloadStore, settingsStore)
-- **Storage**: Tauri storage adapter + SQLite database
+- **Storage**: localStorage (web) / daemon SQLite; legacy Tauri store adapter frozen
 - **i18n**: Custom React context with JSON locale files (`src/i18n/`)
-- **API Abstraction**: `api-client.ts` supports both Tauri IPC and HTTP API modes
+- **API**: HTTP + WebSocket against `vytdl serve` (Electron: `http://127.0.0.1:<random port>`; browser/Docker: same API, any origin)
 
 ### Web Server (apps/vytdl-web/)
 - **Backend**: Node.js + Hono (@hono/node-server) + WebSocket (`ws`)
@@ -148,10 +149,10 @@ Batch mode:
 
 ## AI Agent Terminal Launcher
 
-`/workspace/terminal` (desktop/Tauri only) opens the user's local terminal (Ghostty, iTerm2, Terminal.app, Alacritty, kitty, WezTerm; wt/cmd on Windows) running an AI coding agent CLI with LLM provider config injected.
+`/workspace/terminal` (desktop only) opens the user's local terminal (Ghostty, iTerm2, Terminal.app, Alacritty, kitty, WezTerm; wt/cmd on Windows) running an AI coding agent CLI with LLM provider config injected.
 
-- Backend: `src-tauri/src/terminal_launcher.rs` — commands `detect_agent_terminals`, `list_agent_providers`, `detect_agent_clis`, `launch_agent_terminal`
-- Frontend: `src/components/workspace/terminal-launcher.tsx`
+- **Current (Sprint 2)**: `apps/shell/src/main/terminal-launcher.ts` (Electron main process) — ported from the Tauri implementation; frontend `apps/web/src/components/workspace/terminal-launcher.tsx` calls it via the `window.vytdlShell` preload bridge
+- Legacy Tauri backend: `apps/vytdl-desktop/src-tauri/src/terminal_launcher.rs` (frozen; commands `detect_agent_terminals`, `list_agent_providers`, `detect_agent_clis`, `launch_agent_terminal`)
 - Mechanism: a launch script is generated per session under `~/.vytdl/agent-sessions/<uuid>/` containing PATH bootstrap + env exports; the terminal is told to run that script (`open -na Ghostty --args -e` on macOS, `osascript` for Terminal/iTerm, direct binary flags elsewhere)
 - Claude Code third-party providers (GLM/MiniMax) inject `ANTHROPIC_BASE_URL/AUTH_TOKEN/MODEL` + default model slots; codex third-party providers use a session-scoped `CODEX_HOME` with generated `config.toml` (`experimental_bearer_token`, `wire_api = "responses"`) so the user's `~/.codex` is never touched
 - Kimi opens directly (single fixed model, its own login); official Anthropic/OpenAI run with the CLI's own account login

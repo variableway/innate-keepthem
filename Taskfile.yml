@@ -145,6 +145,26 @@ tasks:
     cmds:
       - go test ./...
 
+  # ── Shell (Electron host — refactor Sprint 2) ────────────
+  shell:dev:
+    desc: Stage resources (host daemon + web export) and launch the Electron shell
+    cmds:
+      - python3 scripts/build-shell-resources.py
+      - pnpm --filter @vytdl/shell build
+      - pnpm --filter @vytdl/shell start
+
+  shell:test:
+    desc: Run shell unit tests (terminal launcher, daemon helpers)
+    cmds:
+      - pnpm --filter @vytdl/shell test
+
+  desktop:bundle:
+    desc: Package the desktop app (electron-builder; mac arm64/x64 + win x64)
+    cmds:
+      - python3 scripts/build-shell-resources.py --all
+      - pnpm --filter @vytdl/shell build
+      - pnpm --filter @vytdl/shell exec electron-builder --config electron-builder.yml
+
   # ── Desktop App (Tauri, via Python scripts or direct pnpm) ─
   desktop:check:
     desc: Check desktop build dependencies (Node, pnpm, Rust)

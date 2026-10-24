@@ -64,3 +64,7 @@ apps/vytdl-desktop/src-tauri/bin/vYtDL-*
 
 # contentforge Python venv (created via cf-env.sh workflow)
 .venv-cf/
+
+# Electron shell build artifacts (staged resources are reproducible)
+apps/shell/resources/
+apps/shell/release/

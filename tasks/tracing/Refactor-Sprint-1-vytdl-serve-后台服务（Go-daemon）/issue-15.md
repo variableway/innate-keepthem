@@ -5,7 +5,7 @@
 - **Issue**: #15
 - **Title**: Refactor Sprint 1: vytdl serve 后台服务（Go daemon）
 - **Started At**: 2026-10-24 19:34:20
-- **Status**: in_progress
+- **Status**: completed
 
 ### Original Task Description
 
@@ -24,4 +24,9 @@
 
 验收：浏览器打开 http://127.0.0.1:<port> 完成下载→进度→完成全流程；task web:up 跑通 Docker 路径；Rust 桌面不动。开放问题 Q1–Q5 已由维护者拍板（见 docs/refactor/sprint-0/05-risks-open-questions.md §3，issue #12）。
 ```
+- **Completed At**: 2026-10-24 20:50:12
+
+### Implementation Summary
+
+Sprint 1 完成：vytdl serve daemon 已合入 main（PR #16）。Go 单后端替代 Node 后端，API/WS 契约与 web 后端一一对应，队列/恢复/取消/SQLite/VTT/抽音频/静态托管齐备，集成测试全绿，Docker 单镜像可用。遗留：qdriven/innate-vytdl 单向同步 PR（后续）、apps/web 迁移与 Electron 壳（Sprint 2）、vytdl-web/src-tauri 下线（Sprint 4）。
 

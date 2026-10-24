@@ -18,7 +18,7 @@ COPY packages/ ./packages/
 RUN cd apps/vytdl-desktop && pnpm build
 
 # ── Stage 2: Build the Go daemon (services/vytdl, in-repo) ──────────────────
-FROM golang:1.24-alpine AS daemon-builder
+FROM golang:1.26-alpine AS daemon-builder
 ARG GOPROXY=https://proxy.golang.org,direct
 ENV GOPROXY=${GOPROXY}
 WORKDIR /src/services/vytdl

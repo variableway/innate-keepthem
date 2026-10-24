@@ -13,7 +13,7 @@ vYtDL is a YouTube downloader suite with four components:
 ## Technology Stack
 
 ### CLI (services/vytdl/)
-- **Language**: Go 1.24+
+- **Language**: Go 1.26+
 - **CLI Framework**: spf13/cobra
 - **TUI Framework**: charmbracelet/bubbletea + lipgloss
 - **External Dependency**: yt-dlp (called as subprocess)

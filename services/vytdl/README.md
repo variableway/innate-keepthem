@@ -11,15 +11,15 @@ that acts as the single backend for the web UI — see [USAGE](USAGE.md#backgrou
 
 ## Requirements
 
-- Go **1.24+**
+- Go **1.26+**
 - Optional: system [yt-dlp](https://github.com/yt-dlp/yt-dlp) (otherwise auto-download or embed)
 - Optional: FFmpeg (time-range clips / merge)
 
 ## Build
 
 ```bash
-git clone https://github.com/qdriven/innate-vytdl.git
-cd innate-vytdl
+# from the monorepo root (source lives in services/vytdl/)
+cd services/vytdl
 go build -o vYtDL .
 
 # Cross-compile all platforms (macOS / Linux / Windows)

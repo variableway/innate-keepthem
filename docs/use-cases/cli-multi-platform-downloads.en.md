@@ -1,6 +1,6 @@
 # vYtDL CLI Multi-Platform Download Use Cases
 
-> Applies to the Go CLI in `vYtDL-standalone/` (`vYtDL download`, aliases `dl` / `get`).
+> Applies to the Go CLI in `services/vytdl/` (`vYtDL download`, aliases `dl` / `get`).
 > The CLI has **no domain whitelist** — any site supported by [yt-dlp](https://github.com/yt-dlp/yt-dlp) can be downloaded (unlike the form whitelist in the desktop / web frontend). This guide focuses on four major platforms: **YouTube, X (Twitter), Bilibili, and Xiaohongshu (RedNote)**.
 >
 > 中文版：[cli-multi-platform-downloads.zh.md](./cli-multi-platform-downloads.zh.md)
@@ -9,8 +9,7 @@
 
 ```bash
 # Clone and build (skip the clone if the monorepo already has the checkout)
-git clone https://github.com/qdriven/innate-vytdl.git vYtDL-standalone
-cd vYtDL-standalone && GOWORK=off go build -o vYtDL .
+cd services/vytdl && GOWORK=off go build -o vYtDL .
 # Or from the monorepo root: task cli:build
 
 # Optional: cache a fresh yt-dlp locally
@@ -292,7 +291,7 @@ The CLI has no whitelist. TikTok, Instagram, Vimeo, Twitch, Facebook, Nicovideo,
 
 ## 10. References
 
-- Full CLI reference and implementation details: [`vYtDL-standalone/USAGE.md`](../../vYtDL-standalone/USAGE.md)
+- Full CLI reference and implementation details: [`services/vytdl/USAGE.md`](../../services/vytdl/USAGE.md)
 - CLI module doc: [`docs/modules/vytdl-cli.md`](../modules/vytdl-cli.md)
-- Platform detection code: `vYtDL-standalone/internal/downloader/downloader.go` (`isTwitterURL` / `extractorArgFlags`)
-- Flag definitions: `vYtDL-standalone/cmd/download.go`
+- Platform detection code: `services/vytdl/internal/downloader/downloader.go` (`isTwitterURL` / `extractorArgFlags`)
+- Flag definitions: `services/vytdl/cmd/download.go`

@@ -26,8 +26,8 @@ innate-keepthem/
 ├── extensions/
 │   └── url-extractor/          # Chrome MV3 URL 提取
 ├── services/
+│   ├── vytdl/                  # vYtDL Go CLI + daemon（monorepo 内规范源，Sprint 1）
 │   └── agent-reach/            # git submodule：多平台采集 CLI
-├── vYtDL-standalone/           # vYtDL Go CLI（独立 git checkout，gitignore）
 ├── scripts/                    # 桌面构建 / 启动辅助
 ├── contentforge/               # 遗留目录（代码已迁出，仅参考/样例）
 ├── Taskfile.yml                # 统一任务入口
@@ -51,7 +51,7 @@ innate-keepthem/
              │ sidecar / spawn                    │ PythonBridge
 ┌────────────▼────────────────────────────────────▼───────────────┐
 │  CLI / 核心                                                     │
-│  vYtDL-standalone (Go→yt-dlp) │ contentforge-cli (Go→Python)    │
+│  vYtDL services/vytdl (Go→yt-dlp) │ contentforge-cli (Go→Python) │
 │                               │ contentforge-core + agent-reach │
 └────────────┬────────────────────────────────────┬───────────────┘
              │                                    │
@@ -63,7 +63,7 @@ innate-keepthem/
 
 | 类型 | 文件 | 成员 |
 |------|------|------|
-| Go | `go.work` | `vYtDL-standalone`, `tools/contentforge-cli` |
+| Go | `go.work` | `services/vytdl`, `tools/contentforge-cli` |
 | pnpm | `pnpm-workspace.yaml` | `apps/*`, `packages/*`, `tools/*`, `services/*`, `extensions/*` |
 | Turbo | `turbo.json` | 前端 `dev` / `build` / `lint` / `typecheck` |
 
@@ -100,7 +100,8 @@ ContentForge 桌面端是另一条 Tauri 实现（下载 + 资产库 + 多 Agent
 
 | 目标 | 推荐命令 |
 |------|----------|
-| vYtDL CLI | `task cli:build`（目录 `vYtDL-standalone/`） |
+| vYtDL CLI | `task cli:build`（目录 `services/vytdl/`） |
+| vYtDL Daemon | `task daemon:dev` / `task daemon:build`（`vytdl serve`，Sprint 1） |
 | vYtDL 桌面开发 | `task desktop:dev` |
 | vYtDL 桌面生产 | `task desktop:build` / `task desktop:bundle` |
 | vYtDL Web | `task web:up` |
@@ -109,7 +110,7 @@ ContentForge 桌面端是另一条 Tauri 实现（下载 + 资产库 + 多 Agent
 
 桌面构建会：
 
-1. 从 `vYtDL-standalone` 交叉编译 sidecar → `apps/vytdl-desktop/src-tauri/bin/vYtDL-<triple>`
+1. 从 `services/vytdl` 交叉编译 sidecar → `apps/vytdl-desktop/src-tauri/bin/vYtDL-<triple>`
 2. 准备 yt-dlp 资源（`scripts/bootstrap-ytdlp-dev.sh` 或 `download-yt-dlp-binaries.py`）
 3. 运行 `pnpm tauri dev|build`
 
@@ -128,6 +129,6 @@ ContentForge 桌面端是另一条 Tauri 实现（下载 + 资产库 + 多 Agent
 ## 设计约定
 
 - **下载引擎不重造**：一律 spawn yt-dlp。
-- **CLI 单一源**：vYtDL 规范仓库为 [qdriven/innate-vytdl](https://github.com/qdriven/innate-vytdl)，本地目录名 `vYtDL-standalone/`（嵌套 git，已被 gitignore）。旧路径 `tools/vytdl-cli` 已移除。
+- **CLI 单一源**：vYtDL 规范源为本 monorepo `services/vytdl/`（refactor Sprint 1 起；[qdriven/innate-vytdl](https://github.com/qdriven/innate-vytdl) 改为接收单向同步 PR）。旧路径 `tools/vytdl-cli`、`vYtDL-standalone/` 均已移除。
 - **桌面 / Web API 对齐**：同一命令名，便于 `api-client` 双模式。
 - **ContentForge 核心在 Python**：Go CLI 只做参数解析与桥接。

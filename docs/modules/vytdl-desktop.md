@@ -12,7 +12,7 @@
 | 桌面壳 | Tauri v2 |
 | 后端 | Rust：tokio 队列、sqlx/SQLite、yt-dlp 子进程 |
 | 共享包 | `@vytdl/ui`、`@vytdl/utils` |
-| 侧车 | `vYtDL-standalone` 编译的 `bin/vYtDL-<triple>` |
+| 侧车 | `services/vytdl` 编译的 `bin/vYtDL-<triple>` |
 
 ## 入口
 
@@ -74,5 +74,5 @@ python3 scripts/build-desktop.py dev
 ## 与其他模块
 
 - 依赖 `@vytdl/ui` / `@vytdl/utils`
-- sidecar 来自 `vYtDL-standalone`
+- sidecar 来自 `services/vytdl`
 - 静态产物供 `vytdl-web` / Docker 托管

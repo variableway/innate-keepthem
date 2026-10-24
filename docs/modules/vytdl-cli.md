@@ -1,4 +1,4 @@
-# vYtDL CLI（`vYtDL-standalone/`）
+# vYtDL CLI（`services/vytdl/`）
 
 ## 定位
 
@@ -7,7 +7,6 @@ Go CLI / TUI，将 **yt-dlp** 作为子进程调用，提供简化参数、播�
 本地目录为嵌套 git checkout（monorepo 中 gitignore）。若不存在：
 
 ```bash
-git clone https://github.com/qdriven/innate-vytdl.git vYtDL-standalone
 ```
 
 ## 技术栈
@@ -48,11 +47,11 @@ git clone https://github.com/qdriven/innate-vytdl.git vYtDL-standalone
 task cli:build
 task cli:build:windows          # amd64 + arm64
 task cli:test
-cd vYtDL-standalone && GOWORK=off go build -o vYtDL .
+cd services/vytdl && GOWORK=off go build -o vYtDL .
 ```
 
 ## 与其他模块
 
 - 桌面 sidecar：`scripts/build-desktop.py` → `apps/vytdl-desktop/src-tauri/bin/vYtDL-<triple>`
 - Docker：根 `Dockerfile` clone 本仓库后编译进镜像
-- 详细用法：`vYtDL-standalone/USAGE.md`
+- 详细用法：`services/vytdl/USAGE.md`（含后台服务 `serve`）

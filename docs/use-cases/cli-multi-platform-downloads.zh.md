@@ -1,6 +1,6 @@
 # vYtDL CLI 多平台下载用例
 
-> 适用对象：`vYtDL-standalone/` 中的 Go CLI（`vYtDL download`，别名 `dl` / `get`）。
+> 适用对象：`services/vytdl/` 中的 Go CLI（`vYtDL download`，别名 `dl` / `get`）。
 > CLI **不设域名白名单**——任何 [yt-dlp](https://github.com/yt-dlp/yt-dlp) 支持的站点都能下载（这一点与桌面 / Web 前端的表单白名单不同）。本文聚焦四个主要平台的实际用例：**YouTube、X（Twitter）、Bilibili、小红书**。
 >
 > 英文版：[cli-multi-platform-downloads.en.md](./cli-multi-platform-downloads.en.md)
@@ -9,8 +9,7 @@
 
 ```bash
 # 克隆并构建（monorepo 内已有 checkout 则跳过 clone）
-git clone https://github.com/qdriven/innate-vytdl.git vYtDL-standalone
-cd vYtDL-standalone && GOWORK=off go build -o vYtDL .
+cd services/vytdl && GOWORK=off go build -o vYtDL .
 # 或在 monorepo 根目录：task cli:build
 
 # 可选：把最新的 yt-dlp 缓存到本地
@@ -292,7 +291,7 @@ CLI 无白名单，TikTok、Instagram、TikTok 镜像、Vimeo、Twitch、Faceboo
 
 ## 10. 参考
 
-- CLI 完整参数与实现细节：[`vYtDL-standalone/USAGE.md`](../../vYtDL-standalone/USAGE.md)
+- CLI 完整参数与实现细节：[`services/vytdl/USAGE.md`](../../services/vytdl/USAGE.md)
 - CLI 模块文档：[`docs/modules/vytdl-cli.md`](../modules/vytdl-cli.md)
-- 平台检测代码：`vYtDL-standalone/internal/downloader/downloader.go`（`isTwitterURL` / `extractorArgFlags`）
-- 参数定义：`vYtDL-standalone/cmd/download.go`
+- 平台检测代码：`services/vytdl/internal/downloader/downloader.go`（`isTwitterURL` / `extractorArgFlags`）
+- 参数定义：`services/vytdl/cmd/download.go`

@@ -12,12 +12,13 @@ vYtDL is a YouTube downloader suite with four components:
 
 ## Technology Stack
 
-### CLI (vYtDL-standalone/)
-- **Language**: Go 1.24+
+### CLI (services/vytdl/)
+- **Language**: Go 1.26+
 - **CLI Framework**: spf13/cobra
 - **TUI Framework**: charmbracelet/bubbletea + lipgloss
 - **External Dependency**: yt-dlp (called as subprocess)
-- **Canonical repo**: https://github.com/qdriven/innate-vytdl (local checkout `vYtDL-standalone/`)
+- **Location**: `services/vytdl/` — canonical source, tracked in this monorepo (refactor Sprint 1); `qdriven/innate-vytdl` receives one-way sync PRs
+- **Background service**: `vYtDL serve` daemon (`cmd/serve.go`, `internal/server/`) — HTTP API + WS + queue + SQLite, single backend for the web UI (see `docs/refactor/sprint-0/`)
 
 ### Desktop (apps/vytdl-desktop/)
 - **Frontend**: Next.js + React 19 + TypeScript + Tailwind CSS
@@ -88,13 +89,15 @@ SQLite Database
 
 ## Key Modules
 
-### CLI (vYtDL-standalone/)
+### CLI (services/vytdl/)
 
-- `cmd/root.go` - Cobra root command
+- `main.go` → cmd.Execute() → cmd/root.go
 - `cmd/download.go` - CLI flags, download orchestration, concurrent dispatch, TUI coordination
+- `cmd/serve.go` - daemon subcommand (flags: --port/--host/--static/--home/--dev)
 - `cmd/analyze.go` - VTT subtitle analysis subcommand (`--mode text`)
 - `internal/config/` - Loads `config.json` for yt-dlp binary path
-- `internal/downloader/` - Core download logic, wraps yt-dlp as subprocess
+- `internal/downloader/` - Core download logic, wraps yt-dlp as subprocess (cancellation + log streaming for the daemon queue)
+- `internal/server/` - Daemon: HTTP routes (handlers.go), SQLite (database.go), queue manager (queue.go), WS hub (hub.go), yt-dlp metadata (meta.go), VTT analyzer (vttanalyzer.go), extract-audio (audio.go)
 - `internal/playliststate/` - Manages `.playlist_state.json` for resume
 - `internal/record/` - Manages download_record and subtitle_mapping files (thread-safe)
 - `internal/tui/` - bubbletea-based terminal UI
@@ -262,7 +265,7 @@ This allows the same Next.js frontend to run in both Tauri desktop and Docker we
 
 ## Shell Scripts
 
-Located in `vYtDL-standalone/scripts/`:
+Located in `services/vytdl/scripts/`:
 - `download_video.sh` - Single video wrapper
 - `download_collection.sh` - Playlist wrapper
 - `build.sh` - Cross-build helper for macOS/Linux/Windows targets

@@ -25,10 +25,12 @@
 
 ## 3. 开放问题（进入 Sprint 1 前请维护者拍板）
 
-| # | 问题 | 倾向 |
-|---|------|------|
-| Q1 | `vytdl serve` 开发在哪个仓库进行：`qdriven/innate-vytdl`（规范仓库）先行再同步，还是直接在本 monorepo 内开发、standalone 仅作上游镜像？ | **倾向**：在 monorepo `services/vytdl` 开发，standalone 仓库经 PR 单向同步（或反向）。需与"CLI 规范仓库"定位冲突解决，建议维护者定方向 |
-| Q2 | 浏览器远程访问（Docker 部署到服务器）是否需要鉴权？ | **倾向**：Sprint 1 先不做，保持本地工具定位；预留 token 中间件接口，Docker 用户自行加反代 |
-| Q3 | 旧 Tauri 版是否需要提供数据迁移（`vytdl.db` 路径/设置导入）？ | **倾向**：首次启动检测 `apps/vytdl-desktop` 旧 userData 并提示导入，一次性工具，Sprint 4 实现 |
-| Q4 | Chrome 扩展（url-extractor）与 daemon 的对接协议（native messaging vs 扩展直接 POST daemon + token）？ | **倾向**：扩展直接 POST + 本地 token（简单、跨平台），Sprint 4 后另行细化 |
-| Q5 | DSH 模式的 mobile bridge（手机访问桌面 daemon）是否纳入本轮范围？ | **倾向**：不纳入，记入 backlog；架构上 daemon 不绑公网，后续加配对 bridge 不伤现有设计 |
+> **✅ 2026-10-24 维护者已全部拍板**（采纳下列"倾向"），Sprint 1 据此启动：
+
+| # | 问题 | 倾向 | 结论 |
+|---|------|------|------|
+| Q1 | `vytdl serve` 开发在哪个仓库进行：`qdriven/innate-vytdl`（规范仓库）先行再同步，还是直接在本 monorepo 内开发、standalone 仅作上游镜像？ | **倾向**：在 monorepo `services/vytdl` 开发，standalone 仓库经 PR 单向同步（或反向）。需与"CLI 规范仓库"定位冲突解决，建议维护者定方向 | **✅ monorepo `services/vytdl`**；standalone 经 PR 单向同步 |
+| Q2 | 浏览器远程访问（Docker 部署到服务器）是否需要鉴权？ | **倾向**：Sprint 1 先不做，保持本地工具定位；预留 token 中间件接口，Docker 用户自行加反代 | **✅ Sprint 1 不做鉴权**，预留 token 中间件接口 |
+| Q3 | 旧 Tauri 版是否需要提供数据迁移（`vytdl.db` 路径/设置导入）？ | **倾向**：首次启动检测 `apps/vytdl-desktop` 旧 userData 并提示导入，一次性工具，Sprint 4 实现 | **✅ Sprint 4 做一次性导入工具** |
+| Q4 | Chrome 扩展（url-extractor）与 daemon 的对接协议（native messaging vs 扩展直接 POST daemon + token）？ | **倾向**：扩展直接 POST + 本地 token（简单、跨平台），Sprint 4 后另行细化 | **✅ 扩展直接 POST + 本地 token**，后续细化 |
+| Q5 | DSH 模式的 mobile bridge（手机访问桌面 daemon）是否纳入本轮范围？ | **倾向**：不纳入，记入 backlog；架构上 daemon 不绑公网，后续加配对 bridge 不伤现有设计 | **✅ 不纳入**，记入 backlog |

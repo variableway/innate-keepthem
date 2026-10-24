@@ -1,0 +1,25 @@
+{
+  "id": "vytdl.plugin.settings",
+  "name": "Settings",
+  "version": "1.0.0",
+  "engine": "^1",
+  "entry": "./src/index.tsx",
+  "slots": [
+    {
+      "slot": "nav",
+      "order": 30
+    },
+    {
+      "slot": "page",
+      "route": "/settings"
+    },
+    {
+      "slot": "settings.section",
+      "order": 10
+    }
+  ],
+  "permissions": [
+    "api:settings",
+    "api:metadata"
+  ]
+}

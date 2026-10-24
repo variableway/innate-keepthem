@@ -5,7 +5,7 @@
 - **Issue**: #17
 - **Title**: Refactor Sprint 2: Electron Shell MVP（apps/shell + apps/web）
 - **Started At**: 2026-10-24 22:59:24
-- **Status**: in_progress
+- **Status**: completed
 
 ### Original Task Description
 
@@ -21,4 +21,9 @@
 
 验收：Electron 应用可运行，下载全流程 + 终端启动 + 设置持久化与 Tauri 版持平；同一前端在纯浏览器中除原生按钮外功能一致。
 ```
+- **Completed At**: 2026-10-24 23:19:41
+
+### Implementation Summary
+
+Sprint 2 完成：Electron 宿主 + apps/web 前端已合入 main（PR #18）。前端纯 HTTP/WS 化（浏览器可用），原生能力经 window.vytdlShell 桥；terminal_launcher 全量移植 TS 并带 16 单测；打包链路（daemon 三平台 + web 导出 + electron-builder）就绪。遗留项见 Issue body Execution 节。
 

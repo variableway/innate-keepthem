@@ -1,0 +1,20 @@
+{
+  "name": "@vytdl/plugin-downloads",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.tsx",
+  "types": "./src/index.tsx",
+  "dependencies": {
+    "@vytdl/plugin-runtime": "workspace:*",
+    "@vytdl/ui": "workspace:*",
+    "@vytdl/utils": "workspace:*",
+    "lucide-react": "^0.511.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "next": "16.2.2",
+    "typescript": "^5"
+  }
+}

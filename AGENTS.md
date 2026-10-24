@@ -20,14 +20,14 @@ vYtDL is a YouTube downloader suite with four components:
 - **Location**: `services/vytdl/` — canonical source, tracked in this monorepo (refactor Sprint 1); `qdriven/innate-vytdl` receives one-way sync PRs
 - **Background service**: `vYtDL serve` daemon (`cmd/serve.go`, `internal/server/`) — HTTP API + WS + queue + SQLite, single backend for the web UI (see `docs/refactor/sprint-0/`)
 
-### Desktop (apps/web + apps/shell — refactor Sprint 2)
-- **Frontend**: `apps/web` — Next.js + React 19 + TypeScript + Tailwind, static export (`output: "export"`), pure HTTP/WS (`api-client.ts`, no Tauri branch); native-only actions go through the `window.vytdlShell` preload bridge and degrade/hide in plain browsers
+### Desktop (apps/web + apps/shell — refactor Sprint 2/3)
+- **Frontend**: `apps/web` — Next.js + React 19 + TypeScript + Tailwind, static export (`output: "export"`), pure HTTP/WS (`api-client.ts` lives in plugin-runtime); native-only actions go through the `window.vytdlShell` preload bridge and degrade/hide in plain browsers
+- **Plugin architecture (Sprint 3)**: `packages/plugin-runtime` — manifest contract (`plugin.json` + engine check), permission-gated API proxy, registry with error isolation, safe mode (`?safe-mode=1`), slot mounts; feature pages live in `packages/plugin-{downloads,library,settings,analyze,workspace}`, host routes are thin `<PluginPage>` mounts; shared client (api-client/stores/types/i18n) is exported from plugin-runtime subpaths
 - **Desktop Shell**: `apps/shell` — Electron host (no business logic): spawns/guards the Go daemon, sandboxed BrowserWindow loads the daemon URL; preload bridge exposes reveal-folder/open-terminal/dialog/clipboard; AI agent terminal launcher ported from Tauri (`src/main/terminal-launcher.ts`)
 - **Legacy**: `apps/vytdl-desktop` — Tauri v2 shell, frozen during refactor (removed in Sprint 4)
 - **Build**: pnpm monorepo (apps/*, packages/*, services/vytdl)
-- **State**: Zustand stores (downloadStore, settingsStore)
-- **Storage**: localStorage (web) / daemon SQLite; legacy Tauri store adapter frozen
-- **i18n**: Custom React context with JSON locale files (`src/i18n/`)
+- **State**: Zustand stores in plugin-runtime (`/store` subpath): downloadStore (shared backbone), settingsStore; chatStore lives in plugin-workspace
+- **i18n**: provider + locales in plugin-runtime (`/i18n` subpath); plugins merge fragments via `registerTranslations`
 - **API**: HTTP + WebSocket against `vytdl serve` (Electron: `http://127.0.0.1:<random port>`; browser/Docker: same API, any origin)
 
 ### Web Server (apps/vytdl-web/)

@@ -11,7 +11,9 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  transpilePackages: ["@vytdl/ui", "@vytdl/utils"],
+  transpilePackages: ["@vytdl/ui", "@vytdl/utils", "@vytdl/plugin-runtime",
+    "@vytdl/plugin-downloads", "@vytdl/plugin-library", "@vytdl/plugin-settings",
+    "@vytdl/plugin-analyze", "@vytdl/plugin-workspace"],
 };
 
 export default nextConfig;

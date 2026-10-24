@@ -1,0 +1,38 @@
+{
+  "name": "@vytdl/plugin-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./store": "./src/store/index.ts",
+    "./i18n": "./src/i18n.tsx",
+    "./types": "./src/types.ts",
+    "./layout": "./src/layout/index.ts",
+    "./lib": "./src/lib/index.ts"
+  },
+  "dependencies": {
+    "@vytdl/ui": "workspace:*",
+    "@vytdl/utils": "workspace:*",
+    "lucide-react": "^0.511.0",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "next": "16.2.2",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "typescript": "^5",
+    "vitest": "^3"
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "scripts": {
+    "test": "vitest run"
+  }
+}

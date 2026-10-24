@@ -1,0 +1,26 @@
+{
+  "id": "vytdl.plugin.workspace",
+  "name": "AI Workspace",
+  "version": "1.0.0",
+  "engine": "^1",
+  "entry": "./src/index.tsx",
+  "slots": [
+    {
+      "slot": "nav",
+      "order": 10
+    },
+    {
+      "slot": "page",
+      "route": "/workspace"
+    },
+    {
+      "slot": "page",
+      "route": "/workspace/terminal"
+    }
+  ],
+  "permissions": [
+    "api:settings",
+    "api:analyze",
+    "shell:*"
+  ]
+}

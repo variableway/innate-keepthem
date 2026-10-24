@@ -1,9 +1,9 @@
-import VideoPlayerClient from "./player-client";
+import { PluginPage } from "@vytdl/plugin-runtime";
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return [{ id: "placeholder" }];
 }
 
-export default function PlayerPage() {
-  return <VideoPlayerClient />;
+export default function RouteMount() {
+  return <PluginPage route="/player/[id]" pluginId="vytdl.plugin.library" />;
 }

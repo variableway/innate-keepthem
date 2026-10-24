@@ -1,0 +1,21 @@
+{
+  "id": "vytdl.plugin.library",
+  "name": "Library & Player",
+  "version": "1.0.0",
+  "engine": "^1",
+  "entry": "./src/index.tsx",
+  "slots": [
+    {
+      "slot": "page",
+      "route": "/library"
+    },
+    {
+      "slot": "page",
+      "route": "/player/[id]"
+    }
+  ],
+  "permissions": [
+    "api:downloads",
+    "api:media"
+  ]
+}

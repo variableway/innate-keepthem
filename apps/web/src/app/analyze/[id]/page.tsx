@@ -1,10 +1,9 @@
-import AnalyzeReportClient from "./analyze-report-client";
+import { PluginPage } from "@vytdl/plugin-runtime";
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return [{ id: "placeholder" }];
 }
 
-export default async function AnalyzeReportPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  return <AnalyzeReportClient id={id} />;
+export default function RouteMount() {
+  return <PluginPage route="/analyze/[id]" pluginId="vytdl.plugin.analyze" />;
 }

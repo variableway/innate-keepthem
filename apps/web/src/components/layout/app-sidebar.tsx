@@ -16,15 +16,23 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@vytdl/ui";
-import { useTranslation } from "@/i18n";
-import { getPlatform } from "@/lib/api-client";
-import { isModuleActive, primaryModules } from "@/lib/navigation";
+import { useTranslation } from "@vytdl/plugin-runtime/i18n";
+import { getPlatform } from "@vytdl/plugin-runtime/client";
+import { isModuleActive, type PrimaryModule } from "@vytdl/plugin-runtime";
+import { pluginRuntime } from "@vytdl/plugin-runtime";
+import { bootstrapPlugins } from "@/plugins";
 
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [platform, setPlatform] = useState("web");
+  const [modules, setModules] = useState<PrimaryModule[]>([]);
   const { t } = useTranslation();
+
+  useEffect(() => {
+    bootstrapPlugins();
+    setModules(pluginRuntime.getNav().filter((m) => m.enabled !== false));
+  }, []);
 
   useEffect(() => {
     setPlatform(getPlatform());
@@ -35,7 +43,7 @@ export function AppSidebar() {
     platform.includes("windows") ? "🪟" :
     platform.includes("linux") ? "🐧" : "🌐";
 
-  const enabledModules = primaryModules.filter((m) => m.enabled !== false);
+  const enabledModules = modules;
 
   return (
     <Sidebar collapsible="icon">

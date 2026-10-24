@@ -1,0 +1,22 @@
+{
+  "id": "vytdl.plugin.analyze",
+  "name": "VTT Analysis",
+  "version": "1.0.0",
+  "engine": "^1",
+  "entry": "./src/index.tsx",
+  "slots": [
+    {
+      "slot": "page",
+      "route": "/analyze"
+    },
+    {
+      "slot": "page",
+      "route": "/analyze/[id]"
+    }
+  ],
+  "permissions": [
+    "api:analyze",
+    "api:metadata",
+    "api:downloads"
+  ]
+}

@@ -1,10 +1,14 @@
 "use client";
 
+import { bootstrapPlugins } from "@/plugins";
+
+bootstrapPlugins();
+
 import { ReactNode, useEffect, useState } from "react";
 import { Separator, SidebarInset, SidebarProvider, SidebarTrigger } from "@vytdl/ui";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { SectionLayout } from "@/components/layout/section-layout";
-import { useTranslation } from "@/i18n";
+import { SectionLayout } from "@vytdl/plugin-runtime/layout";
+import { useTranslation } from "@vytdl/plugin-runtime/i18n";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);

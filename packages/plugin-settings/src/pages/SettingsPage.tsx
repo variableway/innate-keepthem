@@ -83,7 +83,7 @@ export default function SettingsPage() {
       cookieMode === "text" ? { mode: "text", content: cookieText } :
       cookieMode === "file" ? { mode: "file", path: cookieFile } :
       { mode: "browser", browser: cookieBrowser };
-    const merged = { ...localSettings, cookie };
+    const merged = { ...localSettings, cookie } as Settings;
     // Ensure locale is synced before saving
     setLocale(localSettings.language as Locale);
     await updateSettings(merged);

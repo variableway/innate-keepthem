@@ -5,7 +5,7 @@
 - **Issue**: #25
 - **Title**: 移除 AI Agent 工作台/终端启动器功能线
 - **Started At**: 2026-10-25 16:24:06
-- **Status**: in_progress
+- **Status**: completed
 
 ### Original Task Description
 
@@ -23,4 +23,9 @@
 
 保留：桌面通用桥（reveal/open folder、picker、clipboard）、VTT 分析、其余全部功能。
 ```
+- **Completed At**: 2026-10-25 16:47:36
+
+### Implementation Summary
+
+AI 工作台/终端启动器功能线已整体下线（PR #26 squash 合并，CI 5/5 绿）。宿主在删除整条插件后真机启动验证通过，插件协议文档 docs/plugin-protocol.md 随本 PR 落库：协议的移除语义（删包→宿主照常启动）获得实际验证。
 

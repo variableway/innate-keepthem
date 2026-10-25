@@ -40,9 +40,7 @@
     },
     "settings": {
       "subtitle": "App preferences",
-      "download": "Download",
-      "ai": "AI",
-      "agentCli": "Agent CLI"
+      "download": "Download"
     }
   },
   "home": {
@@ -193,7 +191,7 @@
   },
   "settings": {
     "title": "Settings",
-    "subtitle": "Configure download and AI preferences",
+    "subtitle": "Configure download preferences",
     "downloadSettings": "Download Settings",
     "downloadDescription": "Configure default download options",
     "ytdlpPathLabel": "yt-dlp Binary Path (Optional)",

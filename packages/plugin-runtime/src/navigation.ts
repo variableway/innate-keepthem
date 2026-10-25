@@ -1,12 +1,9 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  Bot,
   Download,
   FileText,
   Library,
-  MessageSquare,
   Settings,
-  SquareTerminal,
   Video,
 } from "lucide-react";
 
@@ -74,12 +71,6 @@ export const settingsNavItems: SectionNavItem[] = [
     href: "/settings",
     hash: "download",
     titleKey: "nav.settings.download",
-  },
-  {
-    id: "ai",
-    href: "/settings",
-    hash: "ai",
-    titleKey: "nav.settings.ai",
   },
 ];
 

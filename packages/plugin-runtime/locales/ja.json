@@ -40,9 +40,7 @@
     },
     "settings": {
       "subtitle": "アプリ設定",
-      "download": "ダウンロード",
-      "ai": "AI",
-      "agentCli": "Agent CLI"
+      "download": "ダウンロード"
     }
   },
   "home": {
@@ -193,7 +191,7 @@
   },
   "settings": {
     "title": "設定",
-    "subtitle": "ダウンロードとAI設定を構成",
+    "subtitle": "ダウンロード設定を構成",
     "downloadSettings": "ダウンロード設定",
     "downloadDescription": "デフォルトのダウンロードオプションを構成",
     "ytdlpPathLabel": "yt-dlp バイナリパス（オプション）",

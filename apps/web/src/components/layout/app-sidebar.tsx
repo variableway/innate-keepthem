@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Youtube, ChevronUp } from "lucide-react";
+import { Youtube, ChevronUp, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -15,6 +15,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+} from "@vytdl/ui";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@vytdl/ui";
 import { useTranslation } from "@vytdl/plugin-runtime/i18n";
 import { getPlatform } from "@vytdl/plugin-runtime/client";
@@ -87,15 +93,23 @@ export function AppSidebar() {
 
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" className="cursor-default hover:bg-transparent">
-              <span className="text-sm">{platformIcon}</span>
-              <div className="flex flex-col gap-0.5 leading-none">
-                <span className="font-medium text-sm">{platform}</span>
-              </div>
-              <ChevronUp className="ml-auto size-4 opacity-0" />
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuButton size="lg" tooltip={platform}>
+                <span className="text-sm">{platformIcon}</span>
+                <div className="flex flex-col gap-0.5 leading-none">
+                  <span className="font-medium text-sm">{platform}</span>
+                </div>
+                <ChevronUp className="ml-auto size-4 opacity-60" />
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="top" align="start" className="w-44">
+              <DropdownMenuItem onClick={() => router.push("/settings")}>
+                <Settings className="size-4" />
+                <span>{t("nav.modules.settings")}</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </SidebarMenu>
       </SidebarFooter>
 

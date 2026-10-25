@@ -40,9 +40,7 @@
     },
     "settings": {
       "subtitle": "应用偏好设置",
-      "download": "下载",
-      "ai": "AI",
-      "agentCli": "Agent CLI"
+      "download": "下载"
     }
   },
   "home": {
@@ -193,7 +191,7 @@
   },
   "settings": {
     "title": "设置",
-    "subtitle": "配置下载和 AI 偏好",
+    "subtitle": "配置下载偏好",
     "downloadSettings": "下载设置",
     "downloadDescription": "配置默认下载选项",
     "ytdlpPathLabel": "yt-dlp 二进制路径（可选）",

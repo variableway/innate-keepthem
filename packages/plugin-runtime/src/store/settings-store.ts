@@ -23,11 +23,6 @@ const defaultSettings: Settings = {
   default_sub_langs: ["en", "zh"],
   language: "zh",
   max_concurrent_downloads: 3,
-  ai_provider: null,
-  ai_api_key: null,
-  ai_model: null,
-  agent_cli_kimi_bin: null,
-  agent_cli_other_bin: null,
   proxy: null,
   cookie: null,
   rate_limit: null,
@@ -40,12 +35,6 @@ const defaultSettings: Settings = {
   po_token: null,
   extractor_args: null,
   config_location: null,
-  agent_terminal: null,
-  agent_terminal_workdir: null,
-  agent_glm_api_key: null,
-  agent_minimax_api_key: null,
-  agent_anthropic_api_key: null,
-  agent_openai_api_key: null,
 };
 
 export const useSettingsStore = create<SettingsState>()(

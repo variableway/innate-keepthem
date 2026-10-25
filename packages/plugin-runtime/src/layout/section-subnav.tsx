@@ -28,18 +28,10 @@ export function SectionSubNav() {
   const items = getSectionNavItems(section);
 
   const sectionTitleKey =
-    section === "settings"
-      ? "nav.modules.settings"
-      : section === "workspace"
-        ? "nav.modules.workspace"
-        : "nav.modules.video";
+    section === "settings" ? "nav.modules.settings" : "nav.modules.video";
 
   const sectionSubtitleKey =
-    section === "settings"
-      ? "nav.settings.subtitle"
-      : section === "workspace"
-        ? "nav.workspace.subtitle"
-        : "nav.video.subtitle";
+    section === "settings" ? "nav.settings.subtitle" : "nav.video.subtitle";
 
   return (
     <aside className="flex w-52 shrink-0 flex-col border-r bg-muted/20">

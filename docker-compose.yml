@@ -1,9 +1,9 @@
 services:
-  vytdl-web:
+  vytdl:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: vytdl-web
+    container_name: vytdl
     # Go daemon (services/vytdl `serve`) + static frontend, single image.
     ports:
       - "3000:3000"

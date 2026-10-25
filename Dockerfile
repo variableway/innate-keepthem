@@ -5,17 +5,17 @@ WORKDIR /app
 RUN npm install -g pnpm
 
 COPY package.json pnpm-workspace.yaml ./
-COPY apps/vytdl-desktop/package.json ./apps/vytdl-desktop/
+COPY apps/web/package.json ./apps/web/
 COPY packages/ui/package.json ./packages/ui/
 COPY packages/utils/package.json ./packages/utils/
 
 RUN pnpm install
 
-COPY apps/vytdl-desktop/ ./apps/vytdl-desktop/
+COPY apps/web/ ./apps/web/
 COPY packages/ ./packages/
 
-# output: "export" → static site in apps/vytdl-desktop/out
-RUN cd apps/vytdl-desktop && pnpm build
+# output: "export" → static site in apps/web/out
+RUN cd apps/web && pnpm build
 
 # ── Stage 2: Build the Go daemon (services/vytdl, in-repo) ──────────────────
 FROM golang:1.26-alpine AS daemon-builder
@@ -44,7 +44,7 @@ RUN pip3 install --break-system-packages --no-cache-dir yt-dlp
 WORKDIR /app
 
 COPY --from=daemon-builder /out/vytdl ./vytdl
-COPY --from=frontend-builder /app/apps/vytdl-desktop/out ./out
+COPY --from=frontend-builder /app/apps/web/out ./out
 
 RUN mkdir -p /app/data /app/downloads
 

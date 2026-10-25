@@ -2,7 +2,6 @@ version: "3"
 
 vars:
   CLI_DIR: ./services/vytdl
-  DESKTOP_APP_DIR: ./apps/vytdl-desktop
   CONTENTFORGE_DIR: ./tools/contentforge-cli
   CLI_BIN: vYtDL
   CF_BIN: contentforge
@@ -165,82 +164,7 @@ tasks:
       - pnpm --filter @vytdl/shell build
       - pnpm --filter @vytdl/shell exec electron-builder --config electron-builder.yml
 
-  # ── Desktop App (Tauri, via Python scripts or direct pnpm) ─
-  desktop:check:
-    desc: Check desktop build dependencies (Node, pnpm, Rust)
-    dir: "."
-    cmds:
-      - "{{.PYTHON}} scripts/build-desktop.py check"
-
-  desktop:install:
-    desc: Install workspace Node dependencies
-    dir: "."
-    cmds:
-      - pnpm install
-
-  desktop:yt-dlp:
-    desc: Download yt-dlp binaries for production bundling
-    dir: "."
-    cmds:
-      - "{{.PYTHON}} scripts/download-yt-dlp-binaries.py"
-
-  desktop:cli:
-    desc: Build services/vytdl CLI and stage it as the desktop sidecar binary (bin/vYtDL-<triple>)
-    dir: "."
-    cmds:
-      - "{{.PYTHON}} scripts/build-desktop.py cli"
-
-  desktop:bootstrap-ytdlp:
-    desc: Bootstrap yt-dlp dev resources from system PATH (fallback)
-    dir: "."
-    cmds:
-      - bash scripts/bootstrap-ytdlp-dev.sh
-
-  desktop:dev:
-    desc: Start desktop app in development mode
-    dir: "."
-    deps: [desktop:bootstrap-ytdlp]
-    cmds:
-      - "{{.PYTHON}} scripts/build-desktop.py dev"
-
-  desktop:dev:fast:
-    desc: Start desktop dev mode (skip pnpm install)
-    dir: "."
-    deps: [desktop:bootstrap-ytdlp]
-    cmds:
-      - "{{.PYTHON}} scripts/build-desktop.py dev --skip-deps"
-
-  desktop:build:
-    desc: Build desktop app for production
-    dir: "."
-    deps: [desktop:yt-dlp]
-    cmds:
-      - "{{.PYTHON}} scripts/build-desktop.py build"
-
-  desktop:bundle:
-    desc: Build desktop app and create distributable package
-    dir: "."
-    deps: [desktop:yt-dlp]
-    cmds:
-      - "{{.PYTHON}} scripts/build-desktop.py bundle"
-
-  # Direct Tauri passthrough (pnpm must run inside apps/vytdl-desktop,
-  # where @tauri-apps/cli is installed). Requires the staged sidecar.
-  desktop:tauri:dev:
-    desc: Run Tauri dev server directly (skips the Python wrapper)
-    dir: "{{.DESKTOP_APP_DIR}}"
-    deps: [desktop:cli]
-    cmds:
-      - pnpm tauri dev
-
-  desktop:tauri:build:
-    desc: Build the Tauri app directly (skips the Python wrapper)
-    dir: "{{.DESKTOP_APP_DIR}}"
-    deps: [desktop:cli, desktop:yt-dlp]
-    cmds:
-      - pnpm tauri build
-
-  # ── ContentForge (via Go CLI + Python core) ──────────────
+  # ── ContentForge ──────────────────────────────────────────
   contentforge:env:
     desc: Load ContentForge environment (print instructions)
     cmds:
@@ -289,12 +213,12 @@ tasks:
   web:logs:
     desc: Tail Docker web UI logs
     cmds:
-      - docker-compose logs -f vytdl-web
+      - docker-compose logs -f vytdl
 
   # ── Combined ─────────────────────────────────────────────
   build:
-    desc: Build CLI + ContentForge + Desktop production
-    deps: [cli:build, contentforge:build, desktop:build]
+    desc: Build CLI + ContentForge production
+    deps: [cli:build, contentforge:build]
 
   build:cli:
     desc: Build CLI + ContentForge only
@@ -306,9 +230,10 @@ tasks:
       - rm -rf {{.DIST_DIR}}
       - rm -f {{.CLI_DIR}}/{{.CLI_BIN}}
       - rm -f {{.CONTENTFORGE_DIR}}/{{.CF_BIN}}
-      - rm -rf apps/vytdl-desktop/.next
-      - rm -rf apps/vytdl-desktop/out
-      - rm -rf apps/vytdl-desktop/src-tauri/target
+      - rm -rf apps/web/out
+      - rm -rf apps/shell/dist
+      - rm -rf apps/shell/resources
+      - rm -rf apps/shell/release
       - echo "Cleaned."
 
   # ── Help ─────────────────────────────────────────────────
@@ -330,12 +255,10 @@ tasks:
         echo "    task cli:build:windows:amd64"
         echo "    task cli:run -- URL"
         echo ""
-        echo "  Desktop:"
-        echo "    task desktop:check"
-        echo "    task desktop:dev          # dev mode"
-        echo "    task desktop:build        # production"
-        echo "    task desktop:bundle       # + installer"
-        echo "    task desktop:tauri:build  # direct pnpm tauri build"
+        echo "  Desktop (Electron shell):"
+        echo "    task shell:dev            # stage resources + launch"
+        echo "    task shell:test           # unit tests"
+        echo "    task desktop:bundle       # electron-builder installers"
         echo ""
         echo "  ContentForge:"
         echo "    task setup:macos"

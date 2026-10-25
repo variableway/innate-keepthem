@@ -6,6 +6,7 @@
 // bridge (terminal launcher, dialogs, clipboard).
 
 import { app, BrowserWindow, dialog, ipcMain, clipboard, shell } from "electron";
+import { autoUpdater } from "electron-updater";
 import * as path from "node:path";
 import * as fs from "node:fs";
 import {
@@ -14,6 +15,7 @@ import {
   resolveDaemonBin,
   type DaemonHandle,
 } from "./daemon";
+import { maybeMigrateLegacyData } from "./migration";
 import {
   detectAgentClis,
   detectTerminals,
@@ -54,9 +56,31 @@ async function createWindow(): Promise<void> {
   const staticDirResolved = staticDir();
   const devDaemonUrl = process.env.VYTDL_DEV_DAEMON_URL;
 
+  // One-time legacy (Tauri) data import — must run before the daemon creates
+  // its own database in the same home.
+  const homeDir = daemonHome();
+  await maybeMigrateLegacyData(homeDir, {
+    prompt: async (candidate) => {
+      const { response } = await dialog.showMessageBox({
+        type: "question",
+        title: "vYtDL",
+        message: "Detected data from the legacy vYtDL Desktop app",
+        detail:
+          "Downloads history and settings can be imported once into the new version.\n" +
+          `Legacy data: ${candidate.legacyDbPath}\n\n` +
+          "Interface preferences are not portable and will start fresh.",
+        buttons: ["Import", "Skip"],
+        defaultId: 0,
+        cancelId: 1,
+      });
+      return response === 0 ? "import" : "skip";
+    },
+    reportError: (title, detail) => dialog.showErrorBox(title, detail),
+  });
+
   daemon = await startDaemon({
     staticDir: staticDirResolved ?? undefined,
-    homeDir: daemonHome(),
+    homeDir,
     devDaemonUrl: devDaemonUrl || undefined,
     binPath: process.env.VYTDL_DAEMON_BIN || undefined,
   });
@@ -96,7 +120,37 @@ app.on("second-instance", () => {
   }
 });
 
+function setupAutoUpdater(): void {
+  // Auto-update only in packaged builds; updates publish via GitHub Releases
+  // (see docs/release-runbook.md). Development builds skip this entirely.
+  if (!app.isPackaged) return;
+  try {
+    autoUpdater.autoDownload = true;
+    autoUpdater.on("update-downloaded", () => {
+      void dialog
+        .showMessageBox({
+          type: "info",
+          title: "vYtDL",
+          message: "Update ready to install",
+          detail: "Restart the app to apply the update.",
+          buttons: ["Restart", "Later"],
+          defaultId: 0,
+        })
+        .then(({ response }) => {
+          if (response === 0) autoUpdater.quitAndInstall();
+        });
+    });
+    autoUpdater.on("error", (err) => {
+      console.warn("[updater]", err.message);
+    });
+    void autoUpdater.checkForUpdatesAndNotify();
+  } catch (err) {
+    console.warn("[updater] setup failed:", err);
+  }
+}
+
 app.whenReady().then(() => {
+  setupAutoUpdater();
   createWindow().catch((err) => {
     dialog.showErrorBox(
       "vYtDL failed to start",

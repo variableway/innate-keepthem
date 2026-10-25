@@ -6,6 +6,7 @@
 
 | 文档 | 说明 |
 |------|------|
+| [release-runbook.md](./release-runbook.md) | 桌面/daemon 发布流水线 runbook |
 | [architecture.md](./architecture.md) | 整体技术架构、仓库布局、构建与运行入口 |
 | [modules/overview.md](./modules/overview.md) | 模块一览与依赖关系 |
 | [modules/vytdl-cli.md](./modules/vytdl-cli.md) | vYtDL Go CLI（`services/vytdl/`） |

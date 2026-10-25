@@ -206,6 +206,9 @@ func (s *Server) registerRoutes(mux *http.ServeMux) {
 
 	mux.HandleFunc("POST /api/open-download-folder", s.handleOpenFolder(false))
 	mux.HandleFunc("POST /api/reveal-in-folder", s.handleOpenFolder(true))
+
+	// Third-party plugin inventory + file serving (sprint-0 model §6)
+	s.registerPluginRoutes(mux)
 }
 
 // ── handlers ─────────────────────────────────────────────────────────────────

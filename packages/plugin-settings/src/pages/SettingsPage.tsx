@@ -11,6 +11,7 @@ import { useSettingsStore } from "@vytdl/plugin-runtime/store";
 import { useTranslation, type Locale } from "@vytdl/plugin-runtime/i18n";
 import { MainContent } from "@vytdl/plugin-runtime/layout";
 import { AgentCliSettings } from "../components/agent-cli-settings";
+import { PluginsCard } from "../components/plugins-card";
 import type { Settings } from "@vytdl/plugin-runtime/types";
 
 const QUALITY_OPTIONS = [
@@ -462,6 +463,7 @@ export default function SettingsPage() {
           </Button>
         </div>
         </div>
+      <PluginsCard />
     </MainContent>
   );
 }

@@ -14,9 +14,9 @@
 ```
 innate-keepthem/
 ├── apps/
-│   ├── vytdl-desktop/          # vYtDL 桌面（Tauri v2 + Next.js）
-│   ├── vytdl-web/              # vYtDL Web API（Hono + WS）
-│   └── contentforge-desktop/   # ContentForge 桌面（Tauri v2 + Next.js）
+│   ├── web/                    # vYtDL 前端（Next.js 静态导出，插件宿主）
+│   ├── shell/                  # vYtDL 桌面壳（Electron，零业务逻辑）
+│   └── contentforge-desktop/   # ContentForge 桌面（Tauri v2，冻结）
 ├── packages/
 │   ├── ui/                     # @vytdl/ui 共享组件
 │   ├── utils/                  # @vytdl/utils 工具函数
@@ -33,7 +33,7 @@ innate-keepthem/
 ├── Taskfile.yml                # 统一任务入口
 ├── go.work                     # Go workspace
 ├── pnpm-workspace.yaml         # JS workspace
-└── docker-compose.yml          # vytdl-web 编排
+└── docker-compose.yml          # vYtDL daemon + 前端 单镜像编排
 ```
 
 ## 分层视图
@@ -41,14 +41,14 @@ innate-keepthem/
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  UI 层                                                          │
-│  vytdl-desktop │ contentforge-desktop │ Chrome extension │ Web  │
+│  apps/web（插件宿主）│ apps/shell（Electron）│ 扩展 │ 浏览器 │
 └────────────┬────────────────┬───────────────────┬───────────────┘
-             │ Tauri IPC      │ Tauri IPC         │ HTTP / WS
+             │ preload 桥  │ daemon HTTP/WS（同源）
 ┌────────────▼────────────────▼───────────────────▼───────────────┐
 │  应用后端                                                       │
-│  Rust (queue/downloader/db) │ Hono (queue/downloader/db)        │
-└────────────┬────────────────────────────────────┬───────────────┘
-             │ sidecar / spawn                    │ PythonBridge
+│  vYtDL daemon（Go：queue/downloader/SQLite/API/WS，单一后端）    │
+└────────────┬────────────────────────────────────────────────────┘
+             │ spawn（shell）/ HTTP·WS（前端·浏览器）
 ┌────────────▼────────────────────────────────────▼───────────────┐
 │  CLI / 核心                                                     │
 │  vYtDL services/vytdl (Go→yt-dlp) │ contentforge-cli (Go→Python) │
@@ -106,13 +106,14 @@ ContentForge 桌面端是另一条 Tauri 实现（下载 + 资产库 + 多 Agent
 | vYtDL 桌面生产 | `task desktop:build` / `task desktop:bundle` |
 | vYtDL Web | `task web:up` |
 | ContentForge CLI | `task contentforge:build` + `cf-env.sh` |
-| 全量 | `task build`（CLI + ContentForge + vYtDL Desktop） |
+| 全量 | `task build`（CLI + ContentForge） |
+| 桌面打包 | `task desktop:bundle`（Electron：daemon 三平台 + web 导出 + electron-builder） |
 
-桌面构建会：
+桌面构建（Electron）会：
 
-1. 从 `services/vytdl` 交叉编译 sidecar → `apps/vytdl-desktop/src-tauri/bin/vYtDL-<triple>`
-2. 准备 yt-dlp 资源（`scripts/bootstrap-ytdlp-dev.sh` 或 `download-yt-dlp-binaries.py`）
-3. 运行 `pnpm tauri dev|build`
+1. `scripts/build-shell-resources.py` 暂存资源：`services/vytdl` 交叉编译 daemon（darwin/windows triple）+ `apps/web` 静态导出 → `apps/shell/resources/`
+2. `apps/shell` tsc 编译主进程/preload
+3. `electron-builder` 打 dmg/nsis（发布见 docs/release-runbook.md）
 
 ## 外部依赖
 
@@ -124,7 +125,7 @@ ContentForge 桌面端是另一条 Tauri 实现（下载 + 资产库 + 多 Agent
 | yt-dlp | 所有下载路径 |
 | FFmpeg（可选） | 切片 / 合并 / 音频提取 |
 | Python 3.10+ | ContentForge 核心、桌面启动脚本、agent-reach |
-| Docker（可选） | vytdl-web 部署 |
+| Docker（可选） | vYtDL daemon 部署（task web:up） |
 
 ## 设计约定
 

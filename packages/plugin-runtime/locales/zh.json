@@ -356,5 +356,18 @@
   "metadata": {
     "title": "vYtDL 桌面版",
     "description": "一款现代化的桌面视频下载工具"
+  },
+  "plugins": {
+    "title": "插件",
+    "description": "内置与第三方插件的状态与管理",
+    "builtinSection": "内置插件",
+    "installedSection": "已安装（第三方）",
+    "empty": "尚未安装第三方插件。使用 vytdl plugin install <包名> 安装。",
+    "installHint": "安装：vytdl plugin install <npm 包名 | git URL>",
+    "safeMode": "当前以安全模式运行：仅加载内置插件。",
+    "pending": "待完成",
+    "failed": "异常",
+    "enable": "启用",
+    "disable": "禁用"
   }
 }

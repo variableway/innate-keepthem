@@ -11,7 +11,6 @@ import { plugin as downloads } from "@vytdl/plugin-downloads";
 import { plugin as library } from "@vytdl/plugin-library";
 import { plugin as settings } from "@vytdl/plugin-settings";
 import { plugin as analyze } from "@vytdl/plugin-analyze";
-import { plugin as workspace } from "@vytdl/plugin-workspace";
 
 let bootstrapped = false;
 
@@ -19,7 +18,7 @@ export function bootstrapPlugins(): void {
   if (bootstrapped) return;
   bootstrapped = true;
   pluginRuntime.setSafeMode(isSafeMode());
-  pluginRuntime.registerAll([downloads, library, settings, analyze, workspace]);
+  pluginRuntime.registerAll([downloads, library, settings, analyze]);
   // Third-party plugins load asynchronously (inventory from the daemon);
   // slots re-render through the registry subscription.
   void loadRemotePlugins();

@@ -16,10 +16,6 @@ export interface VytdlShellBridge {
   openFolder: (path: string) => Promise<void>;
   pickFolder: () => Promise<string | null>;
   clipboardWriteText: (text: string) => Promise<void>;
-  detectTerminals: () => Promise<unknown>;
-  listAgentProviders: () => Promise<unknown>;
-  detectAgentClis: () => Promise<unknown>;
-  launchAgentTerminal: (req: unknown) => Promise<unknown>;
 }
 
 export function shellBridge(): VytdlShellBridge | null {

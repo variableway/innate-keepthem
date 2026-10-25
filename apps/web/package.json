@@ -15,7 +15,6 @@
     "@vytdl/plugin-library": "workspace:*",
     "@vytdl/plugin-runtime": "workspace:*",
     "@vytdl/plugin-settings": "workspace:*",
-    "@vytdl/plugin-workspace": "workspace:*",
     "@vytdl/ui": "workspace:*",
     "@vytdl/utils": "workspace:*",
     "lucide-react": "^0.511.0",

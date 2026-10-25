@@ -10,7 +10,7 @@ import {
   Video,
 } from "lucide-react";
 
-export type AppSection = "video" | "workspace" | "settings";
+export type AppSection = "video" | "settings";
 
 export type PrimaryModule = {
   id: AppSection;
@@ -31,13 +31,6 @@ export type SectionNavItem = {
 };
 
 export const primaryModules: PrimaryModule[] = [
-  {
-    id: "workspace",
-    href: "/workspace",
-    icon: Bot,
-    titleKey: "nav.modules.workspace",
-    enabled: true,
-  },
   {
     id: "video",
     href: "/",
@@ -75,21 +68,6 @@ export const videoNavItems: SectionNavItem[] = [
   },
 ];
 
-export const workspaceNavItems: SectionNavItem[] = [
-  {
-    id: "chat",
-    href: "/workspace",
-    icon: MessageSquare,
-    titleKey: "nav.workspace.chat",
-  },
-  {
-    id: "terminal",
-    href: "/workspace/terminal",
-    icon: SquareTerminal,
-    titleKey: "nav.workspace.terminal",
-  },
-];
-
 export const settingsNavItems: SectionNavItem[] = [
   {
     id: "download",
@@ -103,36 +81,24 @@ export const settingsNavItems: SectionNavItem[] = [
     hash: "ai",
     titleKey: "nav.settings.ai",
   },
-  {
-    id: "agent-cli",
-    href: "/settings",
-    hash: "agent-cli",
-    titleKey: "nav.settings.agentCli",
-  },
 ];
 
 export function getSectionFromPath(pathname: string): AppSection {
   if (pathname.startsWith("/settings")) {
     return "settings";
   }
-  if (pathname.startsWith("/workspace")) {
-    return "workspace";
-  }
+
   return "video";
 }
 
 export function getSectionNavItems(section: AppSection): SectionNavItem[] {
   if (section === "settings") return settingsNavItems;
-  if (section === "workspace") return workspaceNavItems;
   return videoNavItems;
 }
 
 export function isSectionNavActive(pathname: string, item: SectionNavItem): boolean {
   if (item.hash) {
     return pathname.startsWith(item.href);
-  }
-  if (item.href === "/workspace") {
-    return pathname === "/workspace";
   }
   if (item.href === "/") {
     return pathname === "/";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Save, FolderOpen, Key, Wrench, Globe } from "lucide-react";
+import { Save, FolderOpen, Wrench, Globe } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@vytdl/ui";
 import { Button } from "@vytdl/ui";
 import { Input } from "@vytdl/ui";
@@ -10,7 +10,6 @@ import { Alert, AlertDescription } from "@vytdl/ui";
 import { useSettingsStore } from "@vytdl/plugin-runtime/store";
 import { useTranslation, type Locale } from "@vytdl/plugin-runtime/i18n";
 import { MainContent } from "@vytdl/plugin-runtime/layout";
-import { AgentCliSettings } from "../components/agent-cli-settings";
 import { PluginsCard } from "../components/plugins-card";
 import type { Settings } from "@vytdl/plugin-runtime/types";
 
@@ -29,12 +28,6 @@ const FORMAT_OPTIONS = [
   { value: "mkv", labelKey: "downloadForm.formatMkv" },
 ];
 
-const AI_PROVIDERS = [
-  { value: "", labelKey: "settings.aiDisabled" },
-  { value: "openai", labelKey: "settings.aiOpenAI" },
-  { value: "anthropic", labelKey: "settings.aiAnthropic" },
-  { value: "gemini", labelKey: "settings.aiGemini" },
-];
 
 export default function SettingsPage() {
   const { settings, fetchSettings, updateSettings, isLoading } = useSettingsStore();
@@ -239,64 +232,6 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
-
-        <Card id="section-ai" className="scroll-mt-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Key className="h-5 w-5" />
-              {t("settings.aiSettings")}
-            </CardTitle>
-            <CardDescription>
-              {t("settings.aiDescription")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="ai-provider">{t("settings.aiProvider")}</Label>
-              <select
-                id="ai-provider"
-                value={localSettings.ai_provider || ""}
-                onChange={(e) => updateField("ai_provider", e.target.value || null)}
-                className="w-full h-10 rounded-md border border-input bg-background px-3"
-              >
-                {AI_PROVIDERS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {t(opt.labelKey)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {localSettings.ai_provider && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="ai-api-key">{t("settings.apiKeyLabel")}</Label>
-                  <Input
-                    id="ai-api-key"
-                    type="password"
-                    value={localSettings.ai_api_key || ""}
-                    onChange={(e) => updateField("ai_api_key", e.target.value || null)}
-                    placeholder={t("settings.apiKeyPlaceholder")}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {t("settings.apiKeyHint")}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ai-model">{t("settings.modelLabel")}</Label>
-                  <Input
-                    id="ai-model"
-                    value={localSettings.ai_model || ""}
-                    onChange={(e) => updateField("ai_model", e.target.value || null)}
-                    placeholder={t("settings.modelPlaceholder")}
-                  />
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        <AgentCliSettings settings={localSettings} onChange={updateField} />
 
         {saveStatus === "success" && (
           <Alert className="bg-green-500/10 text-green-600 border-green-500/20">

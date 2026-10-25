@@ -5,7 +5,7 @@
 - **Issue**: #23
 - **Title**: Refactor Sprint 4: 收尾 —— market 设施、下线、发布流水线
 - **Started At**: 2026-10-25 12:08:47
-- **Status**: in_progress
+- **Status**: completed
 
 ### Original Task Description
 
@@ -21,4 +21,9 @@
 
 验收：CI 全绿（无 Rust job）；旧 Tauri 数据迁移提示可用；插件管理界面可列出/禁用第三方插件；runbook 成文。范围内有意的功能例外：summarize_video（桌面 AI 特性）暂不迁移，记入 backlog。
 ```
+- **Completed At**: 2026-10-25 12:37:55
+
+### Implementation Summary
+
+Sprint 4 完成（PR #24 已合并）：Tauri 应用与 Node 后端正式下线（-36.6k 行），单一 Go 后端 + 插件化前端 + Electron 壳定稿；第三方插件 install→load→管理闭环落地；旧 Tauri 数据一次性迁移；electron-updater + release runbook 就绪。Sprint 0–4 全部收官（issues #12/#15/#17/#20/#23），docs/refactor/sprint-0 转为历史决策记录。
 

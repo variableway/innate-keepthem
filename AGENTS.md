@@ -33,8 +33,12 @@ later concern.
 └── pnpm-workspace.yaml / go.work / Taskfile.yml
 ```
 
-The daemon (`vytdl/services/vytdl`) is the canonical Go source; `qdriven/innate-vytdl`
-receives one-way sync PRs. `packages/*` is deliberately project-agnostic so
+The daemon (`vytdl/services/vytdl`) is the canonical Go source for the desktop/web
+line. The standalone CLI is a fully independent project (issue #32):
+[qdriven/innate-vytdl](https://github.com/qdriven/innate-vytdl), local
+`~/innate/innate-works/projects/innate-vytdl`, with its own `skills/`
+(vytdl-cli, x-video-dl) and Chinese docs — no longer nested here, no sync duty.
+`packages/*` is deliberately project-agnostic so
 contentforge can adopt the DSH plugin architecture later without moving code.
 
 ## Technology Stack

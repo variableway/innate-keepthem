@@ -130,6 +130,6 @@ ContentForge 桌面端是另一条 Tauri 实现（下载 + 资产库 + 多 Agent
 ## 设计约定
 
 - **下载引擎不重造**：一律 spawn yt-dlp。
-- **CLI 单一源**：vYtDL 规范源为本 monorepo `vytdl/services/vytdl/`（refactor Sprint 1 起；[qdriven/innate-vytdl](https://github.com/qdriven/innate-vytdl) 改为接收单向同步 PR）。旧路径 `tools/vytdl-cli`、`vYtDL-standalone/` 均已移除。
+- **CLI 单一源**：vYtDL 规范源为本 monorepo `vytdl/services/vytdl/`（refactor Sprint 1 起）。独立 CLI 项目 [qdriven/innate-vytdl](https://github.com/qdriven/innate-vytdl)（本地 `~/innate/innate-works/projects/innate-vytdl`，issue #32 起）自持 skills 与文档，不再嵌套于本仓库、不再单向同步；旧路径 `tools/vytdl-cli`、`vYtDL-standalone/` 均已移除。
 - **桌面 / Web API 对齐**：同一命令名，便于 `api-client` 双模式。
 - **ContentForge 核心在 Python**：Go CLI 只做参数解析与桥接。

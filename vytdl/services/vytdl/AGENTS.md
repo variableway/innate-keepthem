@@ -1,6 +1,12 @@
-# AGENTS.md — vYtDL CLI
+# AGENTS.md — vYtDL CLI (daemon source)
 
-Standalone Go CLI wrapping yt-dlp. See `.agents/skills/vytdl-cli/SKILL.md` for agent instructions.
+Go CLI + `vytdl serve` daemon wrapping yt-dlp. This is the monorepo's canonical
+Go source for the desktop/web product line.
+
+The standalone CLI distribution — with its agent skills (`vytdl-cli`,
+`x-video-dl`) and Chinese docs — is the independent project
+[qdriven/innate-vytdl](https://github.com/qdriven/innate-vytdl)
+(local: `~/innate/innate-works/projects/innate-vytdl`, issue #32).
 
 ## Quick commands
 

@@ -54,9 +54,9 @@ downloadeds/*
 for_V/for_V/*
 */test_download/*
 
-# Legacy nested CLI checkout (superseded by services/vytdl in refactor Sprint 1;
-# kept gitignored so any stale local clone is never tracked)
-# Clone: git clone https://github.com/qdriven/innate-vytdl.git vYtDL-standalone
+# Standalone CLI moved out to its own independent project (issue #32):
+# local ~/innate/innate-works/projects/innate-vytdl (GitHub: qdriven/innate-vytdl).
+# Entry kept so any stale nested clone is never tracked.
 vYtDL-standalone/
 
 # contentforge Python venv (created via cf-env.sh workflow)

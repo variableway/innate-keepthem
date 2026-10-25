@@ -9,7 +9,7 @@ Go CLI / TUI wrapper around [yt-dlp](https://github.com/yt-dlp/yt-dlp). vYtDL do
 ## Quick start
 
 ```bash
-cd vYtDL-standalone   # or tools/vytdl-cli in the monorepo
+cd vytdl/services/vytdl   # in the innate-keepthem monorepo
 go build -o vYtDL .  # GOWORK=off if inside a go.work
 
 ./vYtDL download --install-yt-dlp   # optional: cache a fresh yt-dlp

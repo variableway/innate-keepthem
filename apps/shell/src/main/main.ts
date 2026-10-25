@@ -14,6 +14,7 @@ import {
   resolveDaemonBin,
   type DaemonHandle,
 } from "./daemon";
+import { maybeMigrateLegacyData } from "./migration";
 import {
   detectAgentClis,
   detectTerminals,
@@ -54,9 +55,31 @@ async function createWindow(): Promise<void> {
   const staticDirResolved = staticDir();
   const devDaemonUrl = process.env.VYTDL_DEV_DAEMON_URL;
 
+  // One-time legacy (Tauri) data import — must run before the daemon creates
+  // its own database in the same home.
+  const homeDir = daemonHome();
+  await maybeMigrateLegacyData(homeDir, {
+    prompt: async (candidate) => {
+      const { response } = await dialog.showMessageBox({
+        type: "question",
+        title: "vYtDL",
+        message: "Detected data from the legacy vYtDL Desktop app",
+        detail:
+          "Downloads history and settings can be imported once into the new version.\n" +
+          `Legacy data: ${candidate.legacyDbPath}\n\n` +
+          "Interface preferences are not portable and will start fresh.",
+        buttons: ["Import", "Skip"],
+        defaultId: 0,
+        cancelId: 1,
+      });
+      return response === 0 ? "import" : "skip";
+    },
+    reportError: (title, detail) => dialog.showErrorBox(title, detail),
+  });
+
   daemon = await startDaemon({
     staticDir: staticDirResolved ?? undefined,
-    homeDir: daemonHome(),
+    homeDir,
     devDaemonUrl: devDaemonUrl || undefined,
     binPath: process.env.VYTDL_DAEMON_BIN || undefined,
   });

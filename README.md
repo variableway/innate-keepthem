@@ -71,7 +71,7 @@ GOWORK=off go build -o vYtDL .
 ### Desktop App
 
 ```bash
-cd apps/vytdl-desktop
+cd apps/web
 pnpm install
 ```
 
@@ -130,7 +130,7 @@ python3 scripts/build-desktop.py bundle
 docker-compose up -d
 
 # View logs
-docker-compose logs -f vytdl-web
+docker-compose logs -f vytdl
 
 # Stop
 docker-compose down
@@ -144,8 +144,8 @@ See [USAGE.md](USAGE.md) for CLI usage. Project docs: [docs/README.md](docs/READ
 
 ```
 ├── apps/
-│   ├── vytdl-desktop/         # Desktop app (Tauri + Next.js)
-│   ├── vytdl-web/             # Web API server (Node.js, Docker)
+│   ├── shell/                 # Desktop shell (Electron host)
+│   ├── web/                   # Web frontend (static export, served by the daemon)
 │   └── contentforge-desktop/  # ContentForge desktop (Tauri + Next.js)
 ├── packages/
 │   ├── contentforge-core/     # ContentForge Python core

@@ -30,6 +30,7 @@ function runtimeImport(url: string): Promise<unknown> {
 
 /** Load installed third-party plugins from the daemon. Never throws. */
 export async function loadRemotePlugins(apiBase = ""): Promise<void> {
+  if (typeof window === "undefined") return; // SSR/prerender: no daemon to ask
   if (pluginRuntime.safeMode) {
     console.info("[plugins] safe mode: skipping remote plugins");
     return;

@@ -119,6 +119,8 @@ export async function maybeMigrateLegacyData(
   try {
     // The daemon has not started yet: the target DB does not exist (guaranteed
     // by the candidate check), so a plain file copy is the whole migration.
+    // The daemon home dir is created by the daemon later — create it here.
+    fs.mkdirSync(path.dirname(candidate.targetDbPath), { recursive: true });
     fs.copyFileSync(candidate.legacyDbPath, candidate.targetDbPath);
     markHandled(homeDir, "imported");
     return "imported";

@@ -1,4 +1,4 @@
-# ContentForge Desktop（`apps/contentforge-desktop/`）
+# ContentForge Desktop（`contentforge/apps/contentforge-desktop/`）
 
 ## 定位
 
@@ -48,7 +48,7 @@ ContentForge 向的 Tauri 桌面应用：下载队列、资产库、多 Agent �
 根 `Taskfile.yml` 的 `desktop:*` 任务面向 **vYtDL** 桌面，不包含本应用。在本目录：
 
 ```bash
-cd apps/contentforge-desktop
+cd contentforge/apps/contentforge-desktop
 pnpm install
 pnpm tauri dev
 ```

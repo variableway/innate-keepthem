@@ -18,7 +18,7 @@ importers:
         specifier: ^5.6.0
         version: 5.9.3
 
-  apps/contentforge-desktop:
+  contentforge/apps/contentforge-desktop:
     dependencies:
       '@tauri-apps/api':
         specifier: ^2.0.0
@@ -79,185 +79,6 @@ importers:
         specifier: ^5.0.0
         version: 5.9.3
 
-  apps/shell:
-    dependencies:
-      electron-updater:
-        specifier: ^6.3.9
-        version: 6.8.11
-    devDependencies:
-      '@types/node':
-        specifier: ^22
-        version: 22.20.5
-      electron:
-        specifier: ^33.0.0
-        version: 33.4.11
-      electron-builder:
-        specifier: ^25.1.8
-        version: 25.1.8(electron-builder-squirrel-windows@25.1.8(dmg-builder@25.1.8))
-      typescript:
-        specifier: ^5
-        version: 5.9.3
-      vitest:
-        specifier: ^3
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)
-
-  apps/web:
-    dependencies:
-      '@vytdl/plugin-analyze':
-        specifier: workspace:*
-        version: link:../../packages/plugin-analyze
-      '@vytdl/plugin-downloads':
-        specifier: workspace:*
-        version: link:../../packages/plugin-downloads
-      '@vytdl/plugin-library':
-        specifier: workspace:*
-        version: link:../../packages/plugin-library
-      '@vytdl/plugin-runtime':
-        specifier: workspace:*
-        version: link:../../packages/plugin-runtime
-      '@vytdl/plugin-settings':
-        specifier: workspace:*
-        version: link:../../packages/plugin-settings
-      '@vytdl/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
-      '@vytdl/utils':
-        specifier: workspace:*
-        version: link:../../packages/utils
-      lucide-react:
-        specifier: ^0.511.0
-        version: 0.511.0(react@19.2.4)
-      next:
-        specifier: 16.2.2
-        version: 16.2.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      react:
-        specifier: 19.2.4
-        version: 19.2.4
-      react-dom:
-        specifier: 19.2.4
-        version: 19.2.4(react@19.2.4)
-      zustand:
-        specifier: ^5.0.12
-        version: 5.0.15(@types/react@19.2.18)(immer@11.1.16)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
-    devDependencies:
-      '@tailwindcss/postcss':
-        specifier: ^4
-        version: 4.3.3
-      '@types/node':
-        specifier: ^20
-        version: 20.19.43
-      '@types/react':
-        specifier: ^19
-        version: 19.2.18
-      '@types/react-dom':
-        specifier: ^19
-        version: 19.2.4(@types/react@19.2.18)
-      postcss:
-        specifier: ^8
-        version: 8.5.26
-      tailwindcss:
-        specifier: ^4
-        version: 4.3.3
-      typescript:
-        specifier: ^5
-        version: 5.9.3
-      vitest:
-        specifier: ^3
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@20.19.43)(jiti@2.7.0)(lightningcss@1.32.0)
-
-  packages/plugin-analyze:
-    dependencies:
-      '@vytdl/plugin-runtime':
-        specifier: workspace:*
-        version: link:../plugin-runtime
-      '@vytdl/ui':
-        specifier: workspace:*
-        version: link:../ui
-      '@vytdl/utils':
-        specifier: workspace:*
-        version: link:../utils
-      lucide-react:
-        specifier: ^0.511.0
-        version: 0.511.0(react@19.2.4)
-      react:
-        specifier: 19.2.4
-        version: 19.2.4
-      react-dom:
-        specifier: 19.2.4
-        version: 19.2.4(react@19.2.4)
-    devDependencies:
-      '@types/react':
-        specifier: ^19
-        version: 19.2.18
-      next:
-        specifier: 16.2.2
-        version: 16.2.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      typescript:
-        specifier: ^5
-        version: 5.9.3
-
-  packages/plugin-downloads:
-    dependencies:
-      '@vytdl/plugin-runtime':
-        specifier: workspace:*
-        version: link:../plugin-runtime
-      '@vytdl/ui':
-        specifier: workspace:*
-        version: link:../ui
-      '@vytdl/utils':
-        specifier: workspace:*
-        version: link:../utils
-      lucide-react:
-        specifier: ^0.511.0
-        version: 0.511.0(react@19.2.4)
-      react:
-        specifier: 19.2.4
-        version: 19.2.4
-      react-dom:
-        specifier: 19.2.4
-        version: 19.2.4(react@19.2.4)
-    devDependencies:
-      '@types/react':
-        specifier: ^19
-        version: 19.2.18
-      next:
-        specifier: 16.2.2
-        version: 16.2.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      typescript:
-        specifier: ^5
-        version: 5.9.3
-
-  packages/plugin-library:
-    dependencies:
-      '@vytdl/plugin-runtime':
-        specifier: workspace:*
-        version: link:../plugin-runtime
-      '@vytdl/ui':
-        specifier: workspace:*
-        version: link:../ui
-      '@vytdl/utils':
-        specifier: workspace:*
-        version: link:../utils
-      lucide-react:
-        specifier: ^0.511.0
-        version: 0.511.0(react@19.2.4)
-      react:
-        specifier: 19.2.4
-        version: 19.2.4
-      react-dom:
-        specifier: 19.2.4
-        version: 19.2.4(react@19.2.4)
-    devDependencies:
-      '@types/react':
-        specifier: ^19
-        version: 19.2.18
-      next:
-        specifier: 16.2.2
-        version: 16.2.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      typescript:
-        specifier: ^5
-        version: 5.9.3
-
   packages/plugin-runtime:
     dependencies:
       '@vytdl/ui':
@@ -294,40 +115,6 @@ importers:
       vitest:
         specifier: ^3
         version: 3.2.7(@types/debug@4.1.13)(@types/node@20.19.43)(jiti@2.7.0)(lightningcss@1.32.0)
-
-  packages/plugin-settings:
-    dependencies:
-      '@vytdl/plugin-runtime':
-        specifier: workspace:*
-        version: link:../plugin-runtime
-      '@vytdl/ui':
-        specifier: workspace:*
-        version: link:../ui
-      '@vytdl/utils':
-        specifier: workspace:*
-        version: link:../utils
-      lucide-react:
-        specifier: ^0.511.0
-        version: 0.511.0(react@19.2.4)
-      react:
-        specifier: 19.2.4
-        version: 19.2.4
-      react-dom:
-        specifier: 19.2.4
-        version: 19.2.4(react@19.2.4)
-    devDependencies:
-      '@types/node':
-        specifier: ^20
-        version: 20.19.43
-      '@types/react':
-        specifier: ^19
-        version: 19.2.18
-      next:
-        specifier: 16.2.2
-        version: 16.2.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      typescript:
-        specifier: ^5
-        version: 5.9.3
 
   packages/ui:
     dependencies:
@@ -422,6 +209,219 @@ importers:
         version: 8.5.1(jiti@2.7.0)(postcss@8.5.26)(typescript@5.9.3)
       typescript:
         specifier: ^5.6.0
+        version: 5.9.3
+
+  vytdl/apps/shell:
+    dependencies:
+      electron-updater:
+        specifier: ^6.3.9
+        version: 6.8.11
+    devDependencies:
+      '@types/node':
+        specifier: ^22
+        version: 22.20.5
+      electron:
+        specifier: ^33.0.0
+        version: 33.4.11
+      electron-builder:
+        specifier: ^25.1.8
+        version: 25.1.8(electron-builder-squirrel-windows@25.1.8(dmg-builder@25.1.8))
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+      vitest:
+        specifier: ^3
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@22.20.5)(jiti@2.7.0)(lightningcss@1.32.0)
+
+  vytdl/apps/web:
+    dependencies:
+      '@vytdl/plugin-analyze':
+        specifier: workspace:*
+        version: link:../../packages/plugin-analyze
+      '@vytdl/plugin-downloads':
+        specifier: workspace:*
+        version: link:../../packages/plugin-downloads
+      '@vytdl/plugin-library':
+        specifier: workspace:*
+        version: link:../../packages/plugin-library
+      '@vytdl/plugin-runtime':
+        specifier: workspace:*
+        version: link:../../../packages/plugin-runtime
+      '@vytdl/plugin-settings':
+        specifier: workspace:*
+        version: link:../../packages/plugin-settings
+      '@vytdl/ui':
+        specifier: workspace:*
+        version: link:../../../packages/ui
+      '@vytdl/utils':
+        specifier: workspace:*
+        version: link:../../../packages/utils
+      lucide-react:
+        specifier: ^0.511.0
+        version: 0.511.0(react@19.2.4)
+      next:
+        specifier: 16.2.2
+        version: 16.2.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: 19.2.4
+        version: 19.2.4(react@19.2.4)
+      zustand:
+        specifier: ^5.0.12
+        version: 5.0.15(@types/react@19.2.18)(immer@11.1.16)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
+    devDependencies:
+      '@tailwindcss/postcss':
+        specifier: ^4
+        version: 4.3.3
+      '@types/node':
+        specifier: ^20
+        version: 20.19.43
+      '@types/react':
+        specifier: ^19
+        version: 19.2.18
+      '@types/react-dom':
+        specifier: ^19
+        version: 19.2.4(@types/react@19.2.18)
+      postcss:
+        specifier: ^8
+        version: 8.5.26
+      tailwindcss:
+        specifier: ^4
+        version: 4.3.3
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+      vitest:
+        specifier: ^3
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@20.19.43)(jiti@2.7.0)(lightningcss@1.32.0)
+
+  vytdl/packages/plugin-analyze:
+    dependencies:
+      '@vytdl/plugin-runtime':
+        specifier: workspace:*
+        version: link:../../../packages/plugin-runtime
+      '@vytdl/ui':
+        specifier: workspace:*
+        version: link:../../../packages/ui
+      '@vytdl/utils':
+        specifier: workspace:*
+        version: link:../../../packages/utils
+      lucide-react:
+        specifier: ^0.511.0
+        version: 0.511.0(react@19.2.4)
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: 19.2.4
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@types/react':
+        specifier: ^19
+        version: 19.2.18
+      next:
+        specifier: 16.2.2
+        version: 16.2.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+
+  vytdl/packages/plugin-downloads:
+    dependencies:
+      '@vytdl/plugin-runtime':
+        specifier: workspace:*
+        version: link:../../../packages/plugin-runtime
+      '@vytdl/ui':
+        specifier: workspace:*
+        version: link:../../../packages/ui
+      '@vytdl/utils':
+        specifier: workspace:*
+        version: link:../../../packages/utils
+      lucide-react:
+        specifier: ^0.511.0
+        version: 0.511.0(react@19.2.4)
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: 19.2.4
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@types/react':
+        specifier: ^19
+        version: 19.2.18
+      next:
+        specifier: 16.2.2
+        version: 16.2.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+
+  vytdl/packages/plugin-library:
+    dependencies:
+      '@vytdl/plugin-runtime':
+        specifier: workspace:*
+        version: link:../../../packages/plugin-runtime
+      '@vytdl/ui':
+        specifier: workspace:*
+        version: link:../../../packages/ui
+      '@vytdl/utils':
+        specifier: workspace:*
+        version: link:../../../packages/utils
+      lucide-react:
+        specifier: ^0.511.0
+        version: 0.511.0(react@19.2.4)
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: 19.2.4
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@types/react':
+        specifier: ^19
+        version: 19.2.18
+      next:
+        specifier: 16.2.2
+        version: 16.2.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+
+  vytdl/packages/plugin-settings:
+    dependencies:
+      '@vytdl/plugin-runtime':
+        specifier: workspace:*
+        version: link:../../../packages/plugin-runtime
+      '@vytdl/ui':
+        specifier: workspace:*
+        version: link:../../../packages/ui
+      '@vytdl/utils':
+        specifier: workspace:*
+        version: link:../../../packages/utils
+      lucide-react:
+        specifier: ^0.511.0
+        version: 0.511.0(react@19.2.4)
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: 19.2.4
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@types/node':
+        specifier: ^20
+        version: 20.19.43
+      '@types/react':
+        specifier: ^19
+        version: 19.2.18
+      next:
+        specifier: 16.2.2
+        version: 16.2.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      typescript:
+        specifier: ^5
         version: 5.9.3
 
 packages:

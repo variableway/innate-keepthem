@@ -9,7 +9,7 @@ references/
 
 # ── Build artifacts ───────────────────────────────────────
 tools/vytdl-cli/vYtDL
-tools/contentforge-cli/contentforge
+contentforge/cli/contentforge
 *.exe
 *.mp4
 *.webm
@@ -63,6 +63,6 @@ vYtDL-standalone/
 .venv-cf/
 
 # Electron shell build artifacts (staged resources are reproducible)
-apps/shell/resources/
-apps/shell/release/
+vytdl/apps/shell/resources/
+vytdl/apps/shell/release/
 .local-workflow.state.json

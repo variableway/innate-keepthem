@@ -1,32 +1,34 @@
 # ── Stage 1: Build frontend (static export) ─────────────────────────────────
+# Build context is the repo ROOT (see vytdl/docker-compose.yml): the web app
+# consumes the shared packages/ layer that lives outside vytdl/.
 FROM node:20-slim AS frontend-builder
 WORKDIR /app
 
 RUN npm install -g pnpm
 
 COPY package.json pnpm-workspace.yaml ./
-COPY apps/web/package.json ./apps/web/
+COPY vytdl/apps/web/package.json ./vytdl/apps/web/
 COPY packages/ui/package.json ./packages/ui/
 COPY packages/utils/package.json ./packages/utils/
 
 RUN pnpm install
 
-COPY apps/web/ ./apps/web/
+COPY vytdl/apps/web/ ./vytdl/apps/web/
 COPY packages/ ./packages/
 
-# output: "export" → static site in apps/web/out
-RUN cd apps/web && pnpm build
+# output: "export" → static site in vytdl/apps/web/out
+RUN cd vytdl/apps/web && pnpm build
 
-# ── Stage 2: Build the Go daemon (services/vytdl, in-repo) ──────────────────
+# ── Stage 2: Build the Go daemon (vytdl/services/vytdl, in-repo) ─────────────
 FROM golang:1.26-alpine AS daemon-builder
 ARG GOPROXY=https://proxy.golang.org,direct
 ENV GOPROXY=${GOPROXY}
-WORKDIR /src/services/vytdl
+WORKDIR /src/vytdl/services/vytdl
 
-COPY services/vytdl/go.mod services/vytdl/go.sum ./
+COPY vytdl/services/vytdl/go.mod vytdl/services/vytdl/go.sum ./
 RUN go mod download
 
-COPY services/vytdl/ ./
+COPY vytdl/services/vytdl/ ./
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=$(go env GOARCH) \
     go build -trimpath -ldflags="-s -w" -o /out/vytdl .
 
@@ -44,7 +46,7 @@ RUN pip3 install --break-system-packages --no-cache-dir yt-dlp
 WORKDIR /app
 
 COPY --from=daemon-builder /out/vytdl ./vytdl
-COPY --from=frontend-builder /app/apps/web/out ./out
+COPY --from=frontend-builder /app/vytdl/apps/web/out ./out
 
 RUN mkdir -p /app/data /app/downloads
 

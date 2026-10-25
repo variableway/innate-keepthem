@@ -1,0 +1,58 @@
+name: contentforge CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "contentforge/**"
+      - ".github/workflows/contentforge.yml"
+  pull_request:
+    paths:
+      - "contentforge/**"
+      - ".github/workflows/contentforge.yml"
+
+concurrency:
+  group: contentforge-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  go-cli:
+    name: Go (contentforge cli)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+      - name: Build (contentforge/cli)
+        working-directory: contentforge/cli
+        run: go build ./...
+
+  rust:
+    name: Rust (contentforge-desktop)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          # 默认 -D warnings 会把既有 WIP dead-code 警告变错误；lint 关卡待专门引入
+          rustflags: ""
+      - name: Install Tauri system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - name: cargo check
+        run: cargo check --manifest-path contentforge/apps/contentforge-desktop/src-tauri/Cargo.toml
+
+  python:
+    name: Python (contentforge core)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Syntax check all Python sources
+        run: |
+          python -m compileall -q contentforge/core/python
+          echo "OK"

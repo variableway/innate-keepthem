@@ -3,7 +3,7 @@
 > 从任意社交媒体获取内容，通过 AI 处理转化为适合任意平台发布的内容。
 
 > **本目录现在只保留 external-repos（参考仓库 submodule 及其分析）与样例数据。**
-> 代码已迁至 monorepo 各处：CLI -> `tools/contentforge-cli`，核心 -> `packages/contentforge-core`，桌面端 -> `apps/contentforge-desktop`。
+> 代码已迁至 monorepo 各处：CLI -> `contentforge/cli`，核心 -> `contentforge/core`，桌面端 -> `contentforge/apps/contentforge-desktop`。
 > 文档已迁至 `docs/`（设计 Spec 在 `docs/specs/contentforge/`，当前状态在 `docs/STATUS.md`，模块导览在 `docs/modules/contentforge.md`）。
 
 ## 快速开始
@@ -14,10 +14,10 @@ python3 -m venv .venv-cf
 .venv-cf/bin/pip install requests pyyaml
 
 # 2. 加载环境变量（PATH/PYTHONPATH/CONTENTFORGE_VENV）
-source packages/contentforge-core/scripts/cf-env.sh
+source contentforge/core/scripts/cf-env.sh
 
 # 3. 构建 CLI 并验证
-cd tools/contentforge-cli && go build -o ../../bin/contentforge . && cd ../..
+cd contentforge/cli && go build -o ../../bin/contentforge . && cd ../..
 contentforge --help
 contentforge pipeline list
 ```

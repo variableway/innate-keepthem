@@ -1,4 +1,4 @@
-# URL Extractor（`extensions/url-extractor/`）
+# URL Extractor（`vytdl/extensions/url-extractor/`）
 
 ## 定位
 

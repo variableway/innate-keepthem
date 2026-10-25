@@ -1,6 +1,9 @@
 packages:
-  - 'apps/*'
+  # 共享技术层 (DSH/desktop 定位): ui 组件、utils、插件运行时
   - 'packages/*'
-  - 'tools/*'
-  - 'services/*'
-  - 'extensions/*'
+  # vYtDL 项目 (Go daemon + Next.js/Electron + 业务插件)
+  - 'vytdl/apps/*'
+  - 'vytdl/packages/*'
+  - 'vytdl/extensions/*'
+  # ContentForge 项目 (Rust/Tauri 桌面端前端)
+  - 'contentforge/apps/*'

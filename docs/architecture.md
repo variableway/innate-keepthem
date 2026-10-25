@@ -41,7 +41,7 @@ innate-keepthem/
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  UI 层                                                          │
-│  apps/web（插件宿主）│ apps/shell（Electron）│ 扩展 │ 浏览器 │
+│  vytdl/apps/web（插件宿主）│ vytdl/apps/shell（Electron）│ 扩展 │ 浏览器 │
 └────────────┬────────────────┬───────────────────┬───────────────┘
              │ preload 桥  │ daemon HTTP/WS（同源）
 ┌────────────▼────────────────▼───────────────────▼───────────────┐
@@ -51,7 +51,7 @@ innate-keepthem/
              │ spawn（shell）/ HTTP·WS（前端·浏览器）
 ┌────────────▼────────────────────────────────────▼───────────────┐
 │  CLI / 核心                                                     │
-│  vYtDL services/vytdl (Go→yt-dlp) │ contentforge-cli (Go→Python) │
+│  vYtDL vytdl/services/vytdl (Go→yt-dlp) │ contentforge-cli (Go→Python) │
 │                               │ contentforge-core + agent-reach │
 └────────────┬────────────────────────────────────┬───────────────┘
              │                                    │
@@ -63,7 +63,7 @@ innate-keepthem/
 
 | 类型 | 文件 | 成员 |
 |------|------|------|
-| Go | `go.work` | `services/vytdl`, `tools/contentforge-cli` |
+| Go | `go.work` | `vytdl/services/vytdl`, `contentforge/cli` |
 | pnpm | `pnpm-workspace.yaml` | `apps/*`, `packages/*`, `tools/*`, `services/*`, `extensions/*` |
 | Turbo | `turbo.json` | 前端 `dev` / `build` / `lint` / `typecheck` |
 
@@ -100,7 +100,7 @@ ContentForge 桌面端是另一条 Tauri 实现（下载 + 资产库 + 多 Agent
 
 | 目标 | 推荐命令 |
 |------|----------|
-| vYtDL CLI | `task cli:build`（目录 `services/vytdl/`） |
+| vYtDL CLI | `task cli:build`（目录 `vytdl/services/vytdl/`） |
 | vYtDL Daemon | `task daemon:dev` / `task daemon:build`（`vytdl serve`，Sprint 1） |
 | vYtDL 桌面开发 | `task desktop:dev` |
 | vYtDL 桌面生产 | `task desktop:build` / `task desktop:bundle` |
@@ -111,8 +111,8 @@ ContentForge 桌面端是另一条 Tauri 实现（下载 + 资产库 + 多 Agent
 
 桌面构建（Electron）会：
 
-1. `scripts/build-shell-resources.py` 暂存资源：`services/vytdl` 交叉编译 daemon（darwin/windows triple）+ `apps/web` 静态导出 → `apps/shell/resources/`
-2. `apps/shell` tsc 编译主进程/preload
+1. `scripts/build-shell-resources.py` 暂存资源：`vytdl/services/vytdl` 交叉编译 daemon（darwin/windows triple）+ `vytdl/apps/web` 静态导出 → `vytdl/apps/shell/resources/`
+2. `vytdl/apps/shell` tsc 编译主进程/preload
 3. `electron-builder` 打 dmg/nsis（发布见 docs/release-runbook.md）
 
 ## 外部依赖
@@ -130,6 +130,6 @@ ContentForge 桌面端是另一条 Tauri 实现（下载 + 资产库 + 多 Agent
 ## 设计约定
 
 - **下载引擎不重造**：一律 spawn yt-dlp。
-- **CLI 单一源**：vYtDL 规范源为本 monorepo `services/vytdl/`（refactor Sprint 1 起；[qdriven/innate-vytdl](https://github.com/qdriven/innate-vytdl) 改为接收单向同步 PR）。旧路径 `tools/vytdl-cli`、`vYtDL-standalone/` 均已移除。
+- **CLI 单一源**：vYtDL 规范源为本 monorepo `vytdl/services/vytdl/`（refactor Sprint 1 起；[qdriven/innate-vytdl](https://github.com/qdriven/innate-vytdl) 改为接收单向同步 PR）。旧路径 `tools/vytdl-cli`、`vYtDL-standalone/` 均已移除。
 - **桌面 / Web API 对齐**：同一命令名，便于 `api-client` 双模式。
 - **ContentForge 核心在 Python**：Go CLI 只做参数解析与桥接。

@@ -1,8 +1,8 @@
 version: "3"
 
 vars:
-  CLI_DIR: ./services/vytdl
-  CONTENTFORGE_DIR: ./tools/contentforge-cli
+  CLI_DIR: ./vytdl/services/vytdl
+  CONTENTFORGE_DIR: ./contentforge/cli
   CLI_BIN: vYtDL
   CF_BIN: contentforge
   DIST_DIR: ./dist
@@ -40,7 +40,7 @@ tasks:
       - "**/*.go"
 
   cli:build:windows:
-    desc: Cross-compile Windows amd64 + arm64 (.exe → services/vytdl/dist/)
+    desc: Cross-compile Windows amd64 + arm64 (.exe → vytdl/services/vytdl/dist/)
     dir: "{{.CLI_DIR}}"
     env:
       GOWORK: "off"
@@ -125,7 +125,7 @@ tasks:
       - go run . serve --dev --home ./.daemon-home
 
   daemon:build:
-    desc: Build the daemon binary (services/vytdl/dist/vytdl)
+    desc: Build the daemon binary (vytdl/services/vytdl/dist/vytdl)
     dir: "{{.CLI_DIR}}"
     env:
       GOWORK: "off"
@@ -148,7 +148,7 @@ tasks:
   shell:dev:
     desc: Stage resources (host daemon + web export) and launch the Electron shell
     cmds:
-      - python3 scripts/build-shell-resources.py
+      - python3 vytdl/scripts/build-shell-resources.py
       - pnpm --filter @vytdl/shell build
       - pnpm --filter @vytdl/shell start
 
@@ -160,7 +160,7 @@ tasks:
   desktop:bundle:
     desc: Package the desktop app (electron-builder; mac arm64/x64 + win x64)
     cmds:
-      - python3 scripts/build-shell-resources.py --all
+      - python3 vytdl/scripts/build-shell-resources.py --all
       - pnpm --filter @vytdl/shell build
       - pnpm --filter @vytdl/shell exec electron-builder --config electron-builder.yml
 
@@ -169,7 +169,7 @@ tasks:
     desc: Load ContentForge environment (print instructions)
     cmds:
       - |
-        echo "Run: source packages/contentforge-core/scripts/cf-env.sh"
+        echo "Run: source contentforge/core/scripts/cf-env.sh"
 
   contentforge:build:
     desc: Build ContentForge Go CLI
@@ -184,7 +184,7 @@ tasks:
   contentforge:check:
     desc: Verify ContentForge Python modules import
     cmds:
-      - bash -c 'source packages/contentforge-core/scripts/cf-env.sh && python3 -c "import contentforge.models; print(\"contentforge.models OK\")"'
+      - bash -c 'source contentforge/core/scripts/cf-env.sh && python3 -c "import contentforge.models; print(\"contentforge.models OK\")"'
 
   contentforge:help:
     desc: Show ContentForge CLI help
@@ -197,23 +197,23 @@ tasks:
   setup:macos:
     desc: Run macOS environment setup (ContentForge venv, deps)
     cmds:
-      - bash setup-macos.sh
+      - bash contentforge/setup-macos.sh
 
   # ── Web (Docker) ─────────────────────────────────────────
   web:up:
     desc: Start Docker web UI
     cmds:
-      - docker-compose up -d
+      - docker-compose -f vytdl/docker-compose.yml up -d
 
   web:down:
     desc: Stop Docker web UI
     cmds:
-      - docker-compose down
+      - docker-compose -f vytdl/docker-compose.yml down
 
   web:logs:
     desc: Tail Docker web UI logs
     cmds:
-      - docker-compose logs -f vytdl
+      - docker-compose -f vytdl/docker-compose.yml logs -f vytdl
 
   # ── Combined ─────────────────────────────────────────────
   build:
@@ -230,10 +230,10 @@ tasks:
       - rm -rf {{.DIST_DIR}}
       - rm -f {{.CLI_DIR}}/{{.CLI_BIN}}
       - rm -f {{.CONTENTFORGE_DIR}}/{{.CF_BIN}}
-      - rm -rf apps/web/out
-      - rm -rf apps/shell/dist
-      - rm -rf apps/shell/resources
-      - rm -rf apps/shell/release
+      - rm -rf vytdl/apps/web/out
+      - rm -rf vytdl/apps/shell/dist
+      - rm -rf vytdl/apps/shell/resources
+      - rm -rf vytdl/apps/shell/release
       - echo "Cleaned."
 
   # ── Help ─────────────────────────────────────────────────
@@ -249,7 +249,7 @@ tasks:
         echo "  Install Task:  brew install go-task"
         echo ""
         echo "  vYtDL CLI (canonical source services/vytdl/):"
-        echo "    CLI source lives in services/vytdl (synced to qdriven/innate-vytdl via PR)"
+        echo "    CLI source lives in vytdl/services/vytdl (synced to qdriven/innate-vytdl via PR)"
         echo "    task cli:build"
         echo "    task cli:build:windows      # Windows amd64 + arm64"
         echo "    task cli:build:windows:amd64"
@@ -263,9 +263,9 @@ tasks:
         echo "  ContentForge:"
         echo "    task setup:macos"
         echo "    task contentforge:build"
-        echo "    source packages/contentforge-core/scripts/cf-env.sh"
+        echo "    source contentforge/core/scripts/cf-env.sh"
         echo ""
-        echo "  vYtDL CLI source (services/vytdl/):"
+        echo "  vYtDL CLI source (vytdl/services/vytdl/):"
         echo "    cd services/vytdl && task build"
         echo ""
         echo "  Direct Python (still supported):"

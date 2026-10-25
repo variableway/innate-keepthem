@@ -1,4 +1,4 @@
-# ContentForge Core（`packages/contentforge-core/`）
+# ContentForge Core（`contentforge/core/`）
 
 ## 定位
 
@@ -48,6 +48,6 @@ ContentForge 领域实现：模型、采集、AI 处理、Pipeline 引擎与预�
 
 ## 与其他模块
 
-- 被 `tools/contentforge-cli` 通过 bridge 调用
+- 被 `contentforge/cli` 通过 bridge 调用
 - 依赖 `services/agent-reach` 可执行文件做多平台采集
 - 顶层 `contentforge/` 目录仅为遗留说明与样例，运行时代码在此包

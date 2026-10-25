@@ -1,6 +1,6 @@
 go 1.26.0
 
 use (
-	./services/vytdl
-	./tools/contentforge-cli
+	./vytdl/services/vytdl
+	./contentforge/cli
 )

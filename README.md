@@ -71,7 +71,7 @@ GOWORK=off go build -o vYtDL .
 ### Desktop App
 
 ```bash
-cd apps/web
+cd vytdl/apps/web
 pnpm install
 ```
 

@@ -7,7 +7,7 @@
 - **技术**：React 19 peer、Radix/Base UI、CVA、RHF、zod、recharts、cmdk、sonner 等
 - **入口**：`src/index.ts`、`src/components/ui/*`、`src/block/{landing,auth,mail,chat}`、`globals.css`
 - **消费者**：`apps/vytdl-desktop`（`transpilePackages`）
-- **不使用**：`apps/contentforge-desktop`
+- **不使用**：`contentforge/apps/contentforge-desktop`
 
 ## `@vytdl/utils`（`packages/utils/`）
 

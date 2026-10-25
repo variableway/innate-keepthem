@@ -1,8 +1,8 @@
-# ContentForge CLI（`tools/contentforge-cli/`）
+# ContentForge CLI（`contentforge/cli/`）
 
 ## 定位
 
-Go Cobra 前端：解析参数后通过 **PythonBridge** 调用 `packages/contentforge-core`。模块名 `github.com/patrick/contentforge`。
+Go Cobra 前端：解析参数后通过 **PythonBridge** 调用 `contentforge/core`。模块名 `github.com/patrick/contentforge`。
 
 ## 技术栈
 
@@ -38,11 +38,11 @@ contentforge pipeline list|run|create|status
 ```bash
 task contentforge:build
 task contentforge:check
-source packages/contentforge-core/scripts/cf-env.sh
+source contentforge/core/scripts/cf-env.sh
 ```
 
 ## 与其他模块
 
-- 依赖 `packages/contentforge-core`（`PYTHONPATH`）
+- 依赖 `contentforge/core`（`PYTHONPATH`）
 - 采集可走 `services/agent-reach`
-- 与 `apps/contentforge-desktop` 产品相关，但桌面端不经过此 CLI
+- 与 `contentforge/apps/contentforge-desktop` 产品相关，但桌面端不经过此 CLI

@@ -9,7 +9,7 @@
 | [release-runbook.md](./release-runbook.md) | 桌面/daemon 发布流水线 runbook |
 | [architecture.md](./architecture.md) | 整体技术架构、仓库布局、构建与运行入口 |
 | [modules/overview.md](./modules/overview.md) | 模块一览与依赖关系 |
-| [modules/vytdl-cli.md](./modules/vytdl-cli.md) | vYtDL Go CLI（`services/vytdl/`） |
+| [modules/vytdl-cli.md](./modules/vytdl-cli.md) | vYtDL Go CLI（`vytdl/services/vytdl/`） |
 | [modules/vytdl-desktop.md](./modules/vytdl-desktop.md) | vYtDL 桌面端（Tauri + Next.js） |
 | [modules/vytdl-web.md](./modules/vytdl-web.md) | vYtDL Web / Docker 服务 |
 | [modules/contentforge-cli.md](./modules/contentforge-cli.md) | ContentForge Go CLI |
@@ -39,7 +39,7 @@ task web:up
 
 # ContentForge CLI
 task contentforge:build
-source packages/contentforge-core/scripts/cf-env.sh
+source contentforge/core/scripts/cf-env.sh
 ```
 
 更多任务见根目录 `Taskfile.yml`（`task --list`）。

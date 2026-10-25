@@ -92,7 +92,7 @@ def handle_pipeline(payload: Dict[str, Any]) -> Dict[str, Any]:
             else:
                 pipeline_def = pipeline_json
             # Save to presets dir
-            # repo layout: <root>/packages/contentforge-core/{python,scripts}
+            # repo layout: <root>/contentforge/core/{python,scripts}
             presets_dir = str(Path(__file__).resolve().parents[3] / "scripts" / "presets")
             presets = PipelinePresets(presets_dir)
             # Re-save to persist

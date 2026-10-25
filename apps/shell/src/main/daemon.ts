@@ -35,12 +35,18 @@ function platformTriple(): string {
 }
 
 /** Locate the daemon binary: packaged resource → dev override → PATH. */
-export function resolveDaemonBin(resourcesPath?: string): string | null {
+export function resolveDaemonBin(resourcesPath?: string, appPath?: string): string | null {
   const name = process.platform === "win32" ? "vytdl.exe" : "vytdl";
   const candidates: string[] = [];
   if (resourcesPath) {
     candidates.push(path.join(resourcesPath, "daemon", `vytdl-${platformTriple()}`, name));
     candidates.push(path.join(resourcesPath, "daemon", name));
+  }
+  // appPath (the Electron app dir) is reliable in dev; process.cwd() depends
+  // on how the app was launched.
+  if (appPath) {
+    candidates.push(path.join(appPath, "resources", "daemon", `vytdl-${platformTriple()}`, name));
+    candidates.push(path.join(appPath, "resources", "daemon", name));
   }
   candidates.push(path.join(process.cwd(), "resources", "daemon", name));
   for (const c of candidates) {
@@ -105,6 +111,7 @@ export function randomFreePort(): Promise<number> {
 }
 
 export async function startDaemon(opts: DaemonOptions): Promise<DaemonHandle> {
+  console.error(`[daemon] startDaemon bin=${opts.binPath ?? "(auto)"} static=${opts.staticDir ?? "(none)"} home=${opts.homeDir}`);
   // Dev shortcut: reuse an already-running daemon (task daemon:dev).
   if (opts.devDaemonUrl) {
     await waitForHealth(opts.devDaemonUrl, 5000);
@@ -122,6 +129,7 @@ export async function startDaemon(opts: DaemonOptions): Promise<DaemonHandle> {
     windowsHide: true,
   });
 
+  console.error(`[daemon] spawned pid=${child.pid} bin=${bin}`);
   const url = await new Promise<string>((resolve, reject) => {
     let buffer = "";
     const onData = (chunk: Buffer) => {
@@ -139,6 +147,7 @@ export async function startDaemon(opts: DaemonOptions): Promise<DaemonHandle> {
     const timer = setTimeout(() => reject(new Error("daemon did not announce its port in time")), 15000);
     child.once("exit", (code) => {
       clearTimeout(timer);
+      console.error(`[daemon] exited immediately code=${code}`);
       reject(new Error(`daemon exited immediately (code ${code})`));
     });
     child.once("error", (err) => {

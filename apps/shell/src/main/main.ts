@@ -28,6 +28,7 @@ let mainWindow: BrowserWindow | null = null;
 let daemon: DaemonHandle | null = null;
 
 const gotSingleInstanceLock = app.requestSingleInstanceLock();
+console.error(`[shell] lock acquired=${gotSingleInstanceLock} pid=${process.pid}`);
 if (!gotSingleInstanceLock) {
   app.quit();
 }
@@ -78,11 +79,15 @@ async function createWindow(): Promise<void> {
     reportError: (title, detail) => dialog.showErrorBox(title, detail),
   });
 
+  console.error('[shell] creating daemon home + starting daemon');
   daemon = await startDaemon({
     staticDir: staticDirResolved ?? undefined,
     homeDir,
     devDaemonUrl: devDaemonUrl || undefined,
-    binPath: process.env.VYTDL_DAEMON_BIN || undefined,
+    binPath:
+      process.env.VYTDL_DAEMON_BIN ||
+      resolveDaemonBin(process.resourcesPath, app.getAppPath()) ||
+      undefined,
   });
 
   mainWindow = new BrowserWindow({
@@ -105,7 +110,9 @@ async function createWindow(): Promise<void> {
     return { action: "deny" };
   });
 
+  console.error(`[shell] window created, loading ${daemon.url}`);
   await mainWindow.loadURL(daemon.url);
+  console.error('[shell] UI loaded');
 }
 
 function quitDaemon(): void {
@@ -150,8 +157,10 @@ function setupAutoUpdater(): void {
 }
 
 app.whenReady().then(() => {
+  console.error('[shell] ready; starting daemon flow');
   setupAutoUpdater();
   createWindow().catch((err) => {
+    console.error('[shell] createWindow FAILED:', err);
     dialog.showErrorBox(
       "vYtDL failed to start",
       `The background service could not start.\n\n${err instanceof Error ? err.message : String(err)}\n\nDaemon binary expected at: ${resolveDaemonBin() ?? "<bundled resource>"} `,

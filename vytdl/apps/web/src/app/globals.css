@@ -1,4 +1,9 @@
 @import "@vytdl/ui/globals.css";
-/* Scan every workspace package: since the plugin refactor the feature pages
-   live in packages/plugin-* — their utility classes must reach the host CSS. */
-@source "../../../../packages";
+/* Scan the WHOLE repo for utility classes. The path is relative to this file:
+   vytdl/apps/web/src/app → repo root is five levels up. Scanning both the
+   shared packages/ layer and vytdl/packages/ (business plugins) from one root
+   means future packages never regress this way; gitignored dirs (node_modules,
+   out, staged resources) are skipped automatically by Tailwind v4.
+   History: issue #27 fixed scanning, issue #29's move invalidated the
+   relative depth once already — do not narrow this glob. */
+@source "../../../../../";

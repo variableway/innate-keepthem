@@ -1,2 +1,4 @@
 @import "@vytdl/ui/globals.css";
-@source "../../../../packages/ui/src";
+/* Scan every workspace package: since the plugin refactor the feature pages
+   live in packages/plugin-* — their utility classes must reach the host CSS. */
+@source "../../../../packages";

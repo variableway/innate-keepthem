@@ -106,11 +106,6 @@ export interface Settings {
   default_sub_langs: string[];
   language: string;
   max_concurrent_downloads: number;
-  ai_provider: string | null;
-  ai_api_key: string | null;
-  ai_model: string | null;
-  agent_cli_kimi_bin: string | null;
-  agent_cli_other_bin: string | null;
   /** 网络与高级（借鉴清单 #3/#6/#9） */
   proxy?: string | null;
   cookie?: CookieConfig | null;
@@ -125,112 +120,6 @@ export interface Settings {
   extractor_args?: string | null;
   config_location?: string | null;
   /** AI agent terminal launcher */
-  agent_terminal?: string | null;
-  agent_terminal_workdir?: string | null;
-  agent_glm_api_key?: string | null;
-  agent_minimax_api_key?: string | null;
-  agent_anthropic_api_key?: string | null;
-  agent_openai_api_key?: string | null;
-}
-
-export interface AgentCliDetection {
-  id: string;
-  label: string;
-  found: boolean;
-  path: string | null;
-  version: string | null;
-  source: string;
-  config?: KimiConfigStatus | null;
-}
-
-export interface ConfigCheck {
-  id: string;
-  label: string;
-  ok: boolean;
-  detail: string | null;
-}
-
-export interface KimiConfigStatus {
-  status: "ready" | "needs_login" | "token_expired" | "config_missing" | "not_installed" | string;
-  ready: boolean;
-  config_dir: string | null;
-  config_toml_path: string | null;
-  tui_toml_path: string | null;
-  credentials_path: string | null;
-  default_model: string | null;
-  authenticated: boolean;
-  token_expired: boolean;
-  token_expires_at: string | null;
-  skills_count: number;
-  project_skills_exists: boolean;
-  project_skills_path: string | null;
-  checks: ConfigCheck[];
-}
-
-export interface DetectAgentCliResult {
-  kimi: AgentCliDetection;
-  other: AgentCliDetection;
-}
-
-// ── AI agent terminal launcher ──
-
-export interface AgentTerminalInfo {
-  id: string;
-  label: string;
-  platform: string;
-  found: boolean;
-  detail: string | null;
-}
-
-export interface AgentModelInfo {
-  id: string;
-  label: string;
-}
-
-export interface ProviderRegion {
-  id: string;
-  label: string;
-  base_url: string;
-}
-
-export interface AgentProviderInfo {
-  id: string;
-  label: string;
-  agent_cli: AgentCliToolId;
-  requires_api_key: boolean;
-  api_key_setting: keyof Settings | null;
-  models: AgentModelInfo[];
-  regions: ProviderRegion[];
-  hint: string | null;
-}
-
-export type AgentCliToolId = "kimi" | "claude-code" | "codex";
-
-export interface AgentCliToolInfo {
-  id: AgentCliToolId;
-  label: string;
-  command: string;
-  found: boolean;
-  path: string | null;
-  source: string;
-}
-
-export interface LaunchAgentTerminalRequest {
-  terminal_id: string;
-  agent_cli: AgentCliToolId;
-  provider_id: string;
-  region?: string | null;
-  model?: string | null;
-  api_key?: string | null;
-  workdir?: string | null;
-  cli_bin?: string | null;
-}
-
-export interface LaunchAgentTerminalResult {
-  terminal_label: string;
-  script_path: string;
-  command_line: string;
-  env_summary: string[];
 }
 
 export interface ApiResponse<T> {
@@ -287,18 +176,6 @@ export interface MediaAsset {
     report_id?: string;
     status?: string;
   };
-}
-
-export type AgentId = "kimi" | "mock";
-
-export type ChatRole = "user" | "assistant" | "system";
-
-export interface ChatMessage {
-  id: string;
-  role: ChatRole;
-  content: string;
-  created_at: string;
-  asset_ids?: string[];
 }
 
 export interface AssetContextPayload {

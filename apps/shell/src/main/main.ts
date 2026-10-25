@@ -16,13 +16,6 @@ import {
   type DaemonHandle,
 } from "./daemon";
 import { maybeMigrateLegacyData } from "./migration";
-import {
-  detectAgentClis,
-  detectTerminals,
-  launchAgentTerminal,
-  listAgentProviders,
-  type LaunchAgentTerminalRequest,
-} from "./terminal-launcher";
 
 let mainWindow: BrowserWindow | null = null;
 let daemon: DaemonHandle | null = null;
@@ -237,11 +230,4 @@ ipcMain.handle("vytdl:clipboard-write", (_e, text: string) =>
     clipboard.writeText(text);
     return null;
   }),
-);
-
-ipcMain.handle("vytdl:detect-terminals", () => envelope(() => detectTerminals()));
-ipcMain.handle("vytdl:list-agent-providers", () => envelope(() => listAgentProviders()));
-ipcMain.handle("vytdl:detect-agent-clis", () => envelope(() => detectAgentClis()));
-ipcMain.handle("vytdl:launch-agent-terminal", (_e, req: { request: LaunchAgentTerminalRequest }) =>
-  envelope(() => launchAgentTerminal(req.request)),
 );

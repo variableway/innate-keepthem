@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
   },
   transpilePackages: ["@vytdl/ui", "@vytdl/utils", "@vytdl/plugin-runtime",
     "@vytdl/plugin-downloads", "@vytdl/plugin-library", "@vytdl/plugin-settings",
-    "@vytdl/plugin-analyze", "@vytdl/plugin-workspace"],
+    "@vytdl/plugin-analyze"],
 };
 
 export default nextConfig;

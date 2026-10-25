@@ -96,18 +96,11 @@ type SettingsGetResponse struct {
 	DefaultSubLangs        any     `json:"default_sub_langs"`
 	Language               *string `json:"language"`
 	MaxConcurrentDownloads any     `json:"max_concurrent_downloads"`
-	AiProvider             *string `json:"ai_provider"`
-	AiApiKey               *string `json:"ai_api_key"`
-	AiModel                *string `json:"ai_model"`
-	AgentCliKimiBin        *string `json:"agent_cli_kimi_bin"`
-	AgentCliOtherBin       *string `json:"agent_cli_other_bin"`
 }
 
 var settingsKeys = []string{
 	"yt_dlp_path", "default_output_dir", "default_quality", "default_format",
 	"default_sub_langs", "language", "max_concurrent_downloads",
-	"ai_provider", "ai_api_key", "ai_model",
-	"agent_cli_kimi_bin", "agent_cli_other_bin",
 }
 
 // seedDefaults inserts missing default settings (web-backend parity).
@@ -466,16 +459,6 @@ func (s *Server) handleGetSettings(w http.ResponseWriter, r *http.Request) {
 					resp.MaxConcurrentDownloads = n
 				}
 			}
-		case "ai_provider":
-			resp.AiProvider = blankToNil(value)
-		case "ai_api_key":
-			resp.AiApiKey = blankToNil(value)
-		case "ai_model":
-			resp.AiModel = blankToNil(value)
-		case "agent_cli_kimi_bin":
-			resp.AgentCliKimiBin = blankToNil(value)
-		case "agent_cli_other_bin":
-			resp.AgentCliOtherBin = blankToNil(value)
 		}
 	}
 	writeOK(w, resp)

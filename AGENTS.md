@@ -136,14 +136,7 @@ Batch mode:
 
 ## AI Agent Terminal Launcher
 
-`/workspace/terminal` (desktop only) opens the user's local terminal (Ghostty, iTerm2, Terminal.app, Alacritty, kitty, WezTerm; wt/cmd on Windows) running an AI coding agent CLI with LLM provider config injected.
-
-- **Current (Sprint 2)**: `apps/shell/src/main/terminal-launcher.ts` (Electron main process) — ported from the Tauri implementation; frontend `apps/web/src/components/workspace/terminal-launcher.tsx` calls it via the `window.vytdlShell` preload bridge
-- Mechanism: a launch script is generated per session under `~/.vytdl/agent-sessions/<uuid>/` containing PATH bootstrap + env exports; the terminal is told to run that script (`open -na Ghostty --args -e` on macOS, `osascript` for Terminal/iTerm, direct binary flags elsewhere)
-- Claude Code third-party providers (GLM/MiniMax) inject `ANTHROPIC_BASE_URL/AUTH_TOKEN/MODEL` + default model slots; codex third-party providers use a session-scoped `CODEX_HOME` with generated `config.toml` (`experimental_bearer_token`, `wire_api = "responses"`) so the user's `~/.codex` is never touched
-- Kimi opens directly (single fixed model, its own login); official Anthropic/OpenAI run with the CLI's own account login
-- Persisted settings keys: `agent_terminal`, `agent_terminal_workdir`, `agent_glm_api_key`, `agent_minimax_api_key`, `agent_anthropic_api_key`, `agent_openai_api_key`
-- Model/endpoint facts come from vendor docs (GLM: `open.bigmodel.cn/api/anthropic` + `/api/v1`; MiniMax: `api.minimax.cn|io` + `/anthropic`|`/v1`); update the catalog in `list_agent_providers()` when vendors ship new models
+> 已于 2026-10-25 移除（issue #25）——AI 工作台/终端启动器产品线下线；桌面通用桥能力保留。
 
 ## Download Queue System
 

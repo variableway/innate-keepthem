@@ -13,11 +13,6 @@ const api = {
   openFolder: (path: string) => ipcRenderer.invoke("vytdl:open-folder", path),
   pickFolder: () => ipcRenderer.invoke("vytdl:pick-folder"),
   clipboardWriteText: (text: string) => ipcRenderer.invoke("vytdl:clipboard-write", text),
-
-  detectTerminals: () => ipcRenderer.invoke("vytdl:detect-terminals"),
-  listAgentProviders: () => ipcRenderer.invoke("vytdl:list-agent-providers"),
-  detectAgentClis: () => ipcRenderer.invoke("vytdl:detect-agent-clis"),
-  launchAgentTerminal: (req: unknown) => ipcRenderer.invoke("vytdl:launch-agent-terminal", req),
 };
 
 contextBridge.exposeInMainWorld("vytdlShell", api);

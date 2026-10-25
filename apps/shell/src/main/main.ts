@@ -6,6 +6,7 @@
 // bridge (terminal launcher, dialogs, clipboard).
 
 import { app, BrowserWindow, dialog, ipcMain, clipboard, shell } from "electron";
+import { autoUpdater } from "electron-updater";
 import * as path from "node:path";
 import * as fs from "node:fs";
 import {
@@ -119,7 +120,37 @@ app.on("second-instance", () => {
   }
 });
 
+function setupAutoUpdater(): void {
+  // Auto-update only in packaged builds; updates publish via GitHub Releases
+  // (see docs/release-runbook.md). Development builds skip this entirely.
+  if (!app.isPackaged) return;
+  try {
+    autoUpdater.autoDownload = true;
+    autoUpdater.on("update-downloaded", () => {
+      void dialog
+        .showMessageBox({
+          type: "info",
+          title: "vYtDL",
+          message: "Update ready to install",
+          detail: "Restart the app to apply the update.",
+          buttons: ["Restart", "Later"],
+          defaultId: 0,
+        })
+        .then(({ response }) => {
+          if (response === 0) autoUpdater.quitAndInstall();
+        });
+    });
+    autoUpdater.on("error", (err) => {
+      console.warn("[updater]", err.message);
+    });
+    void autoUpdater.checkForUpdatesAndNotify();
+  } catch (err) {
+    console.warn("[updater] setup failed:", err);
+  }
+}
+
 app.whenReady().then(() => {
+  setupAutoUpdater();
   createWindow().catch((err) => {
     dialog.showErrorBox(
       "vYtDL failed to start",

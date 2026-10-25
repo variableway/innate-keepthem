@@ -356,5 +356,18 @@
   "metadata": {
     "title": "vYtDL デスクトップ",
     "description": "モダンなデスクトップ動画ダウンローダー"
+  },
+  "plugins": {
+    "title": "プラグイン",
+    "description": "組み込みおよびサードパーティプラグインの状態と管理",
+    "builtinSection": "組み込みプラグイン",
+    "installedSection": "インストール済み（サードパーティ）",
+    "empty": "サードパーティプラグインは未インストールです。vytdl plugin install <package> を使用してください。",
+    "installHint": "インストール: vytdl plugin install <npm パッケージ | git URL>",
+    "safeMode": "セーフモードで実行中：組み込みプラグインのみ読み込まれます。",
+    "pending": "保留中",
+    "failed": "エラー",
+    "enable": "有効化",
+    "disable": "無効化"
   }
 }

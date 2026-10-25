@@ -2,7 +2,7 @@
   "name": "@vytdl/shell",
   "version": "0.1.0",
   "private": true,
-  "description": "vYtDL desktop shell (Electron host — no business logic)",
+  "description": "vYtDL desktop shell (Electron host \u2014 no business logic)",
   "main": "dist/main/main.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -16,5 +16,8 @@
     "electron-builder": "^25.1.8",
     "typescript": "^5",
     "vitest": "^3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9"
   }
 }

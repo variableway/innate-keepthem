@@ -41,19 +41,17 @@ export class PluginErrorBoundary extends React.Component<
 }
 
 function usePluginPage(route: string): { Component: React.ComponentType | null; ready: boolean } {
-  const [state, setState] = React.useState(() => ({
-    Component: pluginRuntime.getPage(route),
-    ready: pluginRuntime.list().length > 0,
-  }));
+  const read = React.useCallback(
+    () => ({ Component: pluginRuntime.getPage(route), ready: pluginRuntime.list().length > 0 }),
+    [route],
+  );
+  const [state, setState] = React.useState(read);
 
   React.useEffect(() => {
-    // registration happens at module init (static plugin imports); one tick is
-    // enough — re-read in case this component mounted before registration.
-    setState({
-      Component: pluginRuntime.getPage(route),
-      ready: pluginRuntime.list().length > 0,
-    });
-  }, [route]);
+    setState(read());
+    // remote plugins register asynchronously; keep the mount in sync
+    return pluginRuntime.subscribe(() => setState(read()));
+  }, [read]);
 
   return state;
 }

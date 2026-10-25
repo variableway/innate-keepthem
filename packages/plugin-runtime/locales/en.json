@@ -356,5 +356,18 @@
   "metadata": {
     "title": "vYtDL Desktop",
     "description": "A modern desktop video downloader"
+  },
+  "plugins": {
+    "title": "Plugins",
+    "description": "Status and management for built-in and third-party plugins",
+    "builtinSection": "Built-in plugins",
+    "installedSection": "Installed (third-party)",
+    "empty": "No third-party plugins installed. Use: vytdl plugin install <package>",
+    "installHint": "Install with: vytdl plugin install <npm package | git URL>",
+    "safeMode": "Running in safe mode: only built-in plugins are loaded.",
+    "pending": "pending",
+    "failed": "failed",
+    "enable": "Enable",
+    "disable": "Disable"
   }
 }

@@ -3,6 +3,10 @@ appId: app.vytdl.desktop
 productName: vYtDL
 directories:
   output: release/${version}
+publish:
+  provider: github
+  owner: variableway
+  repo: innate-keepthem
 files:
   - dist/**/*
 extraResources:

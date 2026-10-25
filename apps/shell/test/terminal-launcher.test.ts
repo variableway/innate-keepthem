@@ -134,13 +134,19 @@ describe("terminalLaunchCommand", () => {
     detail,
   });
 
-  it("opens Ghostty via open -na on macOS", () => {
+  it.runIf(process.platform === "darwin")("opens Ghostty via open -na on macOS", () => {
     const { file, args } = terminalLaunchCommand(term("ghostty", "/Applications/Ghostty.app"), "/s/l.sh");
     expect(file).toBe("/usr/bin/open");
     expect(args).toEqual(["-na", "Ghostty", "--args", "-e", "/s/l.sh"]);
   });
 
-  it("uses osascript for Terminal.app with escaped script path", () => {
+  it.runIf(process.platform !== "darwin")("opens Ghostty directly elsewhere", () => {
+    const { file, args } = terminalLaunchCommand(term("ghostty", "/usr/bin/ghostty"), "/s/l.sh");
+    expect(file).toBe("/usr/bin/ghostty");
+    expect(args).toEqual(["-e", "/s/l.sh"]);
+  });
+
+  it.runIf(process.platform === "darwin")("uses osascript for Terminal.app with escaped script path", () => {
     const { file, args } = terminalLaunchCommand(term("terminal", null), "/tmp/a\"b.sh");
     expect(file).toBe("/usr/bin/osascript");
     expect(args[1]).toContain('\\"');

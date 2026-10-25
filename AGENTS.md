@@ -24,7 +24,6 @@ vYtDL is a YouTube downloader suite with four components:
 - **Frontend**: `apps/web` — Next.js + React 19 + TypeScript + Tailwind, static export (`output: "export"`), pure HTTP/WS (`api-client.ts` lives in plugin-runtime); native-only actions go through the `window.vytdlShell` preload bridge and degrade/hide in plain browsers
 - **Plugin architecture (Sprint 3)**: `packages/plugin-runtime` — manifest contract (`plugin.json` + engine check), permission-gated API proxy, registry with error isolation, safe mode (`?safe-mode=1`), slot mounts; feature pages live in `packages/plugin-{downloads,library,settings,analyze,workspace}`, host routes are thin `<PluginPage>` mounts; shared client (api-client/stores/types/i18n) is exported from plugin-runtime subpaths
 - **Desktop Shell**: `apps/shell` — Electron host (no business logic): spawns/guards the Go daemon, sandboxed BrowserWindow loads the daemon URL; preload bridge exposes reveal-folder/open-terminal/dialog/clipboard; AI agent terminal launcher ported from Tauri (`src/main/terminal-launcher.ts`)
-- **Legacy**: `apps/vytdl-desktop` — Tauri v2 shell, frozen during refactor (removed in Sprint 4)
 - **Build**: pnpm monorepo (apps/*, packages/*, services/vytdl)
 - **State**: Zustand stores in plugin-runtime (`/store` subpath): downloadStore (shared backbone), settingsStore; chatStore lives in plugin-workspace
 - **i18n**: provider + locales in plugin-runtime (`/i18n` subpath); plugins merge fragments via `registerTranslations`
@@ -61,13 +60,13 @@ main.go → cmd.Execute() → cmd/root.go
 ### Desktop
 
 ```
-Next.js App Router
+Electron Shell (apps/shell)          ── spawn + health ──►  vYtDL daemon (Go)
+    ↓ BrowserWindow loads                                   │ HTTP API + WS
+apps/web (Next.js static export) ◄────── same-origin ────────┘
     ↓
-React Components (download-form, download-list, app-shell, app-sidebar)
+plugin-runtime registry/slots  ◄──  packages/plugin-* (nav + pages)
     ↓
-Zustand Stores (downloadStore, settingsStore)
-    ↓
-api-client.ts (Tauri IPC ↔ HTTP API abstraction)
+@vytdl/plugin-runtime/client (HTTP/WS)  ·  window.vytdlShell (native bridge)
     ↓
 Tauri IPC (commands.rs → queue.rs → downloader.rs, database.rs)
     ↓
@@ -104,26 +103,14 @@ SQLite Database
 - `internal/tui/` - bubbletea-based terminal UI
 - `internal/vtt/` - WebVTT parser (handles YouTube auto-generated and manual captions)
 
-### Desktop (apps/vytdl-desktop/)
+### Desktop (apps/web + apps/shell + packages/plugin-*)
 
-- `src/app/` - Next.js pages (home, settings, library, player)
-- `src/components/` - React components
-  - `download-form.tsx` - Single/Batch download form with textarea + file import
-  - `download-list.tsx` - Download list with progress, logs, queue position, retry
-- `src/i18n/` - Internationalization (provider, hook, locale JSON files)
-- `src/store/` - Zustand stores
-- `src/lib/api-client.ts` - API abstraction (Tauri IPC / HTTP fetch)
-- `src-tauri/src/` - Rust backend
-  - `commands.rs` - Tauri IPC commands (start_download, cancel, get_downloads, etc.)
-  - `downloader.rs` - yt-dlp subprocess wrapper
-  - `database.rs` - SQLite database layer (downloads + settings tables)
-  - `queue.rs` - Async download queue manager (max concurrency, FIFO, cancel)
-  - `terminal_launcher.rs` - AI agent terminal launcher (detect terminals/CLIs, provider catalog, launch script generation)
-  - `lib.rs` - App setup, bundled yt-dlp extraction, auto-resume on startup
-- `packages/ui/` - Shared UI components
-- `packages/utils/` - Shared utilities
-- `scripts/` - Startup scripts
-- `apps/vytdl-web/` - Docker web API server (Node.js + Hono)
+- `apps/web/src/` - Frontend host: thin route mounts (`<PluginPage>`), `plugins.ts` bootstrap, app-shell/sidebar
+- `packages/plugin-runtime/` - Plugin contract + runtime (manifest, permission-gated API proxy, registry with error isolation, safe mode) + shared client (`/client` `/store` `/types` `/i18n` `/layout` `/lib`)
+- `packages/plugin-{downloads,library,settings,analyze,workspace}/` - First-party feature plugins (component + nav + page registrations, `plugin.json` manifests)
+- `apps/shell/src/main/` - Electron main: `main.ts` (window/IPC/auto-update), `daemon.ts` (spawn/guard `vytdl serve`), `terminal-launcher.ts`, `migration.ts` (one-time legacy Tauri data import)
+- `apps/shell/src/preload/` - `contextBridge` → `window.vytdlShell`
+- Third-party plugins install to `~/.vytdl/plugins/<id>/` (`vytdl plugin install`); daemon serves them under `/api/plugins`
 
 ### URL Extractor (extensions/url-extractor/)
 
@@ -152,7 +139,6 @@ Batch mode:
 `/workspace/terminal` (desktop only) opens the user's local terminal (Ghostty, iTerm2, Terminal.app, Alacritty, kitty, WezTerm; wt/cmd on Windows) running an AI coding agent CLI with LLM provider config injected.
 
 - **Current (Sprint 2)**: `apps/shell/src/main/terminal-launcher.ts` (Electron main process) — ported from the Tauri implementation; frontend `apps/web/src/components/workspace/terminal-launcher.tsx` calls it via the `window.vytdlShell` preload bridge
-- Legacy Tauri backend: `apps/vytdl-desktop/src-tauri/src/terminal_launcher.rs` (frozen; commands `detect_agent_terminals`, `list_agent_providers`, `detect_agent_clis`, `launch_agent_terminal`)
 - Mechanism: a launch script is generated per session under `~/.vytdl/agent-sessions/<uuid>/` containing PATH bootstrap + env exports; the terminal is told to run that script (`open -na Ghostty --args -e` on macOS, `osascript` for Terminal/iTerm, direct binary flags elsewhere)
 - Claude Code third-party providers (GLM/MiniMax) inject `ANTHROPIC_BASE_URL/AUTH_TOKEN/MODEL` + default model slots; codex third-party providers use a session-scoped `CODEX_HOME` with generated `config.toml` (`experimental_bearer_token`, `wire_api = "responses"`) so the user's `~/.codex` is never touched
 - Kimi opens directly (single fixed model, its own login); official Anthropic/OpenAI run with the CLI's own account login
@@ -161,37 +147,25 @@ Batch mode:
 
 ## Download Queue System
 
-The desktop and web backends both implement a download queue:
+The Go daemon (`services/vytdl/internal/server/queue.go`) is the single queue implementation:
 
-### Rust Queue (`queue.rs`)
-- `QueueManager` spawns a background Tokio task
-- Maintains a `VecDeque` of pending downloads and `HashMap` of active tasks
-- Configurable `max_concurrent` (default: 3, range: 1-10)
-- FIFO ordering with `queue_position` persisted to SQLite
-- Cancellation via `tokio::sync::mpsc` channel
+- FIFO with configurable `max_concurrent` (default: 3, clamped 1–10, persisted in settings)
 - Status transitions: `pending` → `downloading` → `completed`/`failed`/`cancelled`
+- Cancel kills the yt-dlp process (context) and classifies as `cancelled`
+- Resume on startup: rows still `pending`/`downloading` are re-enqueued from the serialized request in the `options` column; rows without options are marked failed
+- Progress/logs broadcast over `/api/ws` (`download:progress:<id>`, `download:log:<id>`, `download:status:<id>`, `queue:update`)
 
-### Resume on Startup
-- `lib.rs` calls `db.get_incomplete_downloads()` on startup
-- Downloads with `status = 'downloading'` are reset to `'pending'`
-- Saved `options` JSON is deserialized back to `DownloadOptions`
-- Each resumed download is re-enqueued via `QueueManager::enqueue()`
+Behavior baseline was the desktop `queue.rs` / web `queue.ts` pair (both now removed).
 
-### Web Server Queue (`apps/vytdl-web/src/queue.ts`)
-- `QueueManager` with `Map` of active downloads and array of pending
-- Configurable `maxConcurrent` (default: 3)
-- WebSocket broadcast for real-time progress updates
-- Same status transitions as Rust backend
+## API Client
 
-## API Client Abstraction
+`@vytdl/plugin-runtime/client` is the single API layer (HTTP + WebSocket):
 
-`apps/vytdl-desktop/src/lib/api-client.ts` provides a unified interface:
+- `apiInvoke(command, args)` - `POST /api/{command}` against the daemon (same-origin or `NEXT_PUBLIC_API_BASE`)
+- `apiListen(event, handler)` - WebSocket `/api/ws` with auto-reconnect
+- `shellBridge()` - typed accessor for the Electron `window.vytdlShell` preload bridge; absent in plain browsers (native buttons hide)
 
-- `apiInvoke(command, args)` - Calls Tauri `invoke()` in desktop mode, `POST /api/{command}` in web mode
-- `apiListen(event, handler)` - Binds to Tauri events in desktop mode, WebSocket in web mode
-- `apiConfirm(message, options)` - Uses Tauri dialog in desktop mode, native `confirm()` in web mode
-
-This allows the same Next.js frontend to run in both Tauri desktop and Docker web contexts.
+The same frontend serves desktop (daemon on 127.0.0.1 random port) and Docker web contexts.
 
 ## Database Schema
 
@@ -231,30 +205,26 @@ This allows the same Next.js frontend to run in both Tauri desktop and Docker we
 
 ### Adding a Desktop Feature
 
-1. Add Rust command in `src-tauri/src/commands.rs`
-2. Add frontend API call via `api-client.ts` (not direct Tauri imports)
-3. Build React component in `src/components/`
-4. Wire into Zustand store if state management needed
-5. Add translation keys to all locale JSON files in `src/i18n/locales/`
+1. Feature code lives in the owning `packages/plugin-*` (or a new plugin package with a `plugin.json` + entry registering nav/pages)
+2. Call the daemon via `@vytdl/plugin-runtime/client` `apiInvoke()` (declare the permission in the manifest)
+3. Native-only actions go through the `window.vytdlShell` preload bridge; hide them when the bridge is absent
+4. Translation keys go in `packages/plugin-runtime/locales/*.json` (plugin-local locale fragments merge via `registerTranslations`)
 
 ### Adding a New Language
 
-1. Create a new JSON file in `apps/vytdl-desktop/src/i18n/locales/` (copy from `en.json`)
+1. Create `packages/plugin-runtime/locales/<lang>.json` (copy structure from `en.json`)
 2. Translate all values
-3. Import and register in `apps/vytdl-desktop/src/i18n/index.tsx`
-4. Add option in `apps/vytdl-desktop/src/app/settings/page.tsx`
+3. Register the locale in `packages/plugin-runtime/src/i18n.tsx` and add the option in `plugin-settings`
 
 ### Modifying Download Behavior
 
-- CLI: Edit `internal/downloader/downloader.go`
-- Desktop: Edit `src-tauri/src/downloader.rs`
-- Web: Edit `apps/vytdl-web/src/downloader.ts`
+- Single implementation: `services/vytdl/internal/downloader/downloader.go` (args) + `internal/server/queue.go` (queue semantics)
 
-### Adding a Web API Endpoint
+### Adding a Daemon API Endpoint
 
-1. Add route in `apps/vytdl-web/src/index.ts`
-2. Implement logic using `database.ts` and `downloader.ts`
-3. Ensure the desktop frontend uses `apiInvoke()` (same command name as Tauri)
+1. Handler in `services/vytdl/internal/server/handlers.go` + route in `registerRoutes`
+2. Map the command to a capability domain in `packages/plugin-runtime/src/permissions.ts` if plugins may call it
+3. Use `apiInvoke()` from the frontend with the same command name
 
 ## File Conventions
 

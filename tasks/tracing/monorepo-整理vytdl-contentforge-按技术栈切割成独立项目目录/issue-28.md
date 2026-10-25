@@ -5,11 +5,16 @@
 - **Issue**: #28
 - **Title**: monorepo 整理:vytdl/contentforge 按技术栈切割成独立项目目录
 - **Started At**: 2026-10-25 17:47:26
-- **Status**: in_progress
+- **Status**: completed
 
 ### Original Task Description
 
 ```markdown
 将 monorepo 切割为 vytdl/(Go+Next.js/Electron+DSH 插件)与 contentforge/(Rust+Python+Go cli)两个顶层项目目录;共享技术层 packages/{ui,utils,plugin-runtime}(DSH/desktop 定位)留顶层;CI 拆 vytdl.yml + contentforge.yml 带 paths 过滤;workspace/go.work/Taskfile/docker/scripts/AGENTS.md 全部改线。先完全切割,合并策略后议。
 ```
+- **Completed At**: 2026-10-25 18:02:21
+
+### Implementation Summary
+
+切割完成(PR #29 squash 合并,CI 双流水线 6/6 绿):顶层 vytdl/+contentforge/ 两项目独立管理,共享层 packages/{ui,utils,plugin-runtime}(DSH 定位,contentforge 将来接插件零迁移);CI paths 过滤互不触发。合并策略按约定后议。
 

@@ -20,6 +20,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
   DropdownMenuTrigger,
 } from "@vytdl/ui";
 import { useTranslation } from "@vytdl/plugin-runtime/i18n";
@@ -103,12 +104,17 @@ export function AppSidebar() {
                 <ChevronUp className="ml-auto size-4 opacity-60" />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
-            <DropdownMenuContent side="top" align="start" className="w-44">
-              <DropdownMenuItem onClick={() => router.push("/settings")}>
-                <Settings className="size-4" />
-                <span>{t("nav.modules.settings")}</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
+            {/* Portal to body: the collapsible sidebar applies transforms, which
+                would otherwise become the containing block and pin the fixed
+                menu to the page's top-left corner. */}
+            <DropdownMenuPortal>
+              <DropdownMenuContent side="top" align="start" className="w-44">
+                <DropdownMenuItem onClick={() => router.push("/settings")}>
+                  <Settings className="size-4" />
+                  <span>{t("nav.modules.settings")}</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenuPortal>
           </DropdownMenu>
         </SidebarMenu>
       </SidebarFooter>

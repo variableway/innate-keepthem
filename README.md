@@ -62,10 +62,14 @@ A complete YouTube downloading toolkit with CLI, desktop app, web UI (Docker), a
 
 ### CLI
 
+The standalone CLI is an independent project (GitHub:
+[qdriven/innate-vytdl](https://github.com/qdriven/innate-vytdl), with its own
+skills and Chinese docs):
+
 ```bash
-git clone https://github.com/qdriven/innate-vytdl.git vYtDL-standalone
-cd vYtDL-standalone
-GOWORK=off go build -o vYtDL .
+git clone https://github.com/qdriven/innate-vytdl.git innate-vytdl
+cd innate-vytdl
+go build -o vYtDL .
 ```
 
 ### Desktop App
